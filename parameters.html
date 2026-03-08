@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoForge | Parametres</title>
+    <meta name="description"
+        content="Parametres de la plateforme: apparence, preferences de pratique et notifications.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <div class="site-glow glow-a"></div>
+    <div class="site-glow glow-b"></div>
+
+    <!-- ================= NAVBAR ================= -->
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="index.html"><span>Algo</span>Forge</a>
+            <nav class="main-nav">
+                <a class="nav-link" href="index.html">Accueil</a>
+                <a class="nav-link" href="problems.html">Problemes</a>
+                <a class="nav-link" href="profile.html">Profil</a>
+                <a class="nav-link active" href="parameters.html" aria-current="page">Parametres</a>
+            </nav>
+            <div class="nav-actions">
+                <a class="btn btn-ghost" href="profile.html">Retour profil</a>
+                <a class="btn btn-primary" href="problems.html">Pratiquer</a>
+            </div>
+            <button class="menu-toggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Ouvrir le menu">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+        </div>
+        <div id="mobileMenu" class="mobile-menu">
+            <a class="mobile-link" href="index.html">Accueil</a>
+            <a class="mobile-link" href="problems.html">Problemes</a>
+            <a class="mobile-link" href="profile.html">Profil</a>
+            <a class="mobile-link" href="parameters.html" aria-current="page">Parametres</a>
+        </div>
+    </header>
+    <div id="menuBackdrop" class="menu-backdrop"></div>
+
+    <main id="main-content">
+        <!-- ================= PAGE HERO ================= -->
+        <section class="page-hero compact">
+            <div class="container">
+                <p class="eyebrow reveal">Parametres du compte</p>
+                <h1 class="reveal">Personnalise ton experience de pratique</h1>
+                <p class="lead reveal">Ces preferences sont sauvegardees localement dans ton navigateur.</p>
+            </div>
+        </section>
+
+        <!-- ================= CONTENT SECTION ================= -->
+        <section class="section">
+            <div class="container settings-grid">
+                <form id="settingsForm" class="settings-stack">
+                    <article class="panel settings-card reveal">
+                        <h3>Apparence</h3>
+                        <p class="muted">Choisis ta palette et ton theme.</p>
+                        <div class="accent-row">
+                            <button type="button" class="accent-swatch swatch-sunset active" data-accent="sunset"
+                                aria-label="Palette sunset"></button>
+                            <button type="button" class="accent-swatch swatch-ocean" data-accent="ocean"
+                                aria-label="Palette ocean"></button>
+                            <button type="button" class="accent-swatch swatch-mint" data-accent="mint"
+                                aria-label="Palette mint"></button>
+                        </div>
+                        <label class="field">
+                            <span>Theme</span>
+                            <select id="themeSelect">
+                                <option value="light">Clair</option>
+                                <option value="night">Nuit</option>
+                            </select>
+                        </label>
+                        <label class="checkbox-field">
+                            <input id="motionToggle" type="checkbox" checked>
+                            <span>Activer les animations</span>
+                        </label>
+                    </article>
+
+                    <article class="panel settings-card reveal">
+                        <h3>Preferences de pratique</h3>
+                        <label class="field">
+                            <span>Langage prefere</span>
+                            <select>
+                                <option>JavaScript</option>
+                                <option>Python</option>
+                                <option>Java</option>
+                                <option>C++</option>
+                            </select>
+                        </label>
+                        <label class="field">
+                            <span>Duree de session: <strong id="sessionOut">45 min</strong></span>
+                            <input id="sessionRange" type="range" min="15" max="120" step="5" value="45">
+                        </label>
+                        <label class="checkbox-field">
+                            <input type="checkbox" checked>
+                            <span>Activer les hints progressifs</span>
+                        </label>
+                    </article>
+
+                    <article class="panel settings-card reveal">
+                        <h3>Notifications</h3>
+                        <label class="checkbox-field">
+                            <input type="checkbox" checked>
+                            <span>Rappel de serie quotidienne</span>
+                        </label>
+                        <label class="checkbox-field">
+                            <input type="checkbox" checked>
+                            <span>Recap hebdomadaire de progression</span>
+                        </label>
+                        <label class="checkbox-field">
+                            <input type="checkbox">
+                            <span>Alerte nouveaux concours</span>
+                        </label>
+                    </article>
+
+                    <button type="submit" class="btn btn-primary">Enregistrer les parametres</button>
+                    <p id="saveStatus" class="save-status"></p>
+                </form>
+
+                <aside class="panel preview-pane reveal tilt">
+                    <p class="section-subtitle">Apercu rapide</p>
+                    <h3>Resultat de ta configuration</h3>
+                    <div class="preview-card">
+                        <p>Session recommandee</p>
+                        <div class="preview-row">
+                            <strong>45 min</strong>
+                            <span class="pill">Focus Mode</span>
+                        </div>
+                    </div>
+                    <div class="preview-card">
+                        <p>Objectif de la semaine</p>
+                        <div class="preview-row">
+                            <strong>14 problemes</strong>
+                            <span class="pill">En cours</span>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="footer">
+        <div class="container footer-inner">
+            <p>AlgoForge. Progression continue.</p>
+            <p>Copyright <span class="year"></span> AlgoForge.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

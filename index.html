@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoForge | La pratique du code nouvelle generation</title>
+    <meta name="description"
+        content="Plateforme de preparation technique avec defis interactifs, analytics de progression et parcours entretien.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="page-home">
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <div class="site-glow glow-a"></div>
+    <div class="site-glow glow-b"></div>
+
+    <!-- ================= NAVBAR ================= -->
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="index.html"><span>Algo</span>Forge</a>
+            <nav class="main-nav">
+                <a class="nav-link active" href="index.html" aria-current="page">Accueil</a>
+                <a class="nav-link" href="problems.html">Problemes</a>
+                <a class="nav-link" href="profile.html">Profil</a>
+                <a class="nav-link" href="parameters.html">Parametres</a>
+            </nav>
+            <div class="nav-actions">
+                <a class="btn btn-primary" href="problems.html">Commencer</a>
+            </div>
+            <button class="menu-toggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Ouvrir le menu">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+        </div>
+        <div id="mobileMenu" class="mobile-menu">
+            <a class="mobile-link" href="index.html" aria-current="page">Accueil</a>
+            <a class="mobile-link" href="problems.html">Problemes</a>
+            <a class="mobile-link" href="profile.html">Profil</a>
+            <a class="mobile-link" href="parameters.html">Parametres</a>
+            <a class="btn btn-primary wide" href="problems.html">Resoudre des problemes</a>
+        </div>
+    </header>
+    <div id="menuBackdrop" class="menu-backdrop"></div>
+
+    <main id="main-content">
+        <!-- ================= HERO SECTION ================= -->
+        <section class="hero">
+            <div class="container hero-grid">
+                <div class="hero-copy reveal">
+                    <p class="section-subtitle">Preparation technique intensive</p>
+                    <h1>Reussis tes entretiens avec <span
+                            data-rotating-words="vitesse,rigueur,confiance">vitesse</span>.</h1>
+                    <p class="lead">
+                        AlgoForge combine des patterns reels d'entretien, des hints intelligents et une analyse
+                        detaillee
+                        pour faire progresser ton niveau a chaque session.
+                    </p>
+                    <div class="hero-actions">
+                        <a class="btn btn-primary" href="problems.html">Explorer les problemes</a>
+                        <a class="btn btn-ghost" href="#roadmap">Voir le parcours</a>
+                    </div>
+                    <div class="stat-row">
+                        <div class="stat-card panel">
+                            <p class="stat-label">Problemes disponibles</p>
+                            <p class="stat-value" data-counter="350" data-suffix="+">0+</p>
+                        </div>
+                        <div class="stat-card panel">
+                            <p class="stat-label">Utilisateurs actifs</p>
+                            <p class="stat-value" data-counter="2400" data-suffix="+">0+</p>
+                        </div>
+                        <div class="stat-card panel">
+                            <p class="stat-label">Taux de reussite</p>
+                            <p class="stat-value" data-counter="94" data-suffix="%">0%</p>
+                        </div>
+                    </div>
+                    <div class="scroll-indicator" aria-hidden="true">
+                        <span class="scroll-arrow"></span>
+                    </div>
+                </div>
+                <div class="hero-visual reveal">
+                    <div class="terminal-wrap">
+                        <article class="terminal-card panel">
+                            <div class="terminal-head">
+                                <span></span><span></span><span></span>
+                                <p>binary_search.cpp</p>
+                            </div>
+                            <pre class="terminal-code"><code><span class="code-type">int</span> <span class="code-fn">search</span>(<span class="code-type">const vector&lt;int&gt;&amp;</span> nums, <span class="code-type">int</span> target) {
+  <span class="code-type">int</span> left = 0, right = <span class="code-fn">static_cast</span>&lt;<span class="code-type">int</span>&gt;(nums.size()) - 1;
+  <span class="code-keyword">while</span> (left &lt;= right) {
+    <span class="code-type">int</span> mid = left + (right - left) / 2;
+    <span class="code-keyword">if</span> (nums[mid] == target) <span class="code-keyword">return</span> mid;
+    <span class="code-keyword">if</span> (nums[mid] &lt; target) left = mid + 1;
+    <span class="code-keyword">else</span> right = mid - 1;
+  }
+  <span class="code-keyword">return</span> -1;
+}</code></pre>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= FEATURES GRID ================= -->
+        <section id="features" class="section">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="section-subtitle">Pourquoi cette plateforme est differente</p>
+                    <h2>Un systeme de pratique captivant et mesurable</h2>
+                </div>
+                <div class="feature-grid">
+                    <article class="panel feature-card reveal tilt">
+
+                        <h3>File adaptive de problemes</h3>
+                        <p>La difficulte suit tes faiblesses au lieu d'une liste aleatoire.</p>
+                    </article>
+                    <article class="panel feature-card reveal tilt">
+
+                        <h3>Analyse de complexite en direct</h3>
+                        <p>Des indications immediates sur la complexite temps et memoire.</p>
+                    </article>
+                    <article class="panel feature-card reveal tilt">
+
+                        <h3>Simulation de concours</h3>
+                        <p>Des rounds chronometres avec classement et rapport detaille.</p>
+                    </article>
+                    <article class="panel feature-card reveal tilt">
+
+                        <h3>Replay de code</h3>
+                        <p>Revivez chaque modification pour comprendre votre logique.</p>
+                    </article>
+                    <article class="panel feature-card reveal tilt">
+
+                        <h3>Parcours par entreprise</h3>
+                        <p>Questions frequentes organisees par role et par niveau.</p>
+                    </article>
+                    <article class="panel feature-card reveal tilt">
+
+                        <h3>Benchmark communautaire</h3>
+                        <p>Comparez votre progression avec des profils similaires.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= ROADMAP ================= -->
+        <section id="roadmap" class="section roadmap">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="section-subtitle">Plan de progression</p>
+                    <h2>Un parcours clair vers un niveau entretien solide</h2>
+                </div>
+                <div class="roadmap-grid">
+                    <article class="panel roadmap-step reveal">
+                        <p class="step-pill">Phase initiale</p>
+                        <h3>Fondations des patterns</h3>
+                        <p>Tableaux, hash map, two pointers et recursion en sprints courts.</p>
+                    </article>
+                    <article class="panel roadmap-step reveal">
+                        <p class="step-pill">Phase intermediaire</p>
+                        <h3>Muscle d'optimisation</h3>
+                        <p>Programmation dynamique, heaps et graphes avec objectifs de complexite.</p>
+                    </article>
+                    <article class="panel roadmap-step reveal">
+                        <p class="step-pill">Phase avancee</p>
+                        <h3>Simulation d'entretien</h3>
+                        <p>Sessions chronometrees, communication de solution, et feedback pratique.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= FAQ ================= -->
+        <section id="faq" class="section">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="section-subtitle">Questions frequentes</p>
+                    <h2>Tout ce qu'il faut savoir pour commencer</h2>
+                </div>
+                <div class="faq-list">
+                    <details class="faq-item panel reveal">
+                        <summary>AlgoForge est-il gratuit ?</summary>
+                        <p>Oui, l'acces aux exercices de base est entierement gratuit. Des fonctionnalites avancees
+                            seront disponibles en version premium.</p>
+                    </details>
+                    <details class="faq-item panel reveal">
+                        <summary>Quels langages sont supportes ?</summary>
+                        <p>JavaScript, Python, Java et C++. D'autres langages seront ajoutes progressivement.</p>
+                    </details>
+                    <details class="faq-item panel reveal">
+                        <summary>Comment fonctionne le systeme adaptatif ?</summary>
+                        <p>Nos algorithmes analysent tes resultats et ajustent la difficulte pour cibler tes faiblesses
+                            specifiques.</p>
+                    </details>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= CALL TO ACTION ================= -->
+        <section class="section">
+            <div class="container">
+                <article class="panel cta reveal">
+                    <div class="cta-copy">
+                        <p class="section-subtitle">Pret a passer au niveau suivant ?</p>
+                        <h2>Transforme une pratique random en progression continue.</h2>
+                    </div>
+                    <a class="btn btn-primary cta-action" href="problems.html">Commencer maintenant</a>
+                </article>
+            </div>
+        </section>
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="footer">
+        <div class="container footer-inner">
+            <p>AlgoForge. Code plus net. Decisions plus rapides.</p>
+            <p>Copyright <span class="year"></span> AlgoForge.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

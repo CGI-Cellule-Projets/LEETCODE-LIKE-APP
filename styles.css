@@ -1,0 +1,1617 @@
+/* ============================================
+   🎨 DESIGN TOKENS (Couleurs et variables)
+   Toutes les couleurs et tailles principales sont définies ici. 
+   Modifiez ces valeurs pour changer l'ambiance globale du site.
+   Le mode sombre (Night mode) écrase ces variables plus bas.
+   ============================================ */
+:root {
+    --bg: #f8f7f3;
+    --surface: rgba(255, 255, 255, 0.78);
+    --surface-2: rgba(255, 255, 255, 0.96);
+    --text: #17212d;
+    --muted: #5e6978;
+    --border: rgba(23, 33, 45, 0.12);
+    --accent: #ff6b3d;
+    --accent-2: #ff9f1c;
+    --accent-soft: rgba(255, 107, 61, 0.18);
+    --shadow: 0 14px 30px rgba(13, 24, 36, 0.1);
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    --radius-sm: 12px;
+}
+
+/* ============================================
+   RESET
+   ============================================ */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* ============================================
+   ♿ ACCESSIBILITY HELPERS (Accessibilité)
+   Quelques classes pour rendre le site utilisable par tous.
+   ============================================ */
+
+/* Hidden off-screen, slides into view when user presses Tab */
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: 16px;
+    z-index: 100;
+    padding: 12px 20px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    border-radius: var(--radius-sm);
+    transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+    top: 12px;
+}
+
+/* Visually hidden but still readable by screen readers (used on search label) */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
+/* zoom: 1.1 makes everything slightly larger — intentional design choice so that we can see the whole page */
+html {
+    scroll-behavior: smooth;
+    zoom: 1.1;
+}
+
+/* Firefox doesn't support zoom, so we fake it with scale */
+@supports not (zoom: 1.1) {
+    body {
+        transform: scale(1.1);
+        transform-origin: top left;
+        width: calc(100% / 1.1);
+    }
+}
+
+/* The radial-gradients add subtle warm (top-left) and cool (top-right) tints to the bg */
+body {
+    font-family: "Sora", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    background: radial-gradient(circle at 20% -10%, #fff8eb, transparent 42%),
+        radial-gradient(circle at 90% 20%, #ebf8ff, transparent 45%),
+        var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+    overflow-x: hidden;
+}
+
+/* Prevents scroll when mobile menu is open */
+body.no-scroll {
+    overflow: hidden;
+}
+
+/* Night theme — toggled from settings page, swaps all color tokens */
+body.theme-night {
+    --bg: #0f1722;
+    --surface: rgba(17, 28, 42, 0.74);
+    --surface-2: rgba(20, 32, 48, 0.94);
+    --text: #edf3ff;
+    --muted: #a8bbd8;
+    --border: rgba(173, 190, 216, 0.2);
+    --shadow: 0 16px 32px rgba(1, 6, 12, 0.45);
+}
+
+/* Kills all animations when user unchecks "Activer les animations" in settings */
+body.motion-off *,
+body.motion-off *::before,
+body.motion-off *::after {
+    animation: none !important;
+    transition: none !important;
+}
+
+/* ============================================
+   ✨ BACKGROUND GLOWS (Effets de lumière en fond)
+   Deux cercles flous animés positionnés dans les coins.
+   Présents sur toutes les pages.
+   ============================================ */
+.site-glow {
+    position: fixed;
+    width: 380px;
+    height: 380px;
+    border-radius: 50%;
+    pointer-events: none;
+    filter: blur(54px);
+    opacity: 0.3;
+    z-index: -1;
+}
+
+.glow-a {
+    top: -120px;
+    left: -120px;
+    background: var(--accent);
+    animation: drift-a 14s ease-in-out infinite;
+}
+
+.glow-b {
+    bottom: -140px;
+    right: -120px;
+    background: #43c0d8;
+    animation: drift-b 18s ease-in-out infinite;
+}
+
+@keyframes drift-a {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(30px, 40px);
+    }
+}
+
+@keyframes drift-b {
+
+    0%,
+    100% {
+        transform: translate(0, 0);
+    }
+
+    50% {
+        transform: translate(-35px, -26px);
+    }
+}
+
+/* ============================================
+   FOCUS STYLES
+   :focus-visible = keyboard-only outline (no ring on mouse clicks)
+   ============================================ */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+}
+
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* ============================================
+   LINKS & LAYOUT
+   ============================================ */
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.container {
+    width: min(1120px, 92%);
+    margin: 0 auto;
+}
+
+/* ============================================
+   🗺️ NAVIGATION
+   La barre du haut qui reste collée sur toutes les pages.
+   Sur PC : les liens sont affichés horizontalement.
+   Sur Mobile (<1020px) : on affiche un menu qui glisse vers le bas.
+   ============================================ */
+.topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    backdrop-filter: blur(14px);
+    background: rgba(248, 247, 243, 0.74);
+    border-bottom: 1px solid var(--border);
+}
+
+body.theme-night .topbar {
+    background: rgba(15, 23, 34, 0.78);
+}
+
+/* JS adds .scrolled class when page scrolls past 10px */
+.topbar.scrolled {
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+}
+
+body.theme-night .topbar.scrolled {
+    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+}
+
+.topbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 74px;
+    gap: 14px;
+}
+
+.brand {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+}
+
+.brand span {
+    color: var(--accent);
+}
+
+.main-nav,
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-link {
+    font-weight: 600;
+    color: var(--muted);
+    padding: 8px 10px;
+    border-radius: 10px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+/* aria-current="page" is set on the active page's link for accessibility */
+.nav-link:hover,
+.nav-link.active,
+.nav-link[aria-current="page"] {
+    color: var(--text);
+    background: var(--accent-soft);
+}
+
+/* Hamburger button — hidden on desktop, shown at 1020px breakpoint, hamburger menu howa hada ☰ */ 
+.menu-toggle {
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    border-radius: 12px;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    gap: 4px;
+    cursor: pointer;
+}
+
+/* Three lines that animate into an X when menu is .open */
+.menu-toggle span {
+    width: 18px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--text);
+    transition: transform 0.25s ease, opacity 0.2s ease;
+}
+
+.menu-toggle.open span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+}
+
+.menu-toggle.open span:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-toggle.open span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+}
+
+/* Mobile menu panel
+   Uses max-height + opacity transition instead of display:none,
+   so the open/close actually animates smoothly. */
+.mobile-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    border-top: 1px solid var(--border);
+    padding: 0 4%;
+    background: var(--surface-2);
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.35s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.25s ease,
+        padding 0.35s ease;
+}
+
+.mobile-menu.open {
+    max-height: 400px;
+    opacity: 1;
+    padding: 12px 4% 18px;
+}
+
+/* Dark overlay behind mobile menu — click it to close */
+.menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 35;
+    background: rgba(0, 0, 0, 0.4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.menu-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.mobile-link {
+    font-weight: 600;
+    color: var(--muted);
+    padding: 8px 0;
+}
+
+/* ============================================
+   🔘 BUTTONS (Boutons)
+   UTILISATION : 
+   - .btn : Classe de base pour les liens <a> ou les <button>.
+   - .btn-primary : Action principale (dégradé orange).
+   - .btn-ghost : Action secondaire (fond transparent, avec bordure).
+   - .btn.wide : Prend 100% de la largeur du parent.
+   ============================================ */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    padding: 10px 18px;
+    font-size: 0.94rem;
+    font-weight: 700;
+    border: 1px solid transparent;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.btn:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.btn-primary:hover {
+    box-shadow: 0 16px 36px var(--accent-soft);
+}
+
+.btn-primary {
+    background: linear-gradient(130deg, var(--accent), var(--accent-2));
+    color: #fff;
+    box-shadow: 0 12px 28px var(--accent-soft);
+}
+
+.btn-ghost {
+    background: var(--surface-2);
+    color: var(--text);
+    border-color: var(--border);
+}
+
+.btn.wide {
+    width: 100%;
+}
+
+/* ============================================
+   🧩 SHARED COMPONENTS (Composants réutilisables)
+   UTILISATION :
+   - .panel : Ajoute un fond translucide (glassmorphism), une bordure et une ombre (idéal pour les cartes).
+   - .section-subtitle : Petit texte d'en-tête en majuscules (généralement placé au-dessus d'un h2/h3).
+   - .section : Padding vertical standard pour espacer les blocs.
+   - .lead / .muted : Couleurs atténuées pour le texte secondaire.
+   ============================================ */
+.section {
+    padding: 78px 0;
+}
+
+.panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow);
+}
+
+.section-subtitle {
+    font-size: 0.77rem;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.lead,
+.muted {
+    color: var(--muted);
+}
+
+/* ============================================
+   🏠 HOME PAGE — HERO SECTION (index.html)
+   Mise en page sur 2 colonnes : texte à gauche, carte de code animée à droite.
+   ============================================ */
+.hero {
+    padding: 86px 0 40px;
+}
+
+.hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    align-items: center;
+    gap: 38px;
+}
+
+.hero-copy h1 {
+    margin-top: 12px;
+    font-size: clamp(2rem, 4.5vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.03em;
+}
+
+/* Rotating words in hero h1 — JS cycles through them with a fade effect */
+[data-rotating-words] {
+    color: var(--accent);
+    display: inline-block;
+    will-change: transform, opacity, filter;
+}
+
+[data-rotating-words].word-swap-out {
+    animation: word-swap-out 0.24s cubic-bezier(0.45, 0, 1, 1) both;
+}
+
+[data-rotating-words].word-swap-in {
+    animation: word-swap-in 0.56s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@keyframes word-swap-out {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(0);
+        filter: blur(1.4px);
+    }
+}
+
+@keyframes word-swap-in {
+    0% {
+        opacity: 0;
+        transform: translateY(0);
+        filter: blur(1.4px);
+    }
+
+    65% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+    }
+}
+
+.hero-copy .lead {
+    margin-top: 18px;
+    max-width: 58ch;
+}
+
+.hero-actions {
+    margin-top: 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+/* Hero stat counters — 3 cards with animated number counting (driven by JS) */
+.stat-row {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.stat-card {
+    border-radius: var(--radius-md);
+    padding: 16px;
+}
+
+.stat-label {
+    font-size: 0.78rem;
+    color: var(--muted);
+}
+
+.stat-value {
+    font-size: clamp(1.5rem, 3.2vw, 2rem);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-top: 6px;
+}
+
+/* ============================================
+   HOME PAGE — TERMINAL CARD (hero right side)
+   3D hover effect: JS updates --pointer-rot-x/y on mousemove
+   to tilt the card, and --sheen-x for the gloss sweep.
+   ============================================ */
+.hero-visual {
+    position: relative;
+    perspective: 1400px;
+    --pointer-rot-x: 0deg;
+    --pointer-rot-y: 0deg;
+    --sheen-x: -65%;
+}
+
+.terminal-wrap {
+    position: relative;
+    transform-style: preserve-3d;
+    will-change: transform;
+    animation: terminal-orbit 8.4s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+}
+
+.terminal-card {
+    overflow: hidden;
+    position: relative;
+    transform-origin: center;
+    will-change: transform, box-shadow, filter;
+    border: 1px solid rgba(161, 182, 211, 0.26);
+    background: linear-gradient(148deg, #0d1a2a 0%, #081426 58%, #061021 100%);
+    box-shadow: 0 20px 44px rgba(8, 17, 29, 0.24);
+    transform: perspective(1100px) rotateX(var(--pointer-rot-x)) rotateY(var(--pointer-rot-y)) scale(1);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.55s cubic-bezier(0.16, 1, 0.3, 1), filter 0.55s ease;
+}
+
+/* Colored glow blobs behind the terminal */
+.terminal-card::before {
+    content: "";
+    position: absolute;
+    inset: -24% -16%;
+    pointer-events: none;
+    background:
+        radial-gradient(circle at 84% 8%, rgba(69, 209, 245, 0.2), transparent 46%),
+        radial-gradient(circle at 16% 26%, rgba(133, 227, 157, 0.12), transparent 40%),
+        radial-gradient(circle at 32% 94%, rgba(255, 174, 76, 0.12), transparent 38%);
+    opacity: 0.46;
+    animation: glow-pulse 6s ease-in-out infinite;
+}
+
+/* Gloss/sheen layer — sweeps across on hover via --sheen-x */
+.terminal-card::after {
+    content: "";
+    position: absolute;
+    inset: -105% -46%;
+    pointer-events: none;
+    background: linear-gradient(110deg, transparent 40%, rgba(255, 255, 255, 0.2) 50%, transparent 60%);
+    transform: translateX(var(--sheen-x));
+    opacity: 0;
+    transition: opacity 0.35s ease, transform 0.18s linear;
+}
+
+/* Gentle floating motion when idle */
+@keyframes terminal-orbit {
+
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0) rotate(-0.28deg);
+    }
+
+    50% {
+        transform: translate3d(0, -16px, 0) rotate(0.32deg);
+    }
+}
+
+@keyframes glow-pulse {
+
+    0%,
+    100% {
+        opacity: 0.4;
+    }
+
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* Hover state — JS adds .is-hovering on pointerenter */
+.hero-visual.is-hovering .terminal-wrap {
+    animation-duration: 7.1s;
+}
+
+.hero-visual.is-hovering .terminal-card {
+    box-shadow: 0 34px 62px rgba(7, 17, 30, 0.36);
+    filter: saturate(1.12) brightness(1.03);
+}
+
+.hero-visual.is-hovering .terminal-card::after {
+    opacity: 1;
+}
+
+/* Terminal header bar — traffic light dots + filename */
+.terminal-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 15px;
+    border-bottom: 1px solid rgba(201, 216, 241, 0.13);
+    background: linear-gradient(90deg, rgba(21, 35, 54, 0.95) 0%, rgba(16, 30, 47, 0.94) 52%, rgba(19, 37, 58, 0.95) 100%);
+}
+
+.terminal-head span {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #8ea1be;
+}
+
+/* Traffic light dots: red, yellow, green */
+.terminal-head span:first-child {
+    background: #f76362;
+}
+
+.terminal-head span:nth-child(2) {
+    background: #f9c85f;
+}
+
+.terminal-head span:nth-child(3) {
+    background: #67d993;
+}
+
+.terminal-head p {
+    margin-left: 8px;
+    font-family: "JetBrains Mono", monospace;
+    color: #d8e4ff;
+    font-size: 0.76rem;
+}
+
+/* Code block inside terminal */
+.terminal-card pre {
+    margin: 0;
+    padding: 18px;
+    background: linear-gradient(132deg, #0d1830 0%, #0a1629 72%, #07111f 100%);
+    color: #dce9ff;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.82rem;
+    line-height: 1.56;
+    overflow: auto;
+}
+
+/* Syntax highlighting */
+.terminal-code .code-keyword {
+    color: #7dc5ff;
+    font-weight: 600;
+}
+
+.terminal-code .code-type {
+    color: #7fe1ff;
+}
+
+.terminal-code .code-fn {
+    color: #ffd58a;
+}
+
+/* ============================================
+   🏷️ SECTION HEADERS (En-têtes de section)
+   UTILISATION :
+   Enveloppez un .section-subtitle et un <h2> dans une <div> avec la classe .section-head.
+   Utilisé pour les sections standards (features, roadmap, FAQ, badges).
+   ============================================ */
+.section-head {
+    margin-bottom: 26px;
+}
+
+.section-head h2 {
+    margin-top: 8px;
+    font-size: clamp(1.5rem, 3vw, 2.3rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+}
+
+/* ============================================
+   HOME PAGE — FEATURES GRID (index.html #features)
+   3 columns on desktop, 2 on tablet, 1 on mobile.
+   ============================================ */
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+/* Hover effect for all interactive cards across the site.
+   Uses layered box-shadow only — transforms cause text blur. */
+.feature-card,
+.roadmap-step,
+.problem-card {
+    transition: box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.35s ease;
+}
+
+.feature-card:hover,
+.roadmap-step:hover,
+.problem-card:hover {
+    box-shadow:
+        0 4px 8px rgba(0, 0, 0, 0.04),
+        0 12px 24px rgba(0, 0, 0, 0.08),
+        0 24px 48px rgba(0, 0, 0, 0.06);
+    border-color: var(--accent-soft);
+}
+
+.feature-card {
+    padding: 22px;
+    border-radius: var(--radius-md);
+}
+
+.feature-card h3 {
+    font-size: 1.07rem;
+}
+
+.feature-card p {
+    margin-top: 8px;
+    color: var(--muted);
+}
+
+/* ============================================
+   HOME PAGE — ROADMAP (index.html #roadmap)
+   3 columns on desktop. On mobile (<1020px) collapses
+   to single column with a vertical timeline line.
+   ============================================ */
+.roadmap {
+    background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.44) 100%);
+}
+
+body.theme-night .roadmap {
+    background: linear-gradient(180deg, transparent 0%, rgba(18, 30, 46, 0.5) 100%);
+}
+
+.roadmap-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.roadmap-step {
+    padding: 22px;
+    border-radius: var(--radius-md);
+}
+
+/* Phase label pill (e.g. "Phase initiale") */
+.step-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.74rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.roadmap-step h3 {
+    margin-top: 12px;
+}
+
+.roadmap-step p:last-child {
+    color: var(--muted);
+    margin-top: 8px;
+}
+
+/* ============================================
+   HOME PAGE — CTA BANNER
+   Call-to-action section right before the footer.
+   ============================================ */
+.cta {
+    padding: 30px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 18px;
+    background:
+        radial-gradient(circle at 82% 18%, rgba(92, 208, 235, 0.12), transparent 45%),
+        linear-gradient(145deg, rgba(15, 31, 50, 0.2), rgba(15, 31, 50, 0.06)),
+        var(--surface);
+}
+
+.cta-copy {
+    text-align: center;
+    justify-self: center;
+}
+
+.cta h2 {
+    margin-top: 8px;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.cta-action {
+    min-width: 230px;
+    padding: 13px 24px;
+    white-space: nowrap;
+}
+
+/* ============================================
+   FOOTER — present on all pages
+   ============================================ */
+.footer {
+    padding: 32px 0 44px;
+    border-top: 1px solid var(--border);
+}
+
+.footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 0.92rem;
+    gap: 10px;
+}
+
+/* ============================================
+   INNER PAGES — COMPACT HERO
+   Shorter hero used on problems, profile, and settings pages.
+   ============================================ */
+.page-hero.compact {
+    padding: 62px 0 22px;
+}
+
+.page-hero.compact h1 {
+    margin-top: 10px;
+    font-size: clamp(1.7rem, 3.5vw, 2.8rem);
+    line-height: 1.08;
+}
+
+/* ============================================
+   PROFILE PAGE (profile.html)
+   Task LLA-24 — layout ready, content is placeholder.
+   ============================================ */
+
+/* Shared grid base for profile, split, and settings layouts */
+.profile-grid,
+.split-grid,
+.settings-grid {
+    display: grid;
+    gap: 14px;
+}
+
+/* Two columns: profile info (left) + rank card (right) */
+.profile-grid {
+    grid-template-columns: 1.2fr 0.8fr;
+}
+
+.profile-card {
+    padding: 24px;
+}
+
+.profile-head {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.avatar {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    color: #fff;
+    background: linear-gradient(140deg, var(--accent), var(--accent-2));
+}
+
+.profile-line {
+    margin-top: 14px;
+    color: var(--muted);
+}
+
+.tag-row {
+    margin-top: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tag {
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    border-radius: 999px;
+    padding: 6px 11px;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+/* Rank card with circular progress ring */
+.rank-card {
+    padding: 24px;
+    display: grid;
+    place-items: center;
+    text-align: center;
+}
+
+/* Ring = conic-gradient, inner fill = ::before pseudo-element.
+   This avoids the aliasing that layered radial-gradients cause. */
+.rank-circle {
+    width: 176px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    margin: 12px 0 10px;
+    background: conic-gradient(var(--accent) 0deg 266deg, rgba(127, 151, 186, 0.2) 267deg 360deg);
+    position: relative;
+}
+
+.rank-circle::before {
+    content: "";
+    position: absolute;
+    inset: 21%;
+    border-radius: 50%;
+    background: var(--surface-2);
+}
+
+.rank-number {
+    font-size: 2rem;
+    font-weight: 800;
+    position: relative;
+    z-index: 1;
+}
+
+/* 4-column metrics strip */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.metrics-grid .panel {
+    padding: 16px;
+    border-radius: var(--radius-md);
+}
+
+/* Two-column split: streak heatmap (left) + progress bars (right) */
+.split-grid {
+    grid-template-columns: 1.1fr 0.9fr;
+}
+
+.split-grid .panel {
+    padding: 22px;
+}
+
+/* Streak heatmap — 20 columns of day cells, generated by JS */
+.streak-grid {
+    margin-top: 14px;
+    display: grid;
+    grid-template-columns: repeat(20, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.day {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 4px;
+    background: rgba(127, 151, 186, 0.15);
+}
+
+/* Activity levels — darker green = more activity */
+.day.level-1 {
+    background: rgba(85, 210, 154, 0.35);
+}
+
+.day.level-2 {
+    background: rgba(62, 198, 140, 0.56);
+}
+
+.day.level-3 {
+    background: rgba(37, 170, 120, 0.78);
+}
+
+.day.level-4 {
+    background: rgba(24, 139, 98, 0.95);
+}
+
+/* Progress bars — width is animated by IntersectionObserver in JS */
+.goal-list {
+    margin-top: 14px;
+    display: grid;
+    gap: 14px;
+}
+
+.goal-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+}
+
+.progress-bar {
+    height: 9px;
+    border-radius: 999px;
+    background: rgba(127, 151, 186, 0.22);
+    overflow: hidden;
+}
+
+.progress-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(130deg, var(--accent), var(--accent-2));
+    transition: width 0.9s ease;
+}
+
+/* Achievement badges — 3-column grid */
+.achievement-grid {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.achievement-grid .panel {
+    padding: 18px;
+    border-radius: var(--radius-md);
+}
+
+.achievement-grid p {
+    color: var(--muted);
+    margin-top: 8px;
+}
+
+/* ============================================
+   SETTINGS PAGE (parameters.html)
+   Two columns: form stack (left) + live preview (right).
+   ============================================ */
+.settings-grid {
+    grid-template-columns: 1.02fr 0.98fr;
+    align-items: start;
+}
+
+.settings-stack {
+    display: grid;
+    gap: 12px;
+}
+
+.settings-card {
+    padding: 20px;
+    border-radius: var(--radius-md);
+    display: grid;
+    gap: 12px;
+}
+
+.settings-card h3 {
+    font-size: 1.06rem;
+}
+
+/* Theme color picker — 3 round swatch buttons */
+.accent-row {
+    display: flex;
+    gap: 10px;
+}
+
+.accent-swatch {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    cursor: pointer;
+}
+
+.swatch-sunset {
+    background: linear-gradient(140deg, #ff6b3d, #ff9f1c);
+}
+
+.swatch-ocean {
+    background: linear-gradient(140deg, #1977ff, #00b4d8);
+}
+
+.swatch-mint {
+    background: linear-gradient(140deg, #14b884, #9ad84b);
+}
+
+/* JS toggles .active on click — shows border around selected swatch */
+.accent-swatch.active {
+    border-color: var(--text);
+    transform: scale(1.08);
+}
+
+/* Form fields */
+.field {
+    display: grid;
+    gap: 6px;
+    font-size: 0.9rem;
+}
+
+.field select,
+.field input[type="range"],
+.search-wrap input {
+    width: 100%;
+    border-radius: 11px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    padding: 10px 12px;
+    font-family: inherit;
+}
+
+.checkbox-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkbox-field input {
+    accent-color: var(--accent);
+}
+
+/* Shows "Parametres enregistres." flash message after saving */
+.save-status {
+    min-height: 20px;
+    color: var(--accent);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* Right sidebar — shows a preview of the user's current config */
+.preview-pane {
+    padding: 20px;
+    border-radius: var(--radius-md);
+    display: grid;
+    gap: 14px;
+}
+
+.preview-card {
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    background: var(--surface-2);
+}
+
+.preview-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+.pill {
+    padding: 5px 9px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+/* ============================================
+   PROBLEMS PAGE (problems.html)
+   Search bar + difficulty filter chips + card grid.
+   ============================================ */
+
+/* Search + filter controls bar */
+.problem-controls {
+    margin-top: 18px;
+    padding: 16px;
+    border-radius: var(--radius-md);
+    display: grid;
+    gap: 12px;
+}
+
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Filter chips: Tous / Facile / Moyen / Difficile */
+.filter-chip {
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-weight: 700;
+    font-size: 0.79rem;
+    cursor: pointer;
+    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.15s ease;
+}
+
+.filter-chip:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Active chip gets the accent gradient */
+.filter-chip.active {
+    border-color: transparent;
+    color: #fff;
+    background: linear-gradient(130deg, var(--accent), var(--accent-2));
+}
+
+/* Auto-fit grid: cards fill available space, minimum 300px each */
+.problem-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 12px;
+}
+
+.problem-card {
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: grid;
+    gap: 12px;
+}
+
+.problem-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+/* Difficulty badge (Facile / Moyen / Difficile) */
+.difficulty {
+    border-radius: 999px;
+    padding: 4px 8px;
+    font-weight: 700;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+}
+
+.difficulty.easy {
+    background: rgba(60, 193, 132, 0.2);
+    color: #177f56;
+}
+
+.difficulty.medium {
+    background: rgba(255, 178, 79, 0.24);
+    color: #a95f00;
+}
+
+.difficulty.hard {
+    background: rgba(244, 89, 89, 0.24);
+    color: #ab2222;
+}
+
+/* Night mode needs lighter text to stay readable on dark bg */
+body.theme-night .difficulty.easy {
+    color: #86f1c2;
+}
+
+body.theme-night .difficulty.medium {
+    color: #ffcf8a;
+}
+
+body.theme-night .difficulty.hard {
+    color: #ff9f9f;
+}
+
+/* Left border color matches difficulty: green / orange / red */
+.problem-card[data-difficulty="easy"] {
+    border-left: 3px solid rgba(60, 193, 132, 0.7);
+}
+
+.problem-card[data-difficulty="medium"] {
+    border-left: 3px solid rgba(255, 178, 79, 0.7);
+}
+
+.problem-card[data-difficulty="hard"] {
+    border-left: 3px solid rgba(244, 89, 89, 0.7);
+}
+
+.problem-card p {
+    color: var(--muted);
+}
+
+.meta-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: 0.83rem;
+    color: var(--muted);
+}
+
+.problem-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.points {
+    font-weight: 700;
+    color: var(--accent);
+}
+
+/* ============================================
+   🎬 SCROLL REVEAL ANIMATION (Apparition au scroll)
+   UTILISATION :
+   Ajoutez la classe .reveal à n'importe quel élément HTML. 
+   Il apparaîtra avec un glissement vers le haut lors du scroll.
+   (Géré via IntersectionObserver dans script.js).
+   ============================================ */
+.reveal {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+.reveal.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+/* ============================================
+   SCROLL INDICATOR
+   Bouncing chevron arrow below the hero section.
+   ============================================ */
+.scroll-indicator {
+    margin-top: 36px;
+    display: flex;
+    justify-content: center;
+}
+
+.scroll-arrow {
+    width: 24px;
+    height: 24px;
+    border-right: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+    transform: rotate(45deg);
+    opacity: 0.5;
+    animation: scroll-bounce 2s ease-in-out infinite;
+}
+
+@keyframes scroll-bounce {
+
+    0%,
+    100% {
+        transform: rotate(45deg) translate(0, 0);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: rotate(45deg) translate(4px, 4px);
+        opacity: 1;
+    }
+}
+
+/* ============================================
+   ROADMAP EXTRAS
+   ============================================ */
+
+/* Positioning context for the vertical timeline line (mobile) */
+.roadmap-grid {
+    position: relative;
+}
+
+/* Small accent dot before each phase label */
+.step-pill::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+/* ============================================
+   FAQ (index.html #faq)
+   Native <details>/<summary> — no JS required.
+   The "+" rotates 45deg to become "x" when open.
+   ============================================ */
+.faq-list {
+    display: grid;
+    gap: 10px;
+}
+
+.faq-item {
+    padding: 0;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.faq-item summary {
+    padding: 18px 22px;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.faq-item summary::after {
+    content: "+";
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--accent);
+    transition: transform 0.2s ease;
+}
+
+.faq-item[open] summary::after {
+    transform: rotate(45deg);
+}
+
+/* Hides the default browser triangle marker */
+.faq-item summary::-webkit-details-marker {
+    display: none;
+}
+
+.faq-item p {
+    padding: 0 22px 18px;
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+/* ============================================
+   PROBLEMS PAGE EXTRAS
+   ============================================ */
+
+/* Shown when search + filter yields zero results */
+.no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+/* Live counter: "X problemes trouves" — has aria-live for screen readers */
+.card-count {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+/* ============================================
+   RESPONSIVE — TABLET (max-width: 1020px)
+   Desktop nav hides, hamburger shows. (☰)
+   Multi-column grids collapse.
+   Roadmap gets a vertical timeline line on the left.
+   ============================================ */
+@media (max-width: 1020px) {
+
+    .main-nav,
+    .nav-actions {
+        display: none;
+    }
+
+    .menu-toggle {
+        display: flex;
+    }
+
+    .hero-grid,
+    .profile-grid,
+    .split-grid,
+    .settings-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .feature-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .roadmap-grid,
+    .achievement-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Vertical timeline line on the left side of roadmap cards */
+    .roadmap-grid {
+        padding-left: 24px;
+    }
+
+    .roadmap-grid::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 8px;
+        width: 2px;
+        background: var(--accent-soft);
+    }
+
+    .metrics-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .cta,
+    .footer-inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .cta {
+        grid-template-columns: 1fr;
+        justify-items: center;
+        align-items: center;
+        text-align: center;
+    }
+}
+
+/* ============================================
+   RESPONSIVE — SMALL TABLET (max-width: 768px)
+   ============================================ */
+@media (max-width: 768px) {
+    .section {
+        padding: 48px 0;
+    }
+
+    .hero {
+        padding: 48px 0 28px;
+    }
+
+    .hero-copy h1 {
+        font-size: clamp(1.6rem, 5vw, 2.2rem);
+    }
+
+    .feature-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .cta {
+        padding: 22px;
+    }
+
+    .cta h2 {
+        font-size: 1.3rem;
+    }
+
+    .footer-inner {
+        flex-direction: column;
+        text-align: center;
+        gap: 8px;
+    }
+}
+
+/* ============================================
+   RESPONSIVE — MOBILE (max-width: 680px)
+   Everything single column. Compact spacing.
+   ============================================ */
+@media (max-width: 680px) {
+    .section {
+        padding: 36px 0;
+    }
+
+    .hero {
+        padding-top: 36px;
+    }
+
+    .stat-row,
+    .feature-grid,
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .topbar-inner {
+        min-height: 66px;
+    }
+
+    .scroll-indicator {
+        margin-top: 24px;
+    }
+}
+
+/* ============================================
+   ACCESSIBILITY — REDUCED MOTION
+   Respects OS-level "prefers-reduced-motion" setting.
+   ============================================ */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}

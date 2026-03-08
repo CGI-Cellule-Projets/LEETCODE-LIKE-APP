@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoForge | Profil</title>
+    <meta name="description" content="Vue de profil avec statistiques, serie d'activite et progression par categorie.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <div class="site-glow glow-a"></div>
+    <div class="site-glow glow-b"></div>
+
+    <!-- ================= NAVIGATION BAR ================= -->
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="index.html"><span>Algo</span>Forge</a>
+            <nav class="main-nav">
+                <a class="nav-link" href="index.html">Accueil</a>
+                <a class="nav-link" href="problems.html">Problemes</a>
+                <a class="nav-link active" href="profile.html" aria-current="page">Profil</a>
+                <a class="nav-link" href="parameters.html">Parametres</a>
+            </nav>
+            <div class="nav-actions">
+                <a class="btn btn-ghost" href="problems.html">Continuer</a>
+                <a class="btn btn-primary" href="parameters.html">Reglages</a>
+            </div>
+            <button class="menu-toggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Ouvrir le menu">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+        </div>
+        <div id="mobileMenu" class="mobile-menu">
+            <a class="mobile-link" href="index.html">Accueil</a>
+            <a class="mobile-link" href="problems.html">Problemes</a>
+            <a class="mobile-link" href="profile.html" aria-current="page">Profil</a>
+            <a class="mobile-link" href="parameters.html">Parametres</a>
+        </div>
+    </header>
+    <div id="menuBackdrop" class="menu-backdrop"></div>
+
+    <main id="main-content">
+        <!-- ================= PAGE HERO ================= -->
+        <section class="page-hero compact">
+            <div class="container">
+                <p class="eyebrow reveal">Mon espace</p>
+                <h1 class="reveal">Suivi de progression et objectifs</h1>
+                <p class="lead reveal">Visualise ton niveau, tes series et tes prochaines priorites.</p>
+            </div>
+        </section>
+
+        <!-- ================= CONTENT SECTION ================= -->
+        <section class="section">
+            <div class="container profile-grid">
+                <article class="panel profile-card reveal">
+                    <div class="profile-head">
+                        <div class="avatar">--</div>
+                        <div>
+                            <h2>Profil anonymise</h2>
+                            <p class="muted">Objectif: Preparation technique</p>
+                        </div>
+                    </div>
+                    <p class="profile-line">
+                        Focus actuel: graphes, programmation dynamique et communication de solution.
+                    </p>
+                    <div class="tag-row">
+                        <span class="tag">Top 0%</span>
+                        <span class="tag">Serie: 0 jour</span>
+                        <span class="tag">Niveau: 0</span>
+                    </div>
+                </article>
+
+                <article class="panel rank-card reveal tilt">
+                    <p class="section-subtitle">Classement global</p>
+                    <div class="rank-circle">
+                        <span class="rank-number">#0</span>
+                    </div>
+                    <p class="muted">+0 place cette semaine</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- ================= CONTENT SECTION ================= -->
+        <section class="section">
+            <div class="container metrics-grid">
+                <article class="panel reveal">
+                    <p class="stat-label">Problemes resolus</p>
+                    <p class="stat-value" data-counter="0">0</p>
+                </article>
+                <article class="panel reveal">
+                    <p class="stat-label">Concours termines</p>
+                    <p class="stat-value" data-counter="0">0</p>
+                </article>
+                <article class="panel reveal">
+                    <p class="stat-label">Runtime moyen</p>
+                    <p class="stat-value" data-counter="0" data-suffix="%">0</p>
+                </article>
+                <article class="panel reveal">
+                    <p class="stat-label">Heures de pratique</p>
+                    <p class="stat-value" data-counter="0">0</p>
+                </article>
+            </div>
+        </section>
+
+        <!-- ================= CONTENT SECTION ================= -->
+        <section class="section">
+            <div class="container split-grid">
+                <article class="panel reveal">
+                    <h3>Serie d'activite</h3>
+                    <p class="muted">Historique des 20 dernieres semaines.</p>
+                    <div id="streakGrid" class="streak-grid"></div>
+                </article>
+
+                <article class="panel reveal">
+                    <h3>Progression par domaine</h3>
+                    <div class="goal-list">
+                        <div class="goal-item">
+                            <div class="goal-meta"><span>Programmation dynamique</span><span>0%</span></div>
+                            <div class="progress-bar"><span data-progress="0"></span></div>
+                        </div>
+                        <div class="goal-item">
+                            <div class="goal-meta"><span>Arbres et graphes</span><span>0%</span></div>
+                            <div class="progress-bar"><span data-progress="0"></span></div>
+                        </div>
+                        <div class="goal-item">
+                            <div class="goal-meta"><span>System design de base</span><span>0%</span></div>
+                            <div class="progress-bar"><span data-progress="0"></span></div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <!-- ================= CONTENT SECTION ================= -->
+        <section class="section">
+            <div class="container">
+                <div class="section-head reveal">
+                    <p class="section-subtitle">Badges</p>
+                    <h2>Dernieres realisations</h2>
+                </div>
+                <div class="achievement-grid">
+                    <article class="panel reveal tilt">
+                        <h3>Maitre de la recherche binaire</h3>
+                        <p>0 probleme de recherche binaire valide.</p>
+                    </article>
+                    <article class="panel reveal tilt">
+                        <h3>Combattant de concours</h3>
+                        <p>0 concours consecutif termine dans le top 0%.</p>
+                    </article>
+                    <article class="panel reveal tilt">
+                        <h3>Runtime d'excellence</h3>
+                        <p>0 solution au-dessus du 0e percentile.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="footer">
+        <div class="container footer-inner">
+            <p>AlgoForge. Progression continue.</p>
+            <p>Copyright <span class="year"></span> AlgoForge.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

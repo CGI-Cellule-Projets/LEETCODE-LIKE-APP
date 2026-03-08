@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoForge | Problemes</title>
+    <meta name="description" content="Catalogue de problemes classes par difficulte avec recherche et filtres.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <div class="site-glow glow-a"></div>
+    <div class="site-glow glow-b"></div>
+
+    <!-- ================= NAVBAR ================= -->
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="index.html"><span>Algo</span>Forge</a>
+            <nav class="main-nav">
+                <a class="nav-link" href="index.html">Accueil</a>
+                <a class="nav-link active" href="problems.html" aria-current="page">Problemes</a>
+                <a class="nav-link" href="profile.html">Profil</a>
+                <a class="nav-link" href="parameters.html">Parametres</a>
+            </nav>
+            <div class="nav-actions">
+                <a class="btn btn-ghost" href="index.html">Retour accueil</a>
+                <a class="btn btn-primary" href="parameters.html">Reglages</a>
+            </div>
+            <button class="menu-toggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Ouvrir le menu">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+            </button>
+        </div>
+        <div id="mobileMenu" class="mobile-menu">
+            <a class="mobile-link" href="index.html">Accueil</a>
+            <a class="mobile-link" href="problems.html" aria-current="page">Problemes</a>
+            <a class="mobile-link" href="profile.html">Profil</a>
+            <a class="mobile-link" href="parameters.html">Parametres</a>
+        </div>
+    </header>
+    <div id="menuBackdrop" class="menu-backdrop"></div>
+
+    <main id="main-content">
+        <!-- ================= PAGE HERO ================= -->
+        <section class="page-hero compact">
+            <div class="container">
+                <p class="section-subtitle reveal">Bibliotheque de problemes</p>
+                <h1 class="reveal">Travaille chaque categorie avec precision</h1>
+                <p class="lead reveal">Filtre par difficulte et cherche rapidement le bon exercice.</p>
+
+                <div class="problem-controls panel reveal">
+                    <div class="search-wrap">
+                        <label for="problemSearch" class="sr-only">Rechercher un probleme</label>
+                        <input id="problemSearch" type="text" placeholder="Rechercher un probleme ou un tag..."
+                            aria-label="Rechercher un probleme">
+                    </div>
+                    <div class="filter-row">
+                        <button class="filter-chip active" data-filter="all" aria-pressed="true">Tous</button>
+                        <button class="filter-chip" data-filter="easy" aria-pressed="false">Facile</button>
+                        <button class="filter-chip" data-filter="medium" aria-pressed="false">Moyen</button>
+                        <button class="filter-chip" data-filter="hard" aria-pressed="false">Difficile</button>
+                    </div>
+                    <p id="cardCount" class="card-count" aria-live="polite">6 problemes trouves</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= CONTENT SECTION ================= -->
+        <section class="section">
+            <div class="container problem-grid">
+                <article class="problem-card panel reveal" data-difficulty="easy" data-title="Two Sum">
+                    <div class="problem-top">
+                        <h3>Two Sum</h3>
+                        <span class="difficulty easy">Facile</span>
+                    </div>
+                    <p>Trouver deux indices dont la somme est egale a la cible.</p>
+                    <div class="meta-line">
+                        <span>Acceptation 54%</span>
+                        <span>Array, Hash Map</span>
+                    </div>
+                    <div class="problem-actions">
+                        <span class="points">+120 XP</span>
+                        <a class="btn btn-ghost" href="#">Resoudre</a>
+                    </div>
+                </article>
+
+                <article class="problem-card panel reveal" data-difficulty="medium"
+                    data-title="Longest Substring Without Repeating Characters">
+                    <div class="problem-top">
+                        <h3>Longest Substring</h3>
+                        <span class="difficulty medium">Moyen</span>
+                    </div>
+                    <p>Trouver la plus longue sous-chaine sans repetition de caracteres.</p>
+                    <div class="meta-line">
+                        <span>Acceptation 36%</span>
+                        <span>Sliding Window</span>
+                    </div>
+                    <div class="problem-actions">
+                        <span class="points">+180 XP</span>
+                        <a class="btn btn-ghost" href="#">Resoudre</a>
+                    </div>
+                </article>
+
+                <article class="problem-card panel reveal" data-difficulty="hard" data-title="Merge K Sorted Lists">
+                    <div class="problem-top">
+                        <h3>Merge K Lists</h3>
+                        <span class="difficulty hard">Difficile</span>
+                    </div>
+                    <p>Fusionner k listes triees en optimisant le temps d'execution.</p>
+                    <div class="meta-line">
+                        <span>Acceptation 42%</span>
+                        <span>Heap, Linked List</span>
+                    </div>
+                    <div class="problem-actions">
+                        <span class="points">+320 XP</span>
+                        <a class="btn btn-ghost" href="#">Resoudre</a>
+                    </div>
+                </article>
+
+                <article class="problem-card panel reveal" data-difficulty="medium"
+                    data-title="Binary Tree Level Order Traversal">
+                    <div class="problem-top">
+                        <h3>Level Order Traversal</h3>
+                        <span class="difficulty medium">Moyen</span>
+                    </div>
+                    <p>Parcourir un arbre binaire niveau par niveau via BFS.</p>
+                    <div class="meta-line">
+                        <span>Acceptation 58%</span>
+                        <span>Tree, BFS</span>
+                    </div>
+                    <div class="problem-actions">
+                        <span class="points">+170 XP</span>
+                        <a class="btn btn-ghost" href="#">Resoudre</a>
+                    </div>
+                </article>
+
+                <article class="problem-card panel reveal" data-difficulty="hard" data-title="Word Ladder">
+                    <div class="problem-top">
+                        <h3>Word Ladder</h3>
+                        <span class="difficulty hard">Difficile</span>
+                    </div>
+                    <p>Transformer un mot en un autre avec le plus petit nombre d'etapes.</p>
+                    <div class="meta-line">
+                        <span>Acceptation 31%</span>
+                        <span>Graph, BFS</span>
+                    </div>
+                    <div class="problem-actions">
+                        <span class="points">+340 XP</span>
+                        <a class="btn btn-ghost" href="#">Resoudre</a>
+                    </div>
+                </article>
+
+                <article class="problem-card panel reveal" data-difficulty="easy" data-title="Valid Parentheses">
+                    <div class="problem-top">
+                        <h3>Valid Parentheses</h3>
+                        <span class="difficulty easy">Facile</span>
+                    </div>
+                    <p>Verifier la validite d'une sequence de parentheses.</p>
+                    <div class="meta-line">
+                        <span>Acceptation 49%</span>
+                        <span>Stack</span>
+                    </div>
+                    <div class="problem-actions">
+                        <span class="points">+110 XP</span>
+                        <a class="btn btn-ghost" href="#">Resoudre</a>
+                    </div>
+                </article>
+            </div>
+            <p id="noResults" class="no-results" hidden>Aucun probleme ne correspond a votre recherche.</p>
+        </section>
+    </main>
+
+    <!-- ================= FOOTER ================= -->
+    <footer class="footer">
+        <div class="container footer-inner">
+            <p>AlgoForge. Progression continue.</p>
+            <p>Copyright <span class="year"></span> AlgoForge.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
