@@ -438,4 +438,27 @@ document.addEventListener("DOMContentLoaded", () => {
         searchInput?.addEventListener("input", applyFilters);
         applyFilters();
     }
+
+    /*
+     * 🔗 --- PROBLEM → CODE EDITOR NAVIGATION ---
+     * Stores selected problem data in localStorage and navigates to the code editor.
+     */
+    const solveButtons = document.querySelectorAll(".solve-btn");
+    solveButtons.forEach((btn) => {
+        btn.addEventListener("click", (e) => {
+            e.preventDefault();
+            const card = btn.closest(".problem-card");
+            if (!card) return;
+
+            const problemData = {
+                title: card.dataset.title || "",
+                difficulty: card.dataset.difficulty || "",
+                description: card.dataset.description || "",
+                tags: card.dataset.tags || ""
+            };
+
+            localStorage.setItem("algoforge-current-problem", JSON.stringify(problemData));
+            window.location.href = "editor/indexcodeeditor.html";
+        });
+    });
 });

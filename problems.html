@@ -11,7 +11,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 
 <body>
@@ -76,7 +76,9 @@
         <!-- ================= CONTENT SECTION ================= -->
         <section class="section">
             <div class="container problem-grid">
-                <article class="problem-card panel reveal" data-difficulty="easy" data-title="Two Sum">
+                <article class="problem-card panel reveal" data-difficulty="easy" data-title="Two Sum"
+                    data-description="Etant donne un tableau d'entiers nums et un entier target, retournez les indices des deux nombres dont la somme est egale a target.\n\nVous pouvez supposer que chaque entree a exactement une solution, et vous ne pouvez pas utiliser le meme element deux fois.\n\nExemple:\nInput: nums = [2,7,11,15], target = 9\nOutput: [0,1]\nExplication: nums[0] + nums[1] == 9, donc on retourne [0, 1]."
+                    data-tags="Array, Hash Map">
                     <div class="problem-top">
                         <h3>Two Sum</h3>
                         <span class="difficulty easy">Facile</span>
@@ -88,12 +90,14 @@
                     </div>
                     <div class="problem-actions">
                         <span class="points">+120 XP</span>
-                        <a class="btn btn-ghost" href="#">Resoudre</a>
+                        <a class="btn btn-primary solve-btn" href="#">Resoudre</a>
                     </div>
                 </article>
 
                 <article class="problem-card panel reveal" data-difficulty="medium"
-                    data-title="Longest Substring Without Repeating Characters">
+                    data-title="Longest Substring Without Repeating Characters"
+                    data-description="Etant donne une chaine de caracteres s, trouvez la longueur de la plus longue sous-chaine sans caracteres repetes.\n\nExemple 1:\nInput: s = 'abcabcbb'\nOutput: 3\nExplication: La reponse est 'abc', avec une longueur de 3.\n\nExemple 2:\nInput: s = 'bbbbb'\nOutput: 1\nExplication: La reponse est 'b', avec une longueur de 1."
+                    data-tags="Sliding Window, String">
                     <div class="problem-top">
                         <h3>Longest Substring</h3>
                         <span class="difficulty medium">Moyen</span>
@@ -105,11 +109,13 @@
                     </div>
                     <div class="problem-actions">
                         <span class="points">+180 XP</span>
-                        <a class="btn btn-ghost" href="#">Resoudre</a>
+                        <a class="btn btn-primary solve-btn" href="#">Resoudre</a>
                     </div>
                 </article>
 
-                <article class="problem-card panel reveal" data-difficulty="hard" data-title="Merge K Sorted Lists">
+                <article class="problem-card panel reveal" data-difficulty="hard" data-title="Merge K Sorted Lists"
+                    data-description="On vous donne un tableau de k listes chainees, chacune triee par ordre croissant. Fusionnez toutes les listes en une seule liste triee et retournez-la.\n\nExemple:\nInput: lists = [[1,4,5],[1,3,4],[2,6]]\nOutput: [1,1,2,3,4,4,5,6]\n\nContraintes:\n- k == lists.length\n- 0 <= k <= 10^4\n- Le nombre total de noeuds ne depasse pas 10^4."
+                    data-tags="Heap, Linked List">
                     <div class="problem-top">
                         <h3>Merge K Lists</h3>
                         <span class="difficulty hard">Difficile</span>
@@ -121,12 +127,14 @@
                     </div>
                     <div class="problem-actions">
                         <span class="points">+320 XP</span>
-                        <a class="btn btn-ghost" href="#">Resoudre</a>
+                        <a class="btn btn-primary solve-btn" href="#">Resoudre</a>
                     </div>
                 </article>
 
                 <article class="problem-card panel reveal" data-difficulty="medium"
-                    data-title="Binary Tree Level Order Traversal">
+                    data-title="Binary Tree Level Order Traversal"
+                    data-description="Etant donne la racine d'un arbre binaire, retournez le parcours par niveau de ses noeuds (de gauche a droite, niveau par niveau).\n\nExemple:\nInput: root = [3,9,20,null,null,15,7]\nOutput: [[3],[9,20],[15,7]]\n\nContraintes:\n- Le nombre de noeuds est dans l'intervalle [0, 2000].\n- -1000 <= Node.val <= 1000"
+                    data-tags="Tree, BFS">
                     <div class="problem-top">
                         <h3>Level Order Traversal</h3>
                         <span class="difficulty medium">Moyen</span>
@@ -138,11 +146,13 @@
                     </div>
                     <div class="problem-actions">
                         <span class="points">+170 XP</span>
-                        <a class="btn btn-ghost" href="#">Resoudre</a>
+                        <a class="btn btn-primary solve-btn" href="#">Resoudre</a>
                     </div>
                 </article>
 
-                <article class="problem-card panel reveal" data-difficulty="hard" data-title="Word Ladder">
+                <article class="problem-card panel reveal" data-difficulty="hard" data-title="Word Ladder"
+                    data-description="Etant donne deux mots (beginWord et endWord) et une liste de mots, trouvez la longueur de la plus courte sequence de transformation de beginWord a endWord, telle que chaque mot adjacent ne differe que d'une seule lettre.\n\nExemple:\nInput: beginWord = 'hit', endWord = 'cog', wordList = ['hot','dot','dog','lot','log','cog']\nOutput: 5\nExplication: hit -> hot -> dot -> dog -> cog"
+                    data-tags="Graph, BFS">
                     <div class="problem-top">
                         <h3>Word Ladder</h3>
                         <span class="difficulty hard">Difficile</span>
@@ -154,11 +164,13 @@
                     </div>
                     <div class="problem-actions">
                         <span class="points">+340 XP</span>
-                        <a class="btn btn-ghost" href="#">Resoudre</a>
+                        <a class="btn btn-primary solve-btn" href="#">Resoudre</a>
                     </div>
                 </article>
 
-                <article class="problem-card panel reveal" data-difficulty="easy" data-title="Valid Parentheses">
+                <article class="problem-card panel reveal" data-difficulty="easy" data-title="Valid Parentheses"
+                    data-description="Etant donne une chaine s contenant uniquement les caracteres '(', ')', '{', '}', '[' et ']', determinez si la chaine est valide.\n\nUne chaine est valide si:\n- Les parentheses ouvertes sont fermees par le meme type.\n- Les parentheses sont fermees dans le bon ordre.\n\nExemple 1:\nInput: s = '()'\nOutput: true\n\nExemple 2:\nInput: s = '([)]'\nOutput: false"
+                    data-tags="Stack, String">
                     <div class="problem-top">
                         <h3>Valid Parentheses</h3>
                         <span class="difficulty easy">Facile</span>
@@ -170,7 +182,7 @@
                     </div>
                     <div class="problem-actions">
                         <span class="points">+110 XP</span>
-                        <a class="btn btn-ghost" href="#">Resoudre</a>
+                        <a class="btn btn-primary solve-btn" href="#">Resoudre</a>
                     </div>
                 </article>
             </div>
@@ -186,7 +198,7 @@
         </div>
     </footer>
 
-    <script src="script.js"></script>
+    <script src="assets/js/script.js"></script>
 </body>
 
 </html>
