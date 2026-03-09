@@ -1,0 +1,125 @@
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Cream/Orange Palette - Light Theme */
+  --bg-base: #f8f7f3;
+  /* cream */
+  --bg-panel: rgba(255, 255, 255, 0.78);
+  /* light white */
+  --bg-panel-hover: rgba(255, 255, 255, 0.96);
+  /* lighter white */
+
+  --text-primary: #17212d;
+  /* dark text */
+  --text-secondary: #5e6978;
+  /* muted text */
+  --text-muted: #8b96a8;
+  /* muted gray */
+
+  --accent-primary: #ff6b3d;
+  /* orange */
+  --accent-secondary: #ff9f1c;
+  /* yellow-orange */
+  --accent-glow: rgba(255, 107, 61, 0.18);
+
+  --border-color: rgba(23, 33, 45, 0.12);
+  /* light border */
+  --border-light: rgba(23, 33, 45, 0.08);
+
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: var(--text-primary);
+  background-color: var(--bg-base);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  overflow: hidden;
+  /* Prevent scrolling on the body, let panels scroll */
+  background: radial-gradient(circle at 20% -10%, #fff8eb, transparent 42%),
+    radial-gradient(circle at 90% 20%, #ebf8ff, transparent 45%),
+    var(--bg-base);
+  color: var(--text-primary);
+}
+
+a {
+  font-weight: 500;
+  color: var(--accent-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #34d399;
+  /* emerald-400 */
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--text-primary);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--bg-panel);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button:hover {
+  background-color: var(--bg-panel-hover);
+}
+
+button:focus,
+button:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling for webkit */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(23, 33, 45, 0.3);
+  border-radius: 5px;
+  border: 2px solid var(--bg-panel);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(23, 33, 45, 0.5);
+}
