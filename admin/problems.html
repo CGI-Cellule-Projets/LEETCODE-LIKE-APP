@@ -11,7 +11,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../apps/web/assets/css/styles.css">
 </head>
 
 <body class="admin-page">
@@ -38,79 +38,91 @@
 
     <main class="admin-main">
         <section class="admin-container">
-            <div class="admin-header">
-                <h1>Gestion des Problèmes</h1>
-                <p>Créez, modifiez et supprimez des problèmes de codage</p>
-                <button id="createProblemBtn" class="btn btn-primary">+ Créer un Problème</button>
+            <div class="admin-header admin-hero">
+                <div>
+                    <p class="eyebrow">Content Management</p>
+                    <h1>Gestion des Problèmes</h1>
+                    <p>Créez, modifiez et supprimez des problèmes de codage avec une vue compacte et lisible.</p>
+                </div>
+                <div class="admin-header-actions">
+                    <button id="createProblemBtn" class="btn btn-primary">+ Nouveau problème</button>
+                </div>
             </div>
 
-            <!-- ================= CREATE/EDIT FORM ================= -->
-            <div id="createFormSection" class="problem-form-section panel" style="display: none;">
-                <h2 id="formTitle">Créer un Nouveau Problème</h2>
-                <form id="problemForm" class="problem-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="problemName">Nom du Problème *</label>
-                            <input type="text" id="problemName" placeholder="Ex: Two Sum" required>
+            <div class="admin-workspace">
+                <!-- ================= CREATE/EDIT FORM ================= -->
+                <div id="createFormSection" class="problem-form-section panel" style="display: none;">
+                    <div class="problem-form-header">
+                        <div>
+                            <p class="eyebrow">Editor</p>
+                            <h2 id="formTitle">Créer un Nouveau Problème</h2>
                         </div>
-                        <div class="form-group">
-                            <label for="problemDifficulty">Difficulté *</label>
-                            <select id="problemDifficulty" required>
-                                <option value="">Sélectionner une difficulté</option>
-                                <option value="easy">Facile</option>
-                                <option value="medium">Moyen</option>
-                                <option value="hard">Difficile</option>
-                            </select>
+                        <button type="button" class="btn btn-ghost btn-sm" id="cancelFormBtn">Fermer</button>
+                    </div>
+                    <form id="problemForm" class="problem-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="problemName">Nom du Problème *</label>
+                                <input type="text" id="problemName" placeholder="Ex: Two Sum" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="problemDifficulty">Difficulté *</label>
+                                <select id="problemDifficulty" required>
+                                    <option value="">Sélectionner une difficulté</option>
+                                    <option value="easy">Facile</option>
+                                    <option value="med">Moyen</option>
+                                    <option value="hard">Difficile</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label for="problemDescription">Description *</label>
-                        <textarea id="problemDescription" placeholder="Décrivez le problème..." required rows="6"></textarea>
-                    </div>
-
-                    <div class="form-row">
                         <div class="form-group">
-                            <label for="problemCategory">Catégorie</label>
-                            <input type="text" id="problemCategory" placeholder="Ex: Array, HashMap">
+                            <label for="problemDescription">Description *</label>
+                            <textarea id="problemDescription" placeholder="Décrivez le problème..." required rows="6"></textarea>
                         </div>
-                        <div class="form-group">
-                            <label for="isPublished">
-                                <input type="checkbox" id="isPublished">
-                                Publié
-                            </label>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="problemCategory">Catégorie</label>
+                                <input type="text" id="problemCategory" placeholder="Ex: Array, HashMap">
+                            </div>
+                            <div class="form-group checkbox-group">
+                                <label for="isPublished">
+                                    <input type="checkbox" id="isPublished">
+                                    Publié
+                                </label>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Enregistrer</button>
-                        <button type="button" class="btn btn-ghost" id="cancelFormBtn">Annuler</button>
-                    </div>
-                </form>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </div>
+                    </form>
 
-                <div id="formError" class="error-message" style="display: none;"></div>
-            </div>
-
-            <!-- ================= PROBLEMS LIST ================= -->
-            <div class="problems-list-section">
-                <div class="list-controls">
-                    <input type="text" id="problemSearch" placeholder="Rechercher un problème..." class="search-input">
-                    <select id="difficultyFilter" class="filter-select">
-                        <option value="">Toutes les difficultés</option>
-                        <option value="easy">Facile</option>
-                        <option value="medium">Moyen</option>
-                        <option value="hard">Difficile</option>
-                    </select>
+                    <div id="formError" class="error-message" style="display: none;"></div>
                 </div>
 
-                <div id="problemsTable" class="problems-table panel">
-                    <div class="loading-placeholder">Chargement des problèmes...</div>
+                <!-- ================= PROBLEMS LIST ================= -->
+                <div class="problems-list-section">
+                    <div class="list-controls panel">
+                        <input type="text" id="problemSearch" placeholder="Rechercher un problème..." class="search-input">
+                        <select id="difficultyFilter" class="filter-select">
+                            <option value="">Toutes les difficultés</option>
+                            <option value="easy">Facile</option>
+                            <option value="med">Moyen</option>
+                            <option value="hard">Difficile</option>
+                        </select>
+                    </div>
+
+                    <div id="problemsTable" class="problems-table panel">
+                        <div class="loading-placeholder">Chargement des problèmes...</div>
+                    </div>
                 </div>
             </div>
         </section>
     </main>
 
-    <script src="../assets/js/api.js"></script>
+    <script src="../apps/web/assets/js/api.js"></script>
     <script src="js/admin-access-check.js"></script>
     <script src="js/admin-problems.js"></script>
 </body>

@@ -25,7 +25,10 @@ export default defineConfig({
     outDir: '../web/editor',
     emptyOutDir: true,
     rollupOptions: {
-      input: 'indexcodeeditor.html',
+      input: {
+        editor: 'indexcodeeditor.html',
+        adminContent: 'admin-content.html',
+      },
     },
   },
 })

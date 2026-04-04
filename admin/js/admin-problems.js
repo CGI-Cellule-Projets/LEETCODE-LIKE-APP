@@ -45,11 +45,15 @@ function showCreateForm() {
   const form = document.getElementById('problemForm');
   const formSection = document.getElementById('createFormSection');
   const formTitle = document.getElementById('formTitle');
+  const searchInput = document.getElementById('problemSearch');
 
   formTitle.textContent = 'Créer un Nouveau Problème';
   form.reset();
   formSection.style.display = 'block';
   document.querySelector('.problems-list-section').style.display = 'none';
+  if (searchInput) {
+    searchInput.value = '';
+  }
   
   // Scroll to form
   formSection.scrollIntoView({ behavior: 'smooth' });
@@ -130,8 +134,9 @@ function filterProblems() {
   const difficultyFilter = document.getElementById('difficultyFilter').value;
 
   const filtered = allProblems.filter(problem => {
-    const matchesSearch = problem.name.toLowerCase().includes(searchQuery) ||
-                         problem.description.toLowerCase().includes(searchQuery);
+    const name = String(problem.name || '').toLowerCase();
+    const description = String(problem.description || '').toLowerCase();
+    const matchesSearch = name.includes(searchQuery) || description.includes(searchQuery);
     const matchesDifficulty = !difficultyFilter || problem.difficulty_level === difficultyFilter;
 
     return matchesSearch && matchesDifficulty;
@@ -164,13 +169,13 @@ function renderProblemsList(problems) {
   problems.forEach(problem => {
     const isPublished = problem.is_published ? '✓' : '✗';
     html += `
-      <tr data-problem-id="${problem.id}">
+      <tr data-problem-id="${problem.problem_id}">
         <td class="problem-name">${problem.name}</td>
         <td><span class="difficulty ${problem.difficulty_level}">${problem.difficulty_level}</span></td>
         <td>${isPublished}</td>
         <td class="actions">
-          <button class="btn-icon btn-edit" onclick="editProblem(${problem.id})" title="Éditer">✏️</button>
-          <button class="btn-icon btn-delete" onclick="deleteProblem(${problem.id})" title="Supprimer">🗑️</button>
+          <button class="btn-icon btn-edit" onclick="editProblem(${problem.problem_id})" title="Éditer">Éditer</button>
+          <button class="btn-icon btn-delete" onclick="deleteProblem(${problem.problem_id})" title="Supprimer">Supprimer</button>
         </td>
       </tr>
     `;
@@ -185,7 +190,7 @@ function renderProblemsList(problems) {
 }
 
 async function editProblem(problemId) {
-  const problem = allProblems.find(p => p.id === problemId);
+  const problem = allProblems.find(p => p.problem_id === problemId);
   if (!problem) return;
 
   editingProblemId = problemId;
@@ -193,7 +198,7 @@ async function editProblem(problemId) {
   // Fill form with problem data
   document.getElementById('problemName').value = problem.name;
   document.getElementById('problemDifficulty').value = problem.difficulty_level;
-  document.getElementById('problemDescription').value = problem.description;
+  document.getElementById('problemDescription').value = problem.description || '';
   document.getElementById('isPublished').checked = problem.is_published || false;
 
   // Show form and scroll
@@ -205,7 +210,7 @@ async function editProblem(problemId) {
 }
 
 async function deleteProblem(problemId) {
-  const problem = allProblems.find(p => p.id === problemId);
+  const problem = allProblems.find(p => p.problem_id === problemId);
   if (!problem) return;
 
   if (!confirm(`Êtes-vous sûr de vouloir supprimer "${problem.name}" ? Cette action est irréversible.`)) {

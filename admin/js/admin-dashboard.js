@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       
       // Calculate difficulty breakdown
       const easyCount = problemsResult.data.filter(p => p.difficulty_level === 'easy').length;
-      const mediumCount = problemsResult.data.filter(p => p.difficulty_level === 'medium').length;
+      const mediumCount = problemsResult.data.filter(p => p.difficulty_level === 'med').length;
       const hardCount = problemsResult.data.filter(p => p.difficulty_level === 'hard').length;
       
       console.log(`Problems - Easy: ${easyCount}, Medium: ${mediumCount}, Hard: ${hardCount}`);
@@ -54,11 +54,13 @@ async function loadRecentActivity() {
       let html = '<div class="activity-items">';
       
       recentProblems.forEach(problem => {
-        const createdDate = new Date(problem.created_at).toLocaleDateString('fr-FR', {
-          year: 'numeric',
-          month: 'short',
-          day: 'numeric'
-        });
+        const createdDate = problem.created_at
+          ? new Date(problem.created_at).toLocaleDateString('fr-FR', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            })
+          : `Problème #${problem.problem_id}`;
         
         html += `
           <div class="activity-item">

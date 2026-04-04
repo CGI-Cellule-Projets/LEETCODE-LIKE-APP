@@ -11,7 +11,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="../assets/css/styles.css">
+    <link rel="stylesheet" href="../apps/web/assets/css/styles.css">
 </head>
 
 <body class="admin-page">
@@ -38,9 +38,15 @@
 
     <main class="admin-main">
         <section class="admin-container">
-            <div class="admin-header">
-                <h1>Tableau de Bord Administrateur</h1>
-                <p>Gérez les problèmes, utilisateurs et contenu de la plateforme</p>
+            <div class="admin-header admin-hero">
+                <div>
+                    <p class="eyebrow">Vue d’ensemble</p>
+                    <h1>Tableau de Bord Administrateur</h1>
+                    <p>Gérez les problèmes, utilisateurs et contenu de la plateforme depuis un seul point de contrôle.</p>
+                </div>
+                <div class="admin-header-actions">
+                    <a href="problems.html" class="btn btn-primary">Gérer les problèmes</a>
+                </div>
             </div>
 
             <!-- ================= STATS GRID ================= -->
@@ -50,7 +56,7 @@
                     <div class="stat-content">
                         <h3>Problèmes</h3>
                         <p class="stat-number" id="totalProblems">0</p>
-                        <a href="problems.html" class="stat-link">Gérer les problèmes →</a>
+                        <p class="stat-note">Base de contenu éditable</p>
                     </div>
                 </div>
 
@@ -59,7 +65,7 @@
                     <div class="stat-content">
                         <h3>Utilisateurs</h3>
                         <p class="stat-number" id="totalUsers">0</p>
-                        <a href="users.html" class="stat-link">Voir les utilisateurs →</a>
+                        <p class="stat-note">Comptes et rôles</p>
                     </div>
                 </div>
 
@@ -68,7 +74,7 @@
                     <div class="stat-content">
                         <h3>Soumissions</h3>
                         <p class="stat-number" id="totalSubmissions">0</p>
-                        <a href="submissions.html" class="stat-link">Voir les soumissions →</a>
+                        <p class="stat-note">Historique d’exécution</p>
                     </div>
                 </div>
 
@@ -77,26 +83,10 @@
                     <div class="stat-content">
                         <h3>Système</h3>
                         <p class="stat-number" id="systemStatus">✓</p>
-                        <a href="#" class="stat-link">État du système →</a>
+                        <p class="stat-note">API locale active</p>
                     </div>
                 </div>
             </div>
-
-            <!-- ================= QUICK ACTIONS ================= -->
-            <section class="quick-actions">
-                <h2>Actions Rapides</h2>
-                <div class="action-buttons">
-                    <a href="problems.html?create=true" class="btn btn-primary">
-                        + Créer un Problème
-                    </a>
-                    <a href="users.html" class="btn btn-secondary">
-                        👥 Voir les Utilisateurs
-                    </a>
-                    <a href="settings.html" class="btn btn-secondary">
-                        ⚙️ Paramètres
-                    </a>
-                </div>
-            </section>
 
             <!-- ================= RECENT ACTIVITY ================= -->
             <section class="recent-activity">
@@ -108,7 +98,7 @@
         </section>
     </main>
 
-    <script src="../assets/js/api.js"></script>
+    <script src="../apps/web/assets/js/api.js"></script>
     <script src="js/admin-access-check.js"></script>
     <script src="js/admin-dashboard.js"></script>
 </body>

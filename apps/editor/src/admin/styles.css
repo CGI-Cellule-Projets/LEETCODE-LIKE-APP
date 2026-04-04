@@ -1,0 +1,36 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Sora:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color: #17212d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Sora', system-ui, sans-serif;
+}
+
+.editor-toolbar {
+  border-radius: 0.75rem;
+  border: 1px solid rgb(203 213 225);
+}
+
+.CodeMirror,
+.CodeMirror-scroll {
+  min-height: 220px;
+}
+
+.CodeMirror {
+  border: 1px solid rgb(203 213 225);
+  border-top: none;
+  border-radius: 0 0 0.75rem 0.75rem;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+}
