@@ -146,6 +146,37 @@ const SAMPLE_TESTS_BY_TITLE = {
   ],
 };
 
+const OFFICIAL_TESTS_BY_TITLE = {
+  "Two Sum": [
+    { name: "Test 1", input: "2 7 11 15\n9", expectedOutput: "[0,1]" },
+    { name: "Test 2", input: "3 2 4\n6", expectedOutput: "[1,2]" },
+    { name: "Test 3", input: "3 3\n6", expectedOutput: "[0,1]" },
+  ],
+  "Longest Substring Without Repeating Characters": [
+    { name: "Test 1", input: "abcabcbb", expectedOutput: "3" },
+    { name: "Test 2", input: "bbbbb", expectedOutput: "1" },
+    { name: "Test 3", input: "pwwkew", expectedOutput: "3" },
+  ],
+  "Merge K Sorted Lists": [
+    { name: "Test 1", input: "1 4 5\n1 3 4\n2 6", expectedOutput: "1 1 2 3 4 4 5 6" },
+    { name: "Test 2", input: "", expectedOutput: "[]" },
+  ],
+  "Binary Tree Level Order Traversal": [
+    { name: "Test 1", input: "3 9 20 null null 15 7", expectedOutput: "[[3],[9,20],[15,7]]" },
+    { name: "Test 2", input: "1", expectedOutput: "[[1]]" },
+    { name: "Test 3", input: "null", expectedOutput: "[]" }
+  ],
+  "Word Ladder": [
+    { name: "Test 1", input: "hit\ncog\nhot dot dog lot log cog", expectedOutput: "5" },
+    { name: "Test 2", input: "hit\ncog\nhot dot dog lot log", expectedOutput: "0" },
+  ],
+  "Valid Parentheses": [
+    { name: "Test 1", input: "()", expectedOutput: "true" },
+    { name: "Test 2", input: "([)]", expectedOutput: "false" },
+    { name: "Test 3", input: "{[]}", expectedOutput: "true" },
+  ],
+};
+
 const enrichProblem = (problem) => {
   if (!problem) {
     return null;
@@ -156,6 +187,9 @@ const enrichProblem = (problem) => {
     sampleTests: Array.isArray(problem.sampleTests) && problem.sampleTests.length > 0
       ? problem.sampleTests
       : (SAMPLE_TESTS_BY_TITLE[problem.title] || []),
+    officialTests: Array.isArray(problem.officialTests) && problem.officialTests.length > 0
+      ? problem.officialTests
+      : (OFFICIAL_TESTS_BY_TITLE[problem.title] || SAMPLE_TESTS_BY_TITLE[problem.title] || []),
   };
 };
 
@@ -312,7 +346,7 @@ const parseExecutionResponse = async (response) => {
   }
 };
 
-const updateProgressFromRun = (problem, result, requestedTimeLimit) => {
+const updateProgressFromRun = (problem, result, requestedTimeLimit, isSubmit = false) => {
   const progress = readProgress();
   const todayKey = toDateKey(new Date());
 
@@ -324,6 +358,19 @@ const updateProgressFromRun = (problem, result, requestedTimeLimit) => {
     const runtimePercentile = estimateRuntimePercentile(result.executionTime, requestedTimeLimit);
     progress.totalRuntimePercentile += runtimePercentile;
     progress.runtimeSamples += 1;
+
+    if (isSubmit && problem && !progress.solvedProblems[problem.title]) {
+      progress.solvedProblems[problem.title] = true;
+      progress.solvedCount += 1;
+
+      const difficulty = (problem.difficulty || 'easy').toLowerCase();
+      progress.solvedByDifficulty[difficulty] = (progress.solvedByDifficulty[difficulty] || 0) + 1;
+
+      const tags = normalizeTags(problem.tags);
+      tags.forEach(tag => {
+        progress.solvedByTag[tag] = (progress.solvedByTag[tag] || 0) + 1;
+      });
+    }
   }
 
   progress.contestsCompleted = Math.floor(progress.solvedCount / 4);
@@ -486,27 +533,46 @@ function App() {
     });
   };
 
-  const handleRunCode = async () => {
+  const executeTests = async (isSubmit) => {
     if (isRunning) return;
 
     const requestedTimeLimit = Math.max(250, Number(timeLimit) || 2000);
     const sampleTests = Array.isArray(problem?.sampleTests) ? problem.sampleTests : [];
-    const testsToRun = showCustomInput && stdin.trim()
-      ? [{ name: "Custom Input", input: stdin, expectedOutput: null, isCustom: true }]
-      : sampleTests.length > 0
-        ? sampleTests.map((test, index) => ({
-          name: test.name || `Sample ${index + 1}`,
+    const officialTests = Array.isArray(problem?.officialTests) ? problem.officialTests : [];
+    
+    let testsToRun;
+    if (isSubmit) {
+      testsToRun = officialTests.length > 0
+        ? officialTests.map((test, index) => ({
+          name: test.name || `Test ${index + 1}`,
           input: test.input || "",
           expectedOutput: test.expectedOutput ?? "",
           isCustom: false,
         }))
-        : [{ name: "Run", input: stdin, expectedOutput: null, isCustom: true }];
+        : sampleTests.map((test, index) => ({
+          name: test.name || `Sample ${index + 1}`,
+          input: test.input || "",
+          expectedOutput: test.expectedOutput ?? "",
+          isCustom: false,
+        }));
+    } else {
+      testsToRun = showCustomInput && stdin.trim()
+        ? [{ name: "Custom Input", input: stdin, expectedOutput: null, isCustom: true }]
+        : sampleTests.length > 0
+          ? sampleTests.map((test, index) => ({
+            name: test.name || `Sample ${index + 1}`,
+            input: test.input || "",
+            expectedOutput: test.expectedOutput ?? "",
+            isCustom: false,
+          }))
+          : [{ name: "Run", input: stdin, expectedOutput: null, isCustom: true }];
+    }
 
     setIsRunning(true);
     setRunStatus("running");
     setLastRunResult(null);
     setCaseResults([]);
-    setOutput([{ type: 'system', text: 'Executing code...' }]);
+    setOutput([{ type: 'system', text: isSubmit ? 'Executing official tests...' : 'Executing code...' }]);
 
     try {
       const nextCaseResults = [];
@@ -546,6 +612,7 @@ function App() {
           status: payload.status,
           passed,
           isCustom: testCase.isCustom,
+          executionTime: payload.executionTime,
         });
       }
 
@@ -566,7 +633,8 @@ function App() {
       setOutput(buildCaseResultsOutput(nextCaseResults));
 
       if (!hasRuntimeError && !hasTimeout) {
-        updateProgressFromRun(problem, { status: nextStatus === "success" ? "success" : "failed", executionTime: null }, requestedTimeLimit);
+        const maxExecutionTime = nextCaseResults.reduce((max, result) => Math.max(max, result.executionTime || 0), 0);
+        updateProgressFromRun(problem, { status: nextStatus === "success" ? "success" : "failed", executionTime: maxExecutionTime }, requestedTimeLimit, isSubmit);
       }
     } catch (error) {
       const failureResult = {
@@ -582,11 +650,14 @@ function App() {
       setLastRunResult(failureResult);
       setCaseResults([]);
       setOutput(buildOutputMessages(failureResult));
-      updateProgressFromRun(problem, failureResult, requestedTimeLimit);
+      updateProgressFromRun(problem, failureResult, requestedTimeLimit, isSubmit);
     } finally {
       setIsRunning(false);
     }
   };
+
+  const handleRunCode = () => executeTests(false);
+  const handleSubmitCode = () => executeTests(true);
 
   const difficultyLabel = { easy: 'Facile', medium: 'Moyen', hard: 'Difficile' };
   const currentStatus = statusConfig[runStatus] || statusConfig.idle;
@@ -626,6 +697,21 @@ function App() {
             className="run-button"
             onClick={handleRunCode}
             disabled={isRunning}
+            style={{ 
+              opacity: isRunning ? 0.7 : 1, 
+              cursor: isRunning ? 'not-allowed' : 'pointer',
+              background: 'rgba(255, 255, 255, 0.1)',
+              color: 'var(--text-primary)',
+              boxShadow: 'none'
+            }}
+          >
+            Run
+          </button>
+          
+          <button
+            className="run-button"
+            onClick={handleSubmitCode}
+            disabled={isRunning}
             style={{ opacity: isRunning ? 0.7 : 1, cursor: isRunning ? 'not-allowed' : 'pointer' }}
           >
             {isRunning ? (
@@ -634,14 +720,14 @@ function App() {
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" strokeOpacity="0.25" />
                   <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
                 </svg>
-                Running
+                Submitting
               </>
             ) : (
               <>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                   <path d="M8 5v14l11-7z" />
                 </svg>
-                Run
+                Submit
               </>
             )}
           </button>
