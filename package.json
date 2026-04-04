@@ -2,6 +2,8 @@
   "name": "algoforge",
   "private": true,
   "scripts": {
+    "dev:api": "cd RestAPI && npm run dev",
+    "dev:frontend": "cd CodeEditorIntegration && npm run build && cd .. && npx serve . -l 3000",
     "build": "cd CodeEditorIntegration && npm run build",
     "serve": "npx serve . -l 3000"
   }

@@ -1472,6 +1472,685 @@ body.theme-night .difficulty.hard {
 }
 
 /* ============================================
+   AUTHENTICATION PAGES (login.html, register.html)
+   Full-width login form with centered card layout.
+   ============================================ */
+.auth-page {
+    background: linear-gradient(180deg, var(--bg), var(--surface));
+    min-height: 100vh;
+}
+
+.auth-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    min-height: 100vh;
+    align-items: center;
+    justify-items: center;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.auth-card {
+    padding: 3rem;
+    border-radius: var(--radius-md);
+    max-width: 400px;
+    width: 100%;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.auth-header h1 span {
+    color: var(--accent);
+}
+
+.auth-header p {
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.auth-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.auth-form label {
+    font-weight: 600;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.auth-form input {
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.auth-btn {
+    padding: 0.85rem 1.5rem;
+    margin-top: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    width: 100%;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.auth-message {
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+}
+
+.error-message {
+    color: #f44336;
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.auth-footer {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+}
+
+.auth-footer p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    margin: 0.5rem 0;
+}
+
+.auth-footer a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+.auth-info {
+    padding: 2rem;
+    border-radius: var(--radius-md);
+    max-width: 400px;
+    width: 100%;
+}
+
+.auth-info h2 {
+    font-size: 1.3rem;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+}
+
+.auth-info ul {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.auth-info li {
+    color: var(--muted);
+    padding-left: 1.5rem;
+    position: relative;
+}
+
+.auth-info li::before {
+    content: '✓';
+    position: absolute;
+    left: 0;
+    color: #4caf50;
+    font-weight: 700;
+}
+
+/* ============================================
+   ADMIN DASHBOARD PAGES
+   Admin-specific layout and component styles.
+   ============================================ */
+.admin-topbar {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.05), rgba(0, 0, 0, 0.02));
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.admin-topbar-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+}
+
+.admin-topbar .brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-topbar .badge {
+    display: inline-block;
+    background: var(--accent);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+.admin-nav {
+    display: flex;
+    gap: 2rem;
+    flex: 1;
+}
+
+.admin-nav-link {
+    color: var(--muted);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+
+.admin-nav-link:hover,
+.admin-nav-link.active {
+    color: var(--accent);
+    background: var(--accent-soft);
+}
+
+.admin-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-info span {
+    font-size: 0.9rem;
+    color: var(--muted);
+}
+
+.admin-main {
+    min-height: calc(100vh - 80px);
+    padding: 2rem 0;
+}
+
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.admin-header {
+    margin-bottom: 3rem;
+}
+
+.admin-header h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 0.5rem;
+}
+
+.admin-header p {
+    color: var(--muted);
+    font-size: 1.1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* ============================================
+   ADMIN STATS GRID
+   ============================================ */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, var(--surface), rgba(0, 0, 0, 0.02));
+    border: 1px solid var(--border);
+    padding: 2rem;
+    border-radius: var(--radius-md);
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    min-width: 3rem;
+}
+
+.stat-content h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+}
+
+.stat-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.stat-link:hover {
+    transform: translateX(4px);
+}
+
+/* ============================================
+   ADMIN QUICK ACTIONS
+   ============================================ */
+.quick-actions {
+    margin-bottom: 3rem;
+}
+
+.quick-actions h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text);
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.action-buttons .btn {
+    padding: 0.75rem 1.5rem;
+    font-weight: 500;
+}
+
+/* ============================================
+   ADMIN RECENT ACTIVITY
+   ============================================ */
+.recent-activity {
+    margin-bottom: 3rem;
+}
+
+.recent-activity h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text);
+}
+
+.activity-list {
+    padding: 1.5rem;
+}
+
+.activity-items {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--accent-soft);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    transition: all 0.2s ease;
+}
+
+.activity-item:hover {
+    background: rgba(255, 107, 61, 0.15);
+}
+
+.activity-icon {
+    font-size: 1.5rem;
+    min-width: 2rem;
+}
+
+.activity-content {
+    flex: 1;
+}
+
+.activity-content p {
+    margin: 0;
+    color: var(--text);
+    font-weight: 500;
+}
+
+.activity-time {
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.no-data {
+    padding: 2rem;
+    text-align: center;
+    color: var(--muted);
+}
+
+.loading-placeholder {
+    padding: 2rem;
+    text-align: center;
+    color: var(--muted);
+}
+
+/* ============================================
+   ADMIN PROBLEMS FORM
+   ============================================ */
+.problem-form-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 2rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 2rem;
+}
+
+.problem-form-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text);
+}
+
+.problem-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.problem-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.problem-form label {
+    font-weight: 600;
+    color: var(--text);
+}
+
+.problem-form input,
+.problem-form select,
+.problem-form textarea {
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    transition: all 0.2s ease;
+}
+
+.problem-form input:focus,
+.problem-form select:focus,
+.problem-form textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.problem-form textarea {
+    resize: vertical;
+    min-height: 150px;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.form-actions .btn {
+    flex: 1;
+}
+
+/* ============================================
+   ADMIN PROBLEMS LIST
+   ============================================ */
+.problems-list-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.list-controls {
+    display: flex;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid var(--border);
+    flex-wrap: wrap;
+}
+
+.search-input,
+.filter-select {
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+    flex: 1;
+    min-width: 200px;
+}
+
+.search-input:focus,
+.filter-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.problems-table-content {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.problems-table-content thead {
+    background: rgba(0, 0, 0, 0.02);
+    border-bottom: 1px solid var(--border);
+}
+
+.problems-table-content th {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.problems-table-content td {
+    padding: 1rem 1.5rem;
+    color: var(--text);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+
+.problems-table-content tbody tr:hover {
+    background: var(--accent-soft);
+}
+
+.problem-name {
+    font-weight: 500;
+}
+
+.actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-icon {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+}
+
+/* ============================================
+   RESPONSIVE — ADMIN / AUTH ON TABLET
+   ============================================ */
+@media (max-width: 768px) {
+    .auth-container {
+        grid-template-columns: 1fr;
+    }
+
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-topbar-inner {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .admin-nav {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .list-controls {
+        flex-direction: column;
+    }
+
+    .search-input,
+    .filter-select {
+        min-width: auto;
+    }
+
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* ============================================
+   RESPONSIVE — ADMIN / AUTH ON MOBILE
+   ============================================ */
+@media (max-width: 680px) {
+    .auth-container {
+        padding: 1rem;
+        gap: 1.5rem;
+    }
+
+    .auth-card,
+    .auth-info {
+        max-width: 100%;
+        padding: 1.5rem;
+    }
+
+    .admin-container {
+        padding: 0 1rem;
+    }
+
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .problems-table-content {
+        font-size: 0.9rem;
+    }
+
+    .problems-table-content th,
+    .problems-table-content td {
+        padding: 0.75rem;
+    }
+}
+
+/* ============================================
    RESPONSIVE — TABLET (max-width: 1020px)
    Desktop nav hides, hamburger shows. (☰)
    Multi-column grids collapse.

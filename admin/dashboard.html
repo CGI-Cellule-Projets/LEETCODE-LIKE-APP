@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoForge Admin | Tableau de Bord</title>
+    <meta name="description" content="Tableau de bord administrateur pour AlgoForge.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+</head>
+
+<body class="admin-page">
+    <div class="site-glow glow-a"></div>
+    <div class="site-glow glow-b"></div>
+
+    <!-- ================= ADMIN NAVBAR ================= -->
+    <header class="admin-topbar">
+        <div class="container admin-topbar-inner">
+            <a class="brand" href="dashboard.html"><span>Algo</span>Forge <span class="badge">Admin</span></a>
+            <nav class="admin-nav">
+                <a class="admin-nav-link active" href="dashboard.html">Tableau de Bord</a>
+                <a class="admin-nav-link" href="problems.html">Problèmes</a>
+                <a class="admin-nav-link" href="users.html">Utilisateurs</a>
+            </nav>
+            <div class="admin-actions">
+                <div class="user-info">
+                    <span id="adminUsername">Admin</span>
+                    <button id="logoutBtn" class="btn btn-ghost btn-sm">Déconnecter</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="admin-main">
+        <section class="admin-container">
+            <div class="admin-header">
+                <h1>Tableau de Bord Administrateur</h1>
+                <p>Gérez les problèmes, utilisateurs et contenu de la plateforme</p>
+            </div>
+
+            <!-- ================= STATS GRID ================= -->
+            <div class="stats-grid">
+                <div class="stat-card panel">
+                    <div class="stat-icon">📚</div>
+                    <div class="stat-content">
+                        <h3>Problèmes</h3>
+                        <p class="stat-number" id="totalProblems">0</p>
+                        <a href="problems.html" class="stat-link">Gérer les problèmes →</a>
+                    </div>
+                </div>
+
+                <div class="stat-card panel">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-content">
+                        <h3>Utilisateurs</h3>
+                        <p class="stat-number" id="totalUsers">0</p>
+                        <a href="users.html" class="stat-link">Voir les utilisateurs →</a>
+                    </div>
+                </div>
+
+                <div class="stat-card panel">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-content">
+                        <h3>Soumissions</h3>
+                        <p class="stat-number" id="totalSubmissions">0</p>
+                        <a href="submissions.html" class="stat-link">Voir les soumissions →</a>
+                    </div>
+                </div>
+
+                <div class="stat-card panel">
+                    <div class="stat-icon">⚙️</div>
+                    <div class="stat-content">
+                        <h3>Système</h3>
+                        <p class="stat-number" id="systemStatus">✓</p>
+                        <a href="#" class="stat-link">État du système →</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= QUICK ACTIONS ================= -->
+            <section class="quick-actions">
+                <h2>Actions Rapides</h2>
+                <div class="action-buttons">
+                    <a href="problems.html?create=true" class="btn btn-primary">
+                        + Créer un Problème
+                    </a>
+                    <a href="users.html" class="btn btn-secondary">
+                        👥 Voir les Utilisateurs
+                    </a>
+                    <a href="settings.html" class="btn btn-secondary">
+                        ⚙️ Paramètres
+                    </a>
+                </div>
+            </section>
+
+            <!-- ================= RECENT ACTIVITY ================= -->
+            <section class="recent-activity">
+                <h2>Activité Récente</h2>
+                <div id="activityList" class="activity-list panel">
+                    <p class="loading-placeholder">Chargement de l'activité...</p>
+                </div>
+            </section>
+        </section>
+    </main>
+
+    <script src="../assets/js/api.js"></script>
+    <script src="js/admin-access-check.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+</body>
+
+</html>

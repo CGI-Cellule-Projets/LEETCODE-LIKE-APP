@@ -67,6 +67,103 @@ npx serve . -l 3000
 ### Alternative sans terminal
 Si vous avez l'extension **Live Server** dans VS Code : clic droit sur `index.html` → "Open with Live Server". Pas besoin de `npx serve`.
 
+---
+
+## 🔌 Installation REST API
+
+### Prérequis supplémentaires
+- [PostgreSQL](https://www.postgresql.org/) installé et en cours d'exécution
+
+### Setup (première fois)
+
+**Étape 1** — Aller dans le dossier API :
+```bash
+cd RestAPI
+```
+
+**Étape 2** — Installer les dépendances :
+```bash
+npm install
+```
+
+**Étape 3** — Configurer la base de données :
+```bash
+cp .env.example .env
+# Éditez .env avec vos identifiants PostgreSQL
+```
+
+**Étape 4** — Importer le schéma BDD :
+```bash
+psql -U postgres -d coding_platform -f ../DataStructure/coding_platform_db.sql
+```
+
+**Étape 5** — Démarrer le serveur API :
+```bash
+npm run dev
+```
+> L'API sera accessible sur `http://localhost:3000`
+
+### 👤 Développement - Identifiants par défaut
+
+Lors du premier démarrage de l'API en mode développement, un utilisateur administrateur par défaut est créé automatiquement :
+
+| Champ | Valeur |
+|---|---|
+| **Nom d'utilisateur** | `admin` |
+| **Email** | `admin@dev.local` |
+| **Mot de passe** | `admin123` |
+| **Accès admin** | ✓ Oui |
+
+**Accès :**
+1. Aller à `http://localhost:3000/admin/dashboard.html`
+2. Le mode local fonctionne actuellement sans authentification
+
+> ⚠️ Ces identifiants ne sont que pour le développement. En production, créer des utilisateurs avec des mots de passe forts.
+
+### Architecture REST API
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Frontend (HTML/React)                    │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                  HTTP Requests (JSON)
+                         │
+┌────────────────────────▼────────────────────────────────────┐
+│              REST API (Node.js + Express)                   │
+├─────────────────────────────────────────────────────────────┤
+│  Routes:                                                     │
+│  • GET    /api/problems            (Liste des problèmes)    │
+│  • GET    /api/problems/:id        (Détails du problème)    │
+│  • POST   /api/submissions         (Soumettre du code)      │
+│  • GET    /api/submissions/:id     (Récupérer soumission)   │
+│  • POST   /api/admin/problems      (Créer problème - admin) │
+│  • PUT    /api/admin/problems/:id  (Modifier problème)      │
+│  • DELETE /api/admin/problems/:id  (Supprimer problème)     │
+│  • POST   /api/admin/problems/:id/testcases (Ajouter tests) │
+└────────────────────────┬────────────────────────────────────┘
+                         │
+                  Parameterized Queries
+                         │
+┌────────────────────────▼────────────────────────────────────┐
+│              PostgreSQL Database                            │
+├─────────────────────────────────────────────────────────────┤
+│  Tables: users | problems | test_cases | submissions |...   │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Fonctionnalités API
+
+| Fonctionnalité | Description |
+|---|---|
+| **Problèmes** | CRUD complet (admin seulement) |
+| **Test Cases** | Public (pour l'utilisateur) vs Hidden (pour la notation) |
+| **Soumissions** | Tracker le code soumis par les utilisateurs |
+| **Autorisation** | Contrôles d'accès désactivés temporairement en local |
+| **Sécurité** | Validation et prévention SQL injection |
+
+---
+
 ## 📂 Structure du Projet
 
 ```
