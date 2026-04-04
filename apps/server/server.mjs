@@ -12,7 +12,7 @@ const __dirname = path.dirname(__filename);
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '127.0.0.1';
-const WEB_ROOT = path.join(__dirname, 'apps', 'web');
+const WEB_ROOT = path.join(__dirname, '..', 'web');
 const EDITOR_ENTRY = path.join(WEB_ROOT, 'editor', 'indexcodeeditor.html');
 const RUNTIME_ROOT = path.join(__dirname, 'runtime');
 

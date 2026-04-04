@@ -2,8 +2,8 @@
   "name": "algoforge",
   "private": true,
   "scripts": {
-    "dev:full": "npm --prefix apps/editor run build && node server.mjs",
+    "dev:full": "npm --prefix apps/editor run build && node apps/server/server.mjs",
     "build": "npm --prefix apps/editor run build",
-    "serve": "node server.mjs"
+    "serve": "node apps/server/server.mjs"
   }
 }

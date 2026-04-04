@@ -20,7 +20,6 @@ Une plateforme web inspirée de LeetCode, conçue pour héberger et gérer des c
 
 ### Prérequis
 - [Node.js](https://nodejs.org/) installé sur votre machine (v18 ou plus récent)
-- Un terminal (Git Bash, PowerShell, ou le terminal intégré de VS Code)
 
 ### Première fois (après avoir cloné le repo)
 
@@ -86,14 +85,17 @@ LEETCODE-LIKE-APP/
 │   │   │   ├── css/styles.css       ← Système UI global
 │   │   │   └── js/script.js         ← Logique front-end
 │   │   └── editor/                  ← Build output de l'éditeur React
-│   └── editor/                      ← Code source React de l'éditeur
-│       ├── src/
-│       │   ├── App.jsx              ← Composant principal
-│       │   ├── App.css              ← Styles de l'éditeur
-│       │   ├── index.css            ← Variables CSS + thème sombre
-│       │   └── main.jsx             ← Point d'entrée React
-│       ├── package.json
-│       └── vite.config.js
+│   ├── editor/                      ← Code source React de l'éditeur
+│   │   ├── src/
+│   │   │   ├── App.jsx              ← Composant principal
+│   │   │   ├── App.css              ← Styles de l'éditeur
+│   │   │   ├── index.css            ← Variables CSS + thème sombre
+│   │   │   └── main.jsx             ← Point d'entrée React
+│   │   ├── package.json
+│   │   └── vite.config.js
+│   └── server/                      ← Serveur NodeJS local d'exécution
+│       ├── runtime/                 ← Scripts exécuteurs (python, js)
+│       └── server.mjs               ← Serveur API & fichiers statiques
 ├── database/                        ← Schéma BDD PostgreSQL
 │   ├── coding_platform_db.sql
 │   ├── coding_platform_ea.png
