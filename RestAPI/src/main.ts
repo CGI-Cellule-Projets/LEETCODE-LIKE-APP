@@ -12,6 +12,8 @@ import { initializeDefaultAdmin } from './config/seedData';
 import problemRoutes from './routes/problemRoutes';
 import submissionRoutes from './routes/submissionRoutes';
 import adminRoutes from './routes/adminRoutes';
+import authRoutes from './routes/authRoutes';
+import contestRoutes from './routes/contestRoutes';
 
 const app = express();
 
@@ -40,9 +42,11 @@ if (NODE_ENV === 'development') {
 }
 
 // ============== Routes ==============
+app.use('/api/auth', authRoutes);
 app.use('/api/problems', problemRoutes);
 app.use('/api/submissions', submissionRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/contests', contestRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {

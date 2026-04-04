@@ -32,6 +32,7 @@ export async function getAllProblems(req: Request, res: Response): Promise<void>
     const result = await db.query(`
       SELECT problem_id, name, difficulty_level, solve_rate
       FROM problems
+      WHERE visibility = 'PUBLIC'
       ORDER BY problem_id ASC
     `);
 
@@ -94,7 +95,7 @@ export async function getProblemById(req: Request, res: Response): Promise<void>
     const problemResult = await db.query(`
       SELECT problem_id, name, difficulty_level, solve_rate, description, constraints
       FROM problems
-      WHERE problem_id = $1
+      WHERE problem_id = $1 AND visibility = 'PUBLIC'
     `, [problemId]);
 
     if (!problemResult.rows || problemResult.rows.length === 0) {

@@ -25,6 +25,7 @@
             <nav class="admin-nav">
                 <a class="admin-nav-link" href="dashboard.html">Tableau de Bord</a>
                 <a class="admin-nav-link active" href="problems.html">Problèmes</a>
+                <a class="admin-nav-link" href="contests.html">Concours</a>
                 <a class="admin-nav-link" href="users.html">Utilisateurs</a>
             </nav>
             <div class="admin-actions">
@@ -86,6 +87,17 @@
                                 <label for="problemCategory">Catégorie</label>
                                 <input type="text" id="problemCategory" placeholder="Ex: Array, HashMap">
                             </div>
+                            <div class="form-group">
+                                <label for="problemVisibility">Visibilité *</label>
+                                <select id="problemVisibility" required>
+                                    <option value="HIDDEN">HIDDEN (masqué)</option>
+                                    <option value="CONTEST_ONLY">CONTEST_ONLY (concours uniquement)</option>
+                                    <option value="PUBLIC">PUBLIC (pratique)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
                             <div class="form-group checkbox-group">
                                 <label for="isPublished">
                                     <input type="checkbox" id="isPublished">

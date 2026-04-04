@@ -115,14 +115,6 @@ const buildProblemQuery = (problem) => {
   }
 };
 
-const buildBackendEditorUrl = (problem) => {
-  if (typeof window === "undefined") {
-    return "";
-  }
-
-  return `${window.location.protocol}//${window.location.hostname}:3000/editor/indexcodeeditor.html${buildProblemQuery(problem)}`;
-};
-
 const SAMPLE_TESTS_BY_TITLE = {
   "Two Sum": [
     { name: "Sample 1", input: "2 7 11 15\n9", expectedOutput: "[0,1]" },
@@ -400,27 +392,6 @@ function App() {
   // Load problem data and sync theme/accent from main site settings
   useEffect(() => {
     const currentSearchProblem = readProblemFromSearch();
-
-    if (typeof window !== "undefined") {
-      const { hostname, port } = window.location;
-      if (isLocalHost(hostname) && port && port !== "3000") {
-        let redirectProblem = currentSearchProblem;
-
-        if (!redirectProblem) {
-          try {
-            const storedProblem = localStorage.getItem("algoforge-current-problem");
-            if (storedProblem) {
-              redirectProblem = JSON.parse(storedProblem);
-            }
-          } catch {
-            // Ignore malformed data and redirect without problem context.
-          }
-        }
-
-        window.location.replace(buildBackendEditorUrl(redirectProblem));
-        return;
-      }
-    }
 
     try {
       if (currentSearchProblem) {

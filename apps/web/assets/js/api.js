@@ -39,6 +39,31 @@ function resolveApiBaseUrl() {
 
 const API_BASE_URL = resolveApiBaseUrl();
 
+// ============== Auth Endpoints ==============
+
+/**
+ * Register a new user
+ * @param {string} username 
+ * @param {string} email 
+ * @param {string} password 
+ */
+async function apiRegister(username, email, password) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/register`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, email, password }),
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return { success: false, message: 'Registration failed', errors: error.message };
+  }
+}
+
+
 // ============== Problem Endpoints ==============
 
 /**
@@ -112,6 +137,61 @@ async function apiGetSubmission(submissionId) {
   }
 }
 
+// ============== Contests Endpoints ==============
+
+/**
+ * Get all contests
+ */
+async function apiGetContests() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/contests`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Failed to fetch contests', errors: error.message };
+  }
+}
+
+/**
+ * Get a specific contest by ID
+ */
+async function apiGetContestById(contestId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/contests/${contestId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Failed to fetch contest details', errors: error.message };
+  }
+}
+
+function getAuthHeaders() {
+  const token = localStorage.getItem('token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+}
+
+/**
+ * Register active user for a contest
+ */
+async function apiRegisterForContest(contestId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/contests/${contestId}/register`, {
+      method: 'POST',
+      headers: getAuthHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Registration failed', errors: error.message };
+  }
+}
+
 // ============== Admin Endpoints ==============
 
 /**
@@ -135,7 +215,7 @@ async function apiAdminGetProblems() {
 /**
  * Create a problem (admin)
  */
-async function apiAdminCreateProblem(name, difficulty, description, isPublished = false) {
+async function apiAdminCreateProblem(name, difficulty, description, visibility = 'HIDDEN', isPublished = false) {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/problems`, {
       method: 'POST',
@@ -146,6 +226,7 @@ async function apiAdminCreateProblem(name, difficulty, description, isPublished 
         name,
         difficulty_level: difficulty,
         description,
+        visibility,
         is_published: isPublished,
       }),
     });
@@ -212,7 +293,119 @@ async function apiAdminAddTestCase(problemId, inputData, expectedOutput, isHidde
     const data = await response.json();
     return data;
   } catch (error) {
-    return { success: false, message: 'Failed to add test case', errors: error.message };
+    return { success: false, message: 'Failed to add testcase', errors: error.message };
+  }
+}
+
+// ============== Admin Contest Endpoints ==============
+
+function getAdminAuthHeaders() {
+  const token = localStorage.getItem('adminToken') || localStorage.getItem('token') || localStorage.getItem('auth_token');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+}
+
+/**
+ * Get all contests (admin/public wrapper)
+ */
+async function apiAdminGetContests() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/contests`, {
+      method: 'GET',
+      headers: getAdminAuthHeaders(),
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return { success: false, message: 'Failed to fetch contests', errors: error.message };
+  }
+}
+
+/**
+ * Get one contest by id for admin editor
+ */
+async function apiAdminGetContestById(contestId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/contests/${contestId}`, {
+      method: 'GET',
+      headers: getAdminAuthHeaders(),
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return { success: false, message: 'Failed to fetch contest', errors: error.message };
+  }
+}
+
+/**
+ * Create a contest and map problems in one flow
+ */
+async function apiAdminCreateContest(contestPayload, problemMappingsPayload) {
+  try {
+    // 1. Create Contest Header
+    const contestRes = await fetch(`${API_BASE_URL}/admin/contests`, {
+      method: 'POST',
+      headers: getAdminAuthHeaders(),
+      body: JSON.stringify(contestPayload)
+    });
+    
+    const contestData = await contestRes.json();
+    if (!contestRes.ok || !contestData.success) {
+      return { success: false, message: contestData.message || 'Failed to create contest header' };
+    }
+    
+    const newContestId = contestData.data.contest_id;
+    
+    // 2. Map Problems
+    const mappingRes = await fetch(`${API_BASE_URL}/admin/contests/${newContestId}/problems`, {
+      method: 'POST',
+      headers: getAdminAuthHeaders(),
+      body: JSON.stringify({ problems: problemMappingsPayload })
+    });
+    
+    const mappingData = await mappingRes.json();
+    if (!mappingRes.ok || !mappingData.success) {
+      return { success: false, message: mappingData.message || 'Failed to assign problems' };
+    }
+    
+    return { success: true };
+  } catch (error) {
+    return { success: false, message: 'Creation failed', errors: error.message };
+  }
+}
+
+/**
+ * Update a contest and overwrite its problem mappings
+ */
+async function apiAdminUpdateContest(contestId, contestPayload, problemMappingsPayload) {
+  try {
+    const contestRes = await fetch(`${API_BASE_URL}/admin/contests/${contestId}`, {
+      method: 'PUT',
+      headers: getAdminAuthHeaders(),
+      body: JSON.stringify(contestPayload),
+    });
+
+    const contestData = await contestRes.json();
+    if (!contestRes.ok || !contestData.success) {
+      return { success: false, message: contestData.message || 'Failed to update contest header' };
+    }
+
+    const mappingRes = await fetch(`${API_BASE_URL}/admin/contests/${contestId}/problems`, {
+      method: 'POST',
+      headers: getAdminAuthHeaders(),
+      body: JSON.stringify({ problems: problemMappingsPayload }),
+    });
+
+    const mappingData = await mappingRes.json();
+    if (!mappingRes.ok || !mappingData.success) {
+      return { success: false, message: mappingData.message || 'Failed to update problem mappings' };
+    }
+
+    return { success: true, message: 'Contest updated successfully' };
+  } catch (error) {
+    return { success: false, message: 'Update failed', errors: error.message };
   }
 }
 

@@ -41,6 +41,7 @@ export interface Problem {
   name: string;
   difficulty_level: 'easy' | 'med' | 'hard';
   solve_rate: number;
+  visibility?: 'HIDDEN' | 'CONTEST_ONLY' | 'PUBLIC';
   is_published?: boolean;
   description?: string;
   topics?: string[];
@@ -57,6 +58,7 @@ export interface CreateProblemRequest {
   name: string;
   description: string;
   difficulty_level: 'easy' | 'med' | 'hard';
+  visibility?: 'HIDDEN' | 'CONTEST_ONLY' | 'PUBLIC';
   is_published?: boolean;
   constraints?: string;
 }
@@ -65,6 +67,7 @@ export interface UpdateProblemRequest {
   name?: string;
   description?: string;
   difficulty_level?: 'easy' | 'med' | 'hard';
+  visibility?: 'HIDDEN' | 'CONTEST_ONLY' | 'PUBLIC';
   is_published?: boolean;
   constraints?: string;
 }
@@ -158,3 +161,18 @@ export interface ApiError {
   message: string;
   details?: string;
 }
+
+// ============== Express Declaration Merging ==============
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        user_id: string;
+        username: string;
+        is_admin: boolean;
+        role?: string;
+      };
+    }
+  }
+}
+

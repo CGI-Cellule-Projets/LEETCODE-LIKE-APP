@@ -71,11 +71,12 @@ async function handleFormSubmit(e) {
   const name = document.getElementById('problemName').value.trim();
   const difficulty = document.getElementById('problemDifficulty').value;
   const description = document.getElementById('problemDescription').value.trim();
+  const visibility = document.getElementById('problemVisibility').value;
   const isPublished = document.getElementById('isPublished').checked;
   const formError = document.getElementById('formError');
 
   // Validation
-  if (!name || !difficulty || !description) {
+  if (!name || !difficulty || !description || !visibility) {
     formError.textContent = '❌ Veuillez remplir tous les champs obligatoires';
     formError.style.display = 'block';
     return;
@@ -90,11 +91,12 @@ async function handleFormSubmit(e) {
         name,
         difficulty_level: difficulty,
         description,
+        visibility,
         is_published: isPublished
       });
     } else {
       // Create new problem
-      result = await apiAdminCreateProblem(name, difficulty, description, isPublished);
+      result = await apiAdminCreateProblem(name, difficulty, description, visibility, isPublished);
     }
 
     if (result.success) {
@@ -159,6 +161,7 @@ function renderProblemsList(problems) {
         <tr>
           <th>Nom</th>
           <th>Difficulté</th>
+          <th>Visibilité</th>
           <th>Publié</th>
           <th>Actions</th>
         </tr>
@@ -172,6 +175,7 @@ function renderProblemsList(problems) {
       <tr data-problem-id="${problem.problem_id}">
         <td class="problem-name">${problem.name}</td>
         <td><span class="difficulty ${problem.difficulty_level}">${problem.difficulty_level}</span></td>
+        <td>${problem.visibility || 'HIDDEN'}</td>
         <td>${isPublished}</td>
         <td class="actions">
           <button class="btn-icon btn-edit" onclick="editProblem(${problem.problem_id})" title="Éditer">Éditer</button>
@@ -199,6 +203,7 @@ async function editProblem(problemId) {
   document.getElementById('problemName').value = problem.name;
   document.getElementById('problemDifficulty').value = problem.difficulty_level;
   document.getElementById('problemDescription').value = problem.description || '';
+  document.getElementById('problemVisibility').value = problem.visibility || 'HIDDEN';
   document.getElementById('isPublished').checked = problem.is_published || false;
 
   // Show form and scroll

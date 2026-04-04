@@ -16,7 +16,11 @@ CREATE TABLE problems (
     problem_id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     difficulty_level VARCHAR(20) CHECK (difficulty_level IN ('easy', 'med', 'hard')),
-    solve_rate DECIMAL(5,2) DEFAULT 0.00 -- Updated periodically
+    solve_rate DECIMAL(5,2) DEFAULT 0.00, -- Updated periodically
+    visibility VARCHAR(20) NOT NULL DEFAULT 'HIDDEN' CHECK (visibility IN ('HIDDEN', 'CONTEST_ONLY', 'PUBLIC')),
+    is_published BOOLEAN DEFAULT FALSE,
+    description TEXT,
+    constraints TEXT
 );
 
 CREATE TABLE topics (
@@ -110,6 +114,13 @@ CREATE TABLE contest_problems (
     problem_id INTEGER REFERENCES problems(problem_id) ON DELETE CASCADE,
     points INTEGER DEFAULT 100, 
     PRIMARY KEY (contest_id, problem_id)
+);
+
+CREATE TABLE contest_registrations (
+    user_id UUID REFERENCES users(user_id) ON DELETE CASCADE,
+    contest_id INTEGER REFERENCES contests(contest_id) ON DELETE CASCADE,
+    registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, contest_id)
 );
 
 CREATE TABLE announcements (

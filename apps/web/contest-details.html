@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoForge | Détails du Concours</title>
+    <meta name="description" content="Aperçu des défis algorithmiques du concours.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+
+<body>
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <div class="site-glow glow-a"></div>
+    <div class="site-glow glow-b"></div>
+
+    <!-- ================= NAVBAR ================= -->
+    <header class="topbar">
+        <div class="container topbar-inner">
+            <a class="brand" href="index.html"><span>Algo</span>Forge</a>
+            <nav class="main-nav">
+                <a class="nav-link" href="index.html">Accueil</a>
+                <a class="nav-link" href="problems.html">Problèmes</a>
+                <a class="nav-link active" href="contest.html" aria-current="page">Concours (Beta)</a>
+                <a class="nav-link" href="profile.html">Profil</a>
+                <a class="nav-link" href="parameters.html">Paramètres</a>
+            </nav>
+            <div class="nav-actions">
+                <a class="btn btn-ghost" href="profile.html">Mon profil</a>
+                <a class="btn btn-primary" href="problems.html">Pratiquer</a>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content">
+        <!-- Loader / Container -->
+        <section class="section contest-header">
+            <div class="container">
+                <a href="contest.html" class="contest-back-link">
+                    ← Retour aux concours
+                </a>
+
+                <div id="loadingView" class="contest-loading" style="display: block;">
+                    <div class="loading-placeholder">Chargement des détails du tournoi...</div>
+                </div>
+
+                <!-- Bound Data -->
+                <div id="contestDataView" style="display: none;">
+                    <div class="panel contest-details-card">
+                        <h1 id="cTitle">Titre du Tournoi</h1>
+                        <p id="cDesc" class="lead">Description lorem ipsum dolor</p>
+                        
+                        <div class="contest-details-meta">
+                            <p>
+                                <strong>Début:</strong> <span id="cStart"></span><br>
+                                <strong>Fin:</strong> <span id="cEnd"></span>
+                            </p>
+                        </div>
+
+                        <div class="contest-register">
+                            <button id="registerBtn" class="btn btn-primary">S'inscrire au Tournoi</button>
+                            <p id="registerMsg" class="contest-register-msg"></p>
+                        </div>
+                    </div>
+
+                    <h2 class="mb-4">Défis Associés</h2>
+                    <div class="panel" style="overflow-x: auto;">
+                        <table class="contest-problems-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nom du Problème</th>
+                                    <th>Points</th>
+                                    <th>Difficulté</th>
+                                </tr>
+                            </thead>
+                            <tbody id="problemsTbody">
+                                <!-- JS Injection -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Error Fallback -->
+                <div id="errorView" class="contest-error" style="display: none;">
+                    <h2>Tournoi Introuvable</h2>
+                    <p>L'ID fourni est invalide ou le concours n'existe pas.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="container footer-inner">
+            <p>AlgoForge. Progression continue.</p>
+            <p>Copyright <span class="year"></span> AlgoForge.</p>
+        </div>
+    </footer>
+
+    <script src="assets/js/api.js"></script>
+    <script src="assets/js/contest-mock-data.js"></script>
+    <script src="assets/js/script.js"></script>
+    <script src="assets/js/contest-details.js"></script>
+</body>
+</html>

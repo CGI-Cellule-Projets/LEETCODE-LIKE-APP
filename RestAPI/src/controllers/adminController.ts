@@ -32,7 +32,7 @@ export async function getAllProblemsAdmin(req: Request, res: Response): Promise<
     const db = getDB();
 
     const result = await db.query(`
-      SELECT problem_id, name, difficulty_level, solve_rate, description
+      SELECT problem_id, name, difficulty_level, solve_rate, description, visibility
       FROM problems
       ORDER BY problem_id ASC
     `);
@@ -82,7 +82,7 @@ export async function getAllProblemsAdmin(req: Request, res: Response): Promise<
  */
 export async function createProblem(req: Request, res: Response): Promise<void> {
   try {
-    const { name, difficulty_level, description, is_published, constraints } = req.body as CreateProblemRequest;
+    const { name, difficulty_level, description, is_published, constraints, visibility } = req.body as CreateProblemRequest;
 
     // Validation
     if (!name || !difficulty_level) {
@@ -93,14 +93,20 @@ export async function createProblem(req: Request, res: Response): Promise<void> 
       throw new AppError(400, 'Invalid difficulty level', 'difficulty_level must be "easy", "med", or "hard"');
     }
 
+    const allowedVisibilities = ['HIDDEN', 'CONTEST_ONLY', 'PUBLIC'];
+    const safeVisibility = visibility || 'HIDDEN';
+    if (!allowedVisibilities.includes(safeVisibility)) {
+      throw new AppError(400, 'Invalid visibility', 'visibility must be HIDDEN, CONTEST_ONLY, or PUBLIC');
+    }
+
     const db = getDB();
 
     // Insert problem
     const result = await db.query(`
-      INSERT INTO problems (name, difficulty_level, solve_rate)
-      VALUES ($1, $2, $3)
-      RETURNING problem_id, name, difficulty_level, solve_rate
-    `, [name, difficulty_level, 0.0]);
+      INSERT INTO problems (name, difficulty_level, description, is_published, constraints, solve_rate, visibility)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      RETURNING problem_id, name, difficulty_level, solve_rate, description, is_published, constraints, visibility
+    `, [name, difficulty_level, description || null, is_published || false, constraints || null, 0.0, safeVisibility]);
 
     if (!result.rows || result.rows.length === 0) {
       throw new AppError(500, 'Failed to create problem', 'Database insertion failed');
@@ -157,7 +163,7 @@ export async function updateProblem(req: Request, res: Response): Promise<void> 
   try {
     const { id } = req.params;
     const problemId = parseInt(id);
-    const { name, difficulty_level, description, is_published, constraints } = req.body as UpdateProblemRequest;
+    const { name, difficulty_level, description, is_published, constraints, visibility } = req.body as UpdateProblemRequest;
 
     if (isNaN(problemId)) {
       throw new AppError(400, 'Invalid problem ID', 'Problem ID must be a valid number');
@@ -165,6 +171,10 @@ export async function updateProblem(req: Request, res: Response): Promise<void> 
 
     if (difficulty_level && !['easy', 'med', 'hard'].includes(difficulty_level)) {
       throw new AppError(400, 'Invalid difficulty level', 'difficulty_level must be "easy", "med", or "hard"');
+    }
+
+    if (visibility && !['HIDDEN', 'CONTEST_ONLY', 'PUBLIC'].includes(visibility)) {
+      throw new AppError(400, 'Invalid visibility', 'visibility must be HIDDEN, CONTEST_ONLY, or PUBLIC');
     }
 
     const db = getDB();
@@ -192,6 +202,22 @@ export async function updateProblem(req: Request, res: Response): Promise<void> 
       updates.push(`difficulty_level = $${paramIndex++}`);
       values.push(difficulty_level);
     }
+    if (description !== undefined) {
+      updates.push(`description = $${paramIndex++}`);
+      values.push(description);
+    }
+    if (is_published !== undefined) {
+      updates.push(`is_published = $${paramIndex++}`);
+      values.push(is_published);
+    }
+    if (constraints !== undefined) {
+      updates.push(`constraints = $${paramIndex++}`);
+      values.push(constraints);
+    }
+    if (visibility !== undefined) {
+      updates.push(`visibility = $${paramIndex++}`);
+      values.push(visibility);
+    }
 
     if (updates.length === 0) {
       throw new AppError(400, 'No fields to update', 'Provide at least one field to update');
@@ -203,7 +229,7 @@ export async function updateProblem(req: Request, res: Response): Promise<void> 
       UPDATE problems
       SET ${updates.join(', ')}
       WHERE problem_id = $${paramIndex}
-      RETURNING problem_id, name, difficulty_level, solve_rate
+      RETURNING problem_id, name, difficulty_level, solve_rate, description, is_published, constraints, visibility
     `;
 
     const result = await db.query(query, values);
@@ -373,6 +399,174 @@ export async function addTestCase(req: Request, res: Response): Promise<void> {
         message: 'Failed to add test case',
         errors: error instanceof Error ? error.message : 'Unknown error',
       });
+    }
+  }
+}
+
+/**
+ * POST /api/admin/contests
+ * Create a new contest
+ */
+export async function createContestAdmin(req: Request, res: Response): Promise<void> {
+  try {
+    const { title, description, start_time, end_time } = req.body;
+
+    if (!title || !start_time || !end_time) {
+      throw new AppError(400, 'Missing required fields', 'title, start_time, and end_time are required');
+    }
+
+    const db = getDB();
+
+    const result = await db.query(`
+      INSERT INTO contests (title, description, start_time, end_time)
+      VALUES ($1, $2, $3, $4)
+      RETURNING contest_id, title, start_time, end_time, description
+    `, [title, description || null, start_time, end_time]);
+
+    if (!result.rows || result.rows.length === 0) {
+      throw new AppError(500, 'Failed to create contest', 'Database insertion failed');
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Contest created successfully',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({ success: false, message: error.message, errors: error.details });
+    } else {
+      res.status(500).json({ success: false, message: 'Creation failed', errors: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  }
+}
+
+/**
+ * PUT /api/admin/contests/:id
+ * Update an existing contest
+ */
+export async function updateContestAdmin(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const contestId = parseInt(id);
+    const { title, description, start_time, end_time } = req.body;
+
+    if (isNaN(contestId)) {
+      throw new AppError(400, 'Invalid contest ID', 'Contest ID must be a valid number');
+    }
+
+    const db = getDB();
+
+    // Build dynamic update query
+    const updates: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (title !== undefined) {
+      updates.push(`title = $${paramIndex++}`);
+      values.push(title);
+    }
+    if (description !== undefined) {
+      updates.push(`description = $${paramIndex++}`);
+      values.push(description);
+    }
+    if (start_time !== undefined) {
+      updates.push(`start_time = $${paramIndex++}`);
+      values.push(start_time);
+    }
+    if (end_time !== undefined) {
+      updates.push(`end_time = $${paramIndex++}`);
+      values.push(end_time);
+    }
+
+    if (updates.length === 0) {
+      throw new AppError(400, 'No fields to update', 'Provide at least one valid field to update');
+    }
+
+    values.push(contestId);
+
+    const result = await db.query(`
+      UPDATE contests
+      SET ${updates.join(', ')}
+      WHERE contest_id = $${paramIndex}
+      RETURNING contest_id, title, start_time, end_time, description
+    `, values);
+
+    if (!result.rows || result.rows.length === 0) {
+      throw new AppError(404, 'Failed to update contest', 'Contest not found or update failed');
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Contest updated successfully',
+      data: result.rows[0],
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({ success: false, message: error.message, errors: error.details });
+    } else {
+      res.status(500).json({ success: false, message: 'Update failed', errors: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  }
+}
+
+/**
+ * POST /api/admin/contests/:id/problems
+ * Overwrite or assign problems to a contest
+ * Expects: { problems: [ { problem_id: 1, points: 100 }, ... ] }
+ */
+export async function assignContestProblems(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const contestId = parseInt(id);
+    const { problems } = req.body;
+
+    if (isNaN(contestId)) {
+      throw new AppError(400, 'Invalid contest ID', 'Contest ID must be a valid number');
+    }
+    if (!Array.isArray(problems)) {
+      throw new AppError(400, 'Invalid payload', 'problems must be an array of objects');
+    }
+
+    const db = getDB();
+
+    // Verify contest first
+    const verify = await db.query('SELECT contest_id FROM contests WHERE contest_id = $1', [contestId]);
+    if (!verify.rows || verify.rows.length === 0) {
+      throw new AppError(404, 'Contest not found', `Contest ${contestId} does not exist`);
+    }
+
+    // Begin mapping manipulation
+    await db.query('BEGIN');
+    
+    await db.query('DELETE FROM contest_problems WHERE contest_id = $1', [contestId]);
+
+    for (const prob of problems) {
+      if (!prob.problem_id || isNaN(parseInt(prob.problem_id))) {
+        throw new AppError(400, 'Invalid problem payload', 'Object must contain a valid problem_id');
+      }
+      
+      const pts = parseInt(prob.points) || 100;
+      
+      await db.query(`
+        INSERT INTO contest_problems (contest_id, problem_id, points)
+        VALUES ($1, $2, $3)
+      `, [contestId, prob.problem_id, pts]);
+    }
+
+    await db.query('COMMIT');
+
+    res.status(201).json({
+      success: true,
+      message: 'Problems successfully assigned to the contest',
+    });
+  } catch (error) {
+    const db = getDB();
+    await db.query('ROLLBACK');
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({ success: false, message: error.message, errors: error.details });
+    } else {
+      res.status(500).json({ success: false, message: 'Assignment failed', errors: error instanceof Error ? error.message : 'Unknown error' });
     }
   }
 }
