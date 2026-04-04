@@ -8,7 +8,7 @@ Une plateforme web inspirée de LeetCode, conçue pour héberger et gérer des c
 ## 🧰 Technologies
 - **Frontend (pages statiques)** : HTML, CSS pur (glassmorphism), JavaScript vanilla
 - **Éditeur de code** : React 19, Vite 7, Monaco Editor (le moteur de VS Code)
-- **Base de données** : PostgreSQL (schéma dans `DataStructure/`)
+- **Base de données** : PostgreSQL (schéma dans `database/`)
 
 ## ⏰ Deadline
 **8 Avril 2026**
@@ -26,7 +26,7 @@ Une plateforme web inspirée de LeetCode, conçue pour héberger et gérer des c
 
 **Étape 1** — Ouvrir un terminal à la racine du projet, puis entrer dans le dossier de l'éditeur :
 ```bash
-cd CodeEditorIntegration
+cd apps/editor
 ```
 
 **Étape 2** — Télécharger les librairies nécessaires (React, Monaco Editor, etc.) :
@@ -37,62 +37,67 @@ npm install
 
 **Étape 3** — Compiler l'éditeur pour qu'il soit utilisable dans le site :
 ```bash
+cd ../..
 npm run build
 ```
-> Ça va créer un dossier `editor/` à la racine du projet.
+> Ça va générer l'éditeur dans `apps/web/editor/`.
 
-**Étape 4** — Revenir à la racine et lancer un serveur local :
+**Étape 4** — Revenir à la racine et lancer l'application complète :
 ```bash
-cd ..
-npx serve . -l 3000
+npm run dev:full
 ```
 
 **Étape 5** — Ouvrir `http://localhost:3000` dans le navigateur. C'est tout !
 
+### Important : portée de sécurité de l'exécution
+- L'API d'exécution actuelle est prévue pour une **démo locale** sur la machine du développeur.
+- Le serveur s'attache par défaut à `127.0.0.1` et l'exécution est limitée aux requêtes locales.
+- Cette implémentation **n'est pas un sandbox de production**. Ne pas exposer cette route publiquement tant qu'une vraie isolation (conteneurs/VM/judge dédié) n'est pas ajoutée.
+
 ### Les fois suivantes
 
-Si vous n'avez **rien modifié** dans `CodeEditorIntegration/`, il suffit de :
+Si vous n'avez **rien modifié** dans `apps/editor/`, il suffit de :
 ```bash
-npx serve . -l 3000
+npm run serve
 ```
 
-Si vous avez **modifié le code de l'éditeur** (`CodeEditorIntegration/src/`), il faut recompiler avant :
+Si vous avez **modifié le code de l'éditeur** (`apps/editor/src/`), il faut recompiler avant :
 ```bash
-cd CodeEditorIntegration
-npm run build
-cd ..
-npx serve . -l 3000
+npm run dev:full
 ```
 
 ### Alternative sans terminal
-Si vous avez l'extension **Live Server** dans VS Code : clic droit sur `index.html` → "Open with Live Server". Pas besoin de `npx serve`.
+Si vous avez l'extension **Live Server** dans VS Code : clic droit sur `apps/web/index.html` → "Open with Live Server".
+Attention : cela fonctionne pour l'affichage statique, mais **pas** pour l'exécution du code. Pour utiliser le bouton **Run**, il faut lancer `npm run dev:full` ou `npm run serve` depuis la racine.
 
 ## 📂 Structure du Projet
 
+> Source unique de l'éditeur: `apps/editor/`.
+
 ```
 LEETCODE-LIKE-APP/
-├── assets/
-│   ├── css/
-│   │   └── styles.css              ← Système UI global (glassmorphism, cartes, boutons)
-│   └── js/
-│       └── script.js               ← Logique front-end (menu, animations, localStorage, filtres)
-├── CodeEditorIntegration/           ← Code source React de l'éditeur
-│   ├── src/
-│   │   ├── App.jsx                  ← Composant principal (éditeur Monaco + panel problème)
-│   │   ├── App.css                  ← Styles de l'éditeur
-│   │   ├── index.css                ← Variables CSS + thème sombre
-│   │   └── main.jsx                 ← Point d'entrée React
-│   ├── package.json
-│   └── vite.config.js
-├── DataStructure/                   ← Schéma BDD PostgreSQL
+├── apps/
+│   ├── web/                         ← Application web statique (site principal)
+│   │   ├── index.html               ← Page d'accueil (Hero, roadmap, FAQ)
+│   │   ├── problems.html            ← Bibliothèque d'exercices
+│   │   ├── profile.html             ← Tableau de bord utilisateur
+│   │   ├── parameters.html          ← Paramètres (thème, accent, animations)
+│   │   ├── assets/
+│   │   │   ├── css/styles.css       ← Système UI global
+│   │   │   └── js/script.js         ← Logique front-end
+│   │   └── editor/                  ← Build output de l'éditeur React
+│   └── editor/                      ← Code source React de l'éditeur
+│       ├── src/
+│       │   ├── App.jsx              ← Composant principal
+│       │   ├── App.css              ← Styles de l'éditeur
+│       │   ├── index.css            ← Variables CSS + thème sombre
+│       │   └── main.jsx             ← Point d'entrée React
+│       ├── package.json
+│       └── vite.config.js
+├── database/                        ← Schéma BDD PostgreSQL
 │   ├── coding_platform_db.sql
 │   ├── coding_platform_ea.png
 │   └── update_stats.py
-├── editor/                          ← Build output (généré, gitignored)
-├── index.html                       ← Page d'accueil (Hero, roadmap, FAQ)
-├── problems.html                    ← Bibliothèque d'exercices (recherche + filtres)
-├── profile.html                     ← Tableau de bord utilisateur (stats, badges, heatmap)
-├── parameters.html                  ← Paramètres (thème, couleur d'accent, animations)
 ├── .gitignore
 ├── package.json
 └── README.md
@@ -101,11 +106,11 @@ LEETCODE-LIKE-APP/
 ## 🆕 Fonctionnalités récentes
 
 ### Éditeur de code intégré
-- **Monaco Editor** (le moteur de VS Code) avec support de 9 langages : JavaScript, Python, Java, C++, C, C#, TypeScript, Go, Rust
+- **Monaco Editor** (le moteur de VS Code) avec support de 2 langages dans cette première version d'exécution : JavaScript et Python
 - **Code de démarrage** automatique selon le langage sélectionné
 - **Panel problème** : affiche le titre, la difficulté, les tags et l'énoncé complet du problème sélectionné
-- **Console de sortie** avec indicateurs de statut (idle, running, success, error)
-- **Simulation d'exécution** du code (backend à venir)
+- **Console de sortie** avec indicateurs de statut (idle, running, success, runtime error, timeout)
+- **Exécution réelle** du code via une API locale (`/api/execute`) avec `stdin`, `timeLimit`, `stdout`, `stderr`, `exitCode`, `executionTime`, `memory` et `status`
 
 ### Navigation connectée
 - Cliquer sur **"Résoudre"** dans la page problèmes ouvre l'éditeur avec le problème chargé automatiquement
@@ -126,13 +131,13 @@ LEETCODE-LIKE-APP/
 * **`/editor/`** : L'éditeur de code (React, généré par `npm run build`).
 
 IMPORTANT !!!!!!!!!!!!!!!!
-* **`assets/css/styles.css`** : Le cœur de notre design ! Tout notre système UI (glassmorphism, cartes, boutons) s'y trouve.
+* **`apps/web/assets/css/styles.css`** : Le cœur de notre design ! Tout notre système UI (glassmorphism, cartes, boutons) s'y trouve.
 Machi darori tkhdemo bihom kamlin, le plus important howa la fonctionnalité, oula task li mkelfin biha tkon tzadt, tal mbe3d o ngado l'apparence dial kola 7aja jdida tzadt fsite, mhm concentrez vous 3la l'implémentation dial task dialkom.
 lte7t kayn explication dial lminimum ila bghito tzido page etc...
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
-* **`assets/js/script.js`** : Gère la logique front-end (menu mobile, animations au scroll, sauvegarde des préférences dans le localStorage, navigation vers l'éditeur).
+* **`apps/web/assets/js/script.js`** : Gère la logique front-end (menu mobile, animations au scroll, sauvegarde des préférences dans le localStorage, navigation vers l'éditeur).
 
 ## 💡 Comment contribuer ?
 
@@ -165,16 +170,16 @@ Si tu dois créer une nouvelle page pour la plateforme (exemple : `login.html` o
 
 ### Modifier l'éditeur de code
 
-Le code source de l'éditeur est dans `CodeEditorIntegration/src/`. Après chaque modification :
+Le code source de l'éditeur est dans `apps/editor/src/`. Après chaque modification :
 
 ```bash
-cd CodeEditorIntegration
+cd apps/editor
 npm run build
 ```
 
 ### Le système CSS
 
-Notre CSS est architecturé de manière modulaire à l'intérieur de `assets/css/styles.css`.
+Notre CSS est architecturé de manière modulaire à l'intérieur de `apps/web/assets/css/styles.css`.
 Il contient de nombreux commentaires explicatifs (notamment les blocs **`UTILISATION :`**) pour t'apprendre à utiliser nos classes.
 
 Les choses principales à retenir :

@@ -2,7 +2,8 @@
   "name": "algoforge",
   "private": true,
   "scripts": {
-    "build": "cd CodeEditorIntegration && npm run build",
-    "serve": "npx serve . -l 3000"
+    "dev:full": "npm --prefix apps/editor run build && node server.mjs",
+    "build": "npm --prefix apps/editor run build",
+    "serve": "node server.mjs"
   }
 }

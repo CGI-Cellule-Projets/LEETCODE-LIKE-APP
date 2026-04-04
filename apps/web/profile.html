@@ -63,28 +63,28 @@
             <div class="container profile-grid">
                 <article class="panel profile-card reveal">
                     <div class="profile-head">
-                        <div class="avatar">--</div>
+                        <div id="profileAvatar" class="avatar">AF</div>
                         <div>
-                            <h2>Profil anonymise</h2>
-                            <p class="muted">Objectif: Preparation technique</p>
+                            <h2 id="profileName">Profil anonymise</h2>
+                            <p id="profileGoal" class="muted">Objectif: Preparation technique</p>
                         </div>
                     </div>
-                    <p class="profile-line">
+                    <p id="profileFocus" class="profile-line">
                         Focus actuel: graphes, programmation dynamique et communication de solution.
                     </p>
                     <div class="tag-row">
-                        <span class="tag">Top 0%</span>
-                        <span class="tag">Serie: 0 jour</span>
-                        <span class="tag">Niveau: 0</span>
+                        <span id="profileTopTag" class="tag">Top 0%</span>
+                        <span id="profileStreakTag" class="tag">Serie: 0 jour</span>
+                        <span id="profileLevelTag" class="tag">Niveau: 0</span>
                     </div>
                 </article>
 
                 <article class="panel rank-card reveal tilt">
                     <p class="section-subtitle">Classement global</p>
                     <div class="rank-circle">
-                        <span class="rank-number">#0</span>
+                        <span id="profileRank" class="rank-number">#0</span>
                     </div>
-                    <p class="muted">+0 place cette semaine</p>
+                    <p id="profileRankDelta" class="muted">+0 place cette semaine</p>
                 </article>
             </div>
         </section>
@@ -94,19 +94,19 @@
             <div class="container metrics-grid">
                 <article class="panel reveal">
                     <p class="stat-label">Problemes resolus</p>
-                    <p class="stat-value" data-counter="0">0</p>
+                    <p id="statSolved" class="stat-value" data-counter="0">0</p>
                 </article>
                 <article class="panel reveal">
                     <p class="stat-label">Concours termines</p>
-                    <p class="stat-value" data-counter="0">0</p>
+                    <p id="statContests" class="stat-value" data-counter="0">0</p>
                 </article>
                 <article class="panel reveal">
                     <p class="stat-label">Runtime moyen</p>
-                    <p class="stat-value" data-counter="0" data-suffix="%">0</p>
+                    <p id="statRuntime" class="stat-value" data-counter="0" data-suffix="%">0</p>
                 </article>
                 <article class="panel reveal">
                     <p class="stat-label">Heures de pratique</p>
-                    <p class="stat-value" data-counter="0">0</p>
+                    <p id="statHours" class="stat-value" data-counter="0">0</p>
                 </article>
             </div>
         </section>
@@ -124,16 +124,16 @@
                     <h3>Progression par domaine</h3>
                     <div class="goal-list">
                         <div class="goal-item">
-                            <div class="goal-meta"><span>Programmation dynamique</span><span>0%</span></div>
-                            <div class="progress-bar"><span data-progress="0"></span></div>
+                            <div class="goal-meta"><span id="goalLabelA">Programmation dynamique</span><span id="goalPctA">0%</span></div>
+                            <div class="progress-bar"><span id="goalBarA" data-progress="0"></span></div>
                         </div>
                         <div class="goal-item">
-                            <div class="goal-meta"><span>Arbres et graphes</span><span>0%</span></div>
-                            <div class="progress-bar"><span data-progress="0"></span></div>
+                            <div class="goal-meta"><span id="goalLabelB">Arbres et graphes</span><span id="goalPctB">0%</span></div>
+                            <div class="progress-bar"><span id="goalBarB" data-progress="0"></span></div>
                         </div>
                         <div class="goal-item">
-                            <div class="goal-meta"><span>System design de base</span><span>0%</span></div>
-                            <div class="progress-bar"><span data-progress="0"></span></div>
+                            <div class="goal-meta"><span id="goalLabelC">System design de base</span><span id="goalPctC">0%</span></div>
+                            <div class="progress-bar"><span id="goalBarC" data-progress="0"></span></div>
                         </div>
                     </div>
                 </article>
@@ -150,15 +150,15 @@
                 <div class="achievement-grid">
                     <article class="panel reveal tilt">
                         <h3>Maitre de la recherche binaire</h3>
-                        <p>0 probleme de recherche binaire valide.</p>
+                        <p id="badgeBinary">0 probleme de recherche binaire valide.</p>
                     </article>
                     <article class="panel reveal tilt">
                         <h3>Combattant de concours</h3>
-                        <p>0 concours consecutif termine dans le top 0%.</p>
+                        <p id="badgeContest">0 concours consecutif termine dans le top 0%.</p>
                     </article>
                     <article class="panel reveal tilt">
                         <h3>Runtime d'excellence</h3>
-                        <p>0 solution au-dessus du 0e percentile.</p>
+                        <p id="badgeRuntime">0 solution au-dessus du 0e percentile.</p>
                     </article>
                 </div>
             </div>
