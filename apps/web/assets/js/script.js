@@ -1,10 +1,59 @@
 document.addEventListener("DOMContentLoaded", () => {
     const body = document.body;
     const root = document.documentElement;
+    const PROGRESS_KEY = "algoforge-progress";
 
     document.querySelectorAll(".year").forEach((node) => {
         node.textContent = new Date().getFullYear();
     });
+
+    const toDateKey = (date) => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const day = String(date.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    };
+
+    const createDefaultProgress = () => ({
+        attempts: 0,
+        solvedCount: 0,
+        contestsCompleted: 0,
+        totalRuntimePercentile: 0,
+        runtimeSamples: 0,
+        totalPracticeMinutes: 0,
+        activeStreakDays: 0,
+        problemOpenCount: 0,
+        solvedProblems: {},
+        solvedByDifficulty: { easy: 0, medium: 0, hard: 0 },
+        solvedByTag: {},
+        activityByDate: {}
+    });
+
+    const readProgress = () => {
+        try {
+            const parsed = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}");
+            const defaults = createDefaultProgress();
+            return {
+                ...defaults,
+                ...parsed,
+                solvedByDifficulty: { ...defaults.solvedByDifficulty, ...(parsed.solvedByDifficulty || {}) },
+                solvedByTag: { ...(parsed.solvedByTag || {}) },
+                solvedProblems: { ...(parsed.solvedProblems || {}) },
+                activityByDate: { ...(parsed.activityByDate || {}) }
+            };
+        } catch (error) {
+            return createDefaultProgress();
+        }
+    };
+
+    const writeProgress = (progress) => {
+        localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+    };
+
+    const touchActivity = (progress, dateKey, amount = 1) => {
+        const current = Number(progress.activityByDate[dateKey] || 0);
+        progress.activityByDate[dateKey] = current + amount;
+    };
 
     /* 
      * 📱 --- MOBILE MENU LOGIC ---
@@ -82,6 +131,94 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }, { passive: true });
     }
+
+    const hydrateProfileAnalytics = () => {
+        const solvedNode = document.getElementById("statSolved");
+        if (!solvedNode) return;
+
+        const progress = readProgress();
+        const solved = Number(progress.solvedCount || 0);
+        const contests = Number(progress.contestsCompleted || 0);
+        const avgRuntime = progress.runtimeSamples > 0
+            ? Math.round(progress.totalRuntimePercentile / progress.runtimeSamples)
+            : 0;
+        const hours = Math.max(0, Math.round((Number(progress.totalPracticeMinutes || 0) / 60) * 10) / 10);
+        const streak = Number(progress.activeStreakDays || 0);
+        const level = Math.floor(solved / 3);
+        const rankEstimate = Math.max(1, 1200 - solved * 17 - contests * 10);
+        const topPercent = Math.max(1, Math.round(100 - Math.min(95, solved * 2 + contests * 3)));
+
+        solvedNode.dataset.counter = String(solved);
+        const contestsNode = document.getElementById("statContests");
+        if (contestsNode) contestsNode.dataset.counter = String(contests);
+        const runtimeNode = document.getElementById("statRuntime");
+        if (runtimeNode) runtimeNode.dataset.counter = String(avgRuntime);
+        const hoursNode = document.getElementById("statHours");
+        if (hoursNode) {
+            hoursNode.dataset.counter = String(Math.floor(hours));
+            hoursNode.textContent = String(hours);
+        }
+
+        const rankNode = document.getElementById("profileRank");
+        if (rankNode) rankNode.textContent = `#${rankEstimate}`;
+        const rankDeltaNode = document.getElementById("profileRankDelta");
+        if (rankDeltaNode) {
+            const delta = Math.max(0, Math.round((solved + contests) * 0.7));
+            rankDeltaNode.textContent = `+${delta} place${delta > 1 ? "s" : ""} cette semaine`;
+        }
+
+        const streakTag = document.getElementById("profileStreakTag");
+        if (streakTag) streakTag.textContent = `Serie: ${streak} jour${streak > 1 ? "s" : ""}`;
+        const levelTag = document.getElementById("profileLevelTag");
+        if (levelTag) levelTag.textContent = `Niveau: ${level}`;
+        const topTag = document.getElementById("profileTopTag");
+        if (topTag) topTag.textContent = `Top ${topPercent}%`;
+
+        const solvedByDifficulty = progress.solvedByDifficulty || {};
+        const totalSolved = Math.max(1, solved);
+        const goals = [
+            {
+                labelId: "goalLabelA",
+                pctId: "goalPctA",
+                barId: "goalBarA",
+                label: "Facile",
+                value: Math.round((Number(solvedByDifficulty.easy || 0) / totalSolved) * 100)
+            },
+            {
+                labelId: "goalLabelB",
+                pctId: "goalPctB",
+                barId: "goalBarB",
+                label: "Moyen",
+                value: Math.round((Number(solvedByDifficulty.medium || 0) / totalSolved) * 100)
+            },
+            {
+                labelId: "goalLabelC",
+                pctId: "goalPctC",
+                barId: "goalBarC",
+                label: "Difficile",
+                value: Math.round((Number(solvedByDifficulty.hard || 0) / totalSolved) * 100)
+            }
+        ];
+
+        goals.forEach((goal) => {
+            const labelNode = document.getElementById(goal.labelId);
+            if (labelNode) labelNode.textContent = goal.label;
+            const pctNode = document.getElementById(goal.pctId);
+            if (pctNode) pctNode.textContent = `${goal.value}%`;
+            const barNode = document.getElementById(goal.barId);
+            if (barNode) barNode.dataset.progress = String(goal.value);
+        });
+
+        const binaryCount = Number(progress.solvedByTag["Binary Search"] || 0);
+        const contestBadge = document.getElementById("badgeContest");
+        const binaryBadge = document.getElementById("badgeBinary");
+        const runtimeBadge = document.getElementById("badgeRuntime");
+        if (binaryBadge) binaryBadge.textContent = `${binaryCount} probleme${binaryCount > 1 ? "s" : ""} de recherche binaire valide.`;
+        if (contestBadge) contestBadge.textContent = `${contests} concours consecutif${contests > 1 ? "s" : ""} termine${contests > 1 ? "s" : ""} dans le top ${topPercent}%.`;
+        if (runtimeBadge) runtimeBadge.textContent = `${avgRuntime}% de percentile moyen sur les solutions executees.`;
+    };
+
+    hydrateProfileAnalytics();
 
     /* 
      * 🎬 --- SCROLL REVEAL ANIMATIONS ---
@@ -280,15 +417,24 @@ document.addEventListener("DOMContentLoaded", () => {
      */
     const streakGrid = document.getElementById("streakGrid");
     if (streakGrid) {
-        for (let i = 0; i < 140; i += 1) {
+        const progress = readProgress();
+        const today = new Date();
+
+        for (let i = 139; i >= 0; i -= 1) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            const dateKey = toDateKey(date);
+            const count = Number(progress.activityByDate[dateKey] || 0);
+
             const cell = document.createElement("span");
             cell.className = "day";
-            const seed = (i * 37 + 19) % 100;
+            cell.title = `${dateKey}: ${count} activite${count > 1 ? "s" : ""}`;
+
             let level = 0;
-            if (seed > 34) level = 1;
-            if (seed > 58) level = 2;
-            if (seed > 74) level = 3;
-            if (seed > 90) level = 4;
+            if (count >= 1) level = 1;
+            if (count >= 2) level = 2;
+            if (count >= 4) level = 3;
+            if (count >= 6) level = 4;
             cell.classList.add(`level-${level}`);
             streakGrid.appendChild(cell);
         }
@@ -443,6 +589,18 @@ document.addEventListener("DOMContentLoaded", () => {
      * 🔗 --- PROBLEM → CODE EDITOR NAVIGATION ---
      * Stores selected problem data in localStorage and navigates to the code editor.
      */
+    const buildEditorUrl = (problemData) => {
+        const problemParam = encodeURIComponent(JSON.stringify(problemData));
+        const isLocalHost = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        const needsBackendOrigin = isLocalHost && window.location.port && window.location.port !== "3000";
+
+        if (needsBackendOrigin) {
+            return `${window.location.protocol}//${window.location.hostname}:3000/editor/indexcodeeditor.html?problem=${problemParam}`;
+        }
+
+        return `editor/indexcodeeditor.html?problem=${problemParam}`;
+    };
+
     const solveButtons = document.querySelectorAll(".solve-btn");
     solveButtons.forEach((btn) => {
         btn.addEventListener("click", (e) => {
@@ -457,8 +615,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 tags: card.dataset.tags || ""
             };
 
+            const progress = readProgress();
+            const todayKey = toDateKey(new Date());
+            progress.problemOpenCount += 1;
+            touchActivity(progress, todayKey);
+            writeProgress(progress);
+
             localStorage.setItem("algoforge-current-problem", JSON.stringify(problemData));
-            window.location.href = "editor/indexcodeeditor.html";
+            window.location.href = buildEditorUrl(problemData);
         });
     });
 });
