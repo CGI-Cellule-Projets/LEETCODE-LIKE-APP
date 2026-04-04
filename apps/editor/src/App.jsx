@@ -123,10 +123,47 @@ const buildBackendEditorUrl = (problem) => {
   return `${window.location.protocol}//${window.location.hostname}:3000/editor/indexcodeeditor.html${buildProblemQuery(problem)}`;
 };
 
+const SAMPLE_TESTS_BY_TITLE = {
+  "Two Sum": [
+    { name: "Sample 1", input: "2 7 11 15\n9", expectedOutput: "[0,1]" },
+  ],
+  "Longest Substring Without Repeating Characters": [
+    { name: "Sample 1", input: "abcabcbb", expectedOutput: "3" },
+    { name: "Sample 2", input: "bbbbb", expectedOutput: "1" },
+  ],
+  "Merge K Sorted Lists": [
+    { name: "Sample 1", input: "1 4 5\n1 3 4\n2 6", expectedOutput: "1 1 2 3 4 4 5 6" },
+  ],
+  "Binary Tree Level Order Traversal": [
+    { name: "Sample 1", input: "3 9 20 null null 15 7", expectedOutput: "[[3],[9,20],[15,7]]" },
+  ],
+  "Word Ladder": [
+    { name: "Sample 1", input: "hit\ncog\nhot dot dog lot log cog", expectedOutput: "5" },
+  ],
+  "Valid Parentheses": [
+    { name: "Sample 1", input: "()", expectedOutput: "true" },
+    { name: "Sample 2", input: "([)]", expectedOutput: "false" },
+  ],
+};
+
+const enrichProblem = (problem) => {
+  if (!problem) {
+    return null;
+  }
+
+  return {
+    ...problem,
+    sampleTests: Array.isArray(problem.sampleTests) && problem.sampleTests.length > 0
+      ? problem.sampleTests
+      : (SAMPLE_TESTS_BY_TITLE[problem.title] || []),
+  };
+};
+
 const statusConfig = {
   idle: { label: 'Idle', indicator: 'idle' },
   running: { label: 'Running', indicator: 'running' },
   success: { label: 'Success', indicator: 'success' },
+  failed: { label: 'Samples Failed', indicator: 'error' },
   runtime_error: { label: 'Runtime Error', indicator: 'error' },
   timeout: { label: 'Timeout', indicator: 'timeout' },
 };
@@ -134,6 +171,8 @@ const statusConfig = {
 const createDefaultOutput = () => ([
   { type: 'system', text: 'Console ready. Click "Run" to execute your code.' }
 ]);
+
+const normalizeOutputValue = (value) => String(value ?? "").replace(/\r\n/g, "\n").trim();
 
 const estimateRuntimePercentile = (executionTime, timeLimit) => {
   if (!Number.isFinite(executionTime) || !Number.isFinite(timeLimit) || timeLimit <= 0) {
@@ -183,6 +222,34 @@ const buildOutputMessages = (result) => {
       type: 'system',
       text: 'Execution finished without stdout or stderr.',
     });
+  }
+
+  return lines;
+};
+
+const buildCaseResultsOutput = (results) => {
+  if (!results.length) {
+    return createDefaultOutput();
+  }
+
+  const passedCount = results.filter((result) => result.passed).length;
+  const failedExecution = results.find((result) => result.status === "runtime_error" || result.status === "timeout");
+
+  if (results.length === 1 && results[0].isCustom && results[0].status === "success") {
+    return buildOutputMessages({
+      stdout: results[0].actualOutput,
+      stderr: results[0].stderr,
+      status: results[0].status,
+    });
+  }
+
+  const lines = [{
+    type: passedCount === results.length ? "stdout" : "system",
+    text: `Passed ${passedCount}/${results.length} ${results.length === 1 ? "test" : "tests"}.`,
+  }];
+
+  if (failedExecution?.stderr) {
+    lines.push({ type: "stderr", text: failedExecution.stderr });
   }
 
   return lines;
@@ -278,6 +345,7 @@ function App() {
   const [isRunning, setIsRunning] = useState(false);
   const [runStatus, setRunStatus] = useState("idle");
   const [lastRunResult, setLastRunResult] = useState(null);
+  const [caseResults, setCaseResults] = useState([]);
   const [editorTheme, setEditorTheme] = useState("vs-dark");
   const [output, setOutput] = useState(createDefaultOutput);
   const workspaceRef = useRef(null);
@@ -309,12 +377,13 @@ function App() {
 
     try {
       if (currentSearchProblem) {
-        setProblem(currentSearchProblem);
-        localStorage.setItem("algoforge-current-problem", JSON.stringify(currentSearchProblem));
+        const enrichedProblem = enrichProblem(currentSearchProblem);
+        setProblem(enrichedProblem);
+        localStorage.setItem("algoforge-current-problem", JSON.stringify(enrichedProblem));
       } else {
         const stored = localStorage.getItem("algoforge-current-problem");
         if (stored) {
-          setProblem(JSON.parse(stored));
+          setProblem(enrichProblem(JSON.parse(stored)));
         }
       }
     } catch (e) {
@@ -412,6 +481,7 @@ function App() {
       setCode(starterCode[lang] || starterCode.javascript);
       setOutput(createDefaultOutput());
       setLastRunResult(null);
+      setCaseResults([]);
       setRunStatus("idle");
     });
   };
@@ -420,33 +490,84 @@ function App() {
     if (isRunning) return;
 
     const requestedTimeLimit = Math.max(250, Number(timeLimit) || 2000);
+    const sampleTests = Array.isArray(problem?.sampleTests) ? problem.sampleTests : [];
+    const testsToRun = showCustomInput && stdin.trim()
+      ? [{ name: "Custom Input", input: stdin, expectedOutput: null, isCustom: true }]
+      : sampleTests.length > 0
+        ? sampleTests.map((test, index) => ({
+          name: test.name || `Sample ${index + 1}`,
+          input: test.input || "",
+          expectedOutput: test.expectedOutput ?? "",
+          isCustom: false,
+        }))
+        : [{ name: "Run", input: stdin, expectedOutput: null, isCustom: true }];
 
     setIsRunning(true);
     setRunStatus("running");
     setLastRunResult(null);
+    setCaseResults([]);
     setOutput([{ type: 'system', text: 'Executing code...' }]);
 
     try {
-      const { response, payload } = await fetchExecutionApi("/api/execute", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          language,
-          sourceCode: code,
-          stdin,
-          timeLimit: requestedTimeLimit,
-        }),
-      });
-      if (!response.ok) {
-        throw new Error(payload.error || "Execution request failed.");
+      const nextCaseResults = [];
+
+      for (const testCase of testsToRun) {
+        const { response, payload } = await fetchExecutionApi("/api/execute", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            language,
+            sourceCode: code,
+            stdin: testCase.input,
+            timeLimit: requestedTimeLimit,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Execution request failed.");
+        }
+
+        const actualOutput = normalizeOutputValue(payload.stdout);
+        const expectedOutput = testCase.expectedOutput == null
+          ? null
+          : normalizeOutputValue(testCase.expectedOutput);
+        const passed = expectedOutput == null
+          ? payload.status === "success"
+          : payload.status === "success" && actualOutput === expectedOutput;
+
+        nextCaseResults.push({
+          name: testCase.name,
+          input: testCase.input,
+          expectedOutput,
+          actualOutput,
+          stderr: payload.stderr,
+          status: payload.status,
+          passed,
+          isCustom: testCase.isCustom,
+        });
       }
 
-      setRunStatus(payload.status);
-      setLastRunResult(payload);
-      setOutput(buildOutputMessages(payload));
-      updateProgressFromRun(problem, payload, requestedTimeLimit);
+      const hasTimeout = nextCaseResults.some((result) => result.status === "timeout");
+      const hasRuntimeError = nextCaseResults.some((result) => result.status === "runtime_error");
+      const hasFailures = nextCaseResults.some((result) => !result.passed);
+      const nextStatus = hasTimeout
+        ? "timeout"
+        : hasRuntimeError
+          ? "runtime_error"
+          : hasFailures
+            ? "failed"
+            : "success";
+
+      setRunStatus(nextStatus);
+      setCaseResults(nextCaseResults);
+      setLastRunResult(nextCaseResults[nextCaseResults.length - 1] || null);
+      setOutput(buildCaseResultsOutput(nextCaseResults));
+
+      if (!hasRuntimeError && !hasTimeout) {
+        updateProgressFromRun(problem, { status: nextStatus === "success" ? "success" : "failed", executionTime: null }, requestedTimeLimit);
+      }
     } catch (error) {
       const failureResult = {
         status: "runtime_error",
@@ -459,6 +580,7 @@ function App() {
 
       setRunStatus("runtime_error");
       setLastRunResult(failureResult);
+      setCaseResults([]);
       setOutput(buildOutputMessages(failureResult));
       updateProgressFromRun(problem, failureResult, requestedTimeLimit);
     } finally {
@@ -648,6 +770,34 @@ function App() {
                     </label>
                   </div>
                 )}
+                {caseResults.length > 0 && (
+                  <div className="sample-results">
+                    {caseResults.map((result) => (
+                      <article key={result.name} className={`sample-result-card ${result.passed ? 'passed' : 'failed'}`}>
+                        <div className="sample-result-header">
+                          <span className="sample-result-name">{result.name}</span>
+                          <span className={`sample-result-badge ${result.passed ? 'passed' : 'failed'}`}>
+                            {result.passed ? 'Passed' : 'Failed'}
+                          </span>
+                        </div>
+                        <div className="sample-result-block">
+                          <span>Input</span>
+                          <pre>{result.input || "Empty input"}</pre>
+                        </div>
+                        {result.expectedOutput !== null && (
+                          <div className="sample-result-block">
+                            <span>Expected</span>
+                            <pre>{result.expectedOutput || "Empty output"}</pre>
+                          </div>
+                        )}
+                        <div className="sample-result-block">
+                          <span>{result.stderr ? 'Error' : 'Actual'}</span>
+                          <pre>{result.stderr || result.actualOutput || "Empty output"}</pre>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
                 <div className="output-box">
                   {output.map((line, idx) => (
                     <div key={idx} className={`output-line ${line.type}`}>{line.text}</div>
@@ -722,6 +872,26 @@ function App() {
                   <p key={i}>{line || '\u00A0'}</p>
                 ))}
               </div>
+              {problem.sampleTests?.length > 0 && (
+                <div className="problem-samples">
+                  <h3 className="problem-samples-title">Sample Tests</h3>
+                  <div className="problem-samples-list">
+                    {problem.sampleTests.map((sample) => (
+                      <article key={sample.name} className="problem-sample-card">
+                        <div className="problem-sample-name">{sample.name}</div>
+                        <div className="problem-sample-block">
+                          <span>Input</span>
+                          <pre>{sample.input}</pre>
+                        </div>
+                        <div className="problem-sample-block">
+                          <span>Expected Output</span>
+                          <pre>{sample.expectedOutput}</pre>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="problem-placeholder">
