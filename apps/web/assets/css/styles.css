@@ -372,6 +372,7 @@ body.theme-night .topbar.scrolled {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    font-family: inherit;
     border-radius: 999px;
     padding: 10px 18px;
     font-size: 0.94rem;
