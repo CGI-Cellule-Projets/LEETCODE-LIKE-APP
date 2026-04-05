@@ -5,13 +5,23 @@
  */
 
 function checkAdminAccess() {
-  // Authentication is intentionally disabled for local development.
-  console.log('Admin access check bypassed (no-auth mode enabled)');
+  const isLocalFile = window.location.protocol === 'file:';
+  const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+
+  if (!isLocalFile && !isLocalHost) {
+    alert('Admin pages are available only on the local development machine.');
+    window.location.href = '../index.html';
+    return false;
+  }
+
+  console.log('Admin access limited to the local machine in development mode.');
+  const token = localStorage.getItem('adminToken') || localStorage.getItem('token') || localStorage.getItem('auth_token');
+  const adminLabel = token ? 'Authenticated Admin' : 'Local Admin';
   
   // Display admin username in navbar
   const adminUsernameElements = document.querySelectorAll('#adminUsername');
   adminUsernameElements.forEach(el => {
-    el.textContent = 'Guest Admin';
+    el.textContent = adminLabel;
   });
 
   // Setup logout button
@@ -19,6 +29,8 @@ function checkAdminAccess() {
   logoutBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('auth_token');
       window.location.href = '../index.html';
     });
   });

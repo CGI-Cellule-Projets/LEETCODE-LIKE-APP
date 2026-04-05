@@ -45,6 +45,7 @@ npm run build
 ```bash
 npm run dev:full
 ```
+> Cette commande build l'éditeur puis démarre le serveur web (`3000`) et la REST API (`3001`) ensemble.
 
 **Étape 5** — Ouvrir `http://localhost:3000` dans le navigateur. C'est tout !
 
@@ -59,6 +60,7 @@ Si vous n'avez **rien modifié** dans `apps/editor/`, il suffit de :
 ```bash
 npm run serve
 ```
+> Cette commande démarre aussi le serveur web (`3000`) et la REST API (`3001`) ensemble.
 
 Si vous avez **modifié le code de l'éditeur** (`apps/editor/src/`), il faut recompiler avant :
 ```bash
@@ -103,7 +105,8 @@ psql -U postgres -d coding_platform -f ../DataStructure/coding_platform_db.sql
 ```bash
 npm run dev
 ```
-> L'API sera accessible sur `http://localhost:3000`
+> L'API REST directe sera accessible sur `http://localhost:3001`
+> Quand le site principal tourne via `npm run serve` ou `npm run dev:full`, les requêtes `/api/*` du frontend passent automatiquement par le serveur web sur `http://localhost:3000`.
 
 ### 👤 Développement - Identifiants par défaut
 

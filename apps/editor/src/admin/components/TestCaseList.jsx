@@ -1,4 +1,12 @@
+import { useEffect } from 'react';
 import { useFieldArray } from 'react-hook-form';
+
+const emptyTestCase = {
+  input_data: '',
+  expected_output: '',
+  is_hidden: false,
+  isExisting: false
+};
 
 export default function TestCaseList({ control, register, errors }) {
   const { fields, append, remove } = useFieldArray({
@@ -6,24 +14,28 @@ export default function TestCaseList({ control, register, errors }) {
     name: 'testCases'
   });
 
+  useEffect(() => {
+    if (fields.length === 0) {
+      append({ ...emptyTestCase });
+    }
+  }, [append, fields.length]);
+
   return (
     <section className="space-y-4 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-base font-semibold text-slate-900">Dynamic Test Case Manager</h3>
         <button
           type="button"
-          onClick={() => append({ input_data: '', expected_output: '', is_hidden: false, isExisting: false })}
+          onClick={() => append({ ...emptyTestCase })}
           className="rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-700"
         >
           Add Test Case
         </button>
       </div>
 
-      {fields.length === 0 && (
-        <p className="rounded-lg border border-dashed border-slate-300 bg-white px-3 py-6 text-center text-sm text-slate-500">
-          No test cases added yet.
-        </p>
-      )}
+      <p className="text-xs text-slate-500">
+        Add at least one public sample test. Hidden tests are useful for final grading only.
+      </p>
 
       <div className="space-y-4">
         {fields.map((field, index) => (
@@ -33,6 +45,7 @@ export default function TestCaseList({ control, register, errors }) {
               <button
                 type="button"
                 onClick={() => remove(index)}
+                disabled={fields.length === 1}
                 className="rounded-lg border border-rose-200 px-3 py-1 text-xs font-semibold text-rose-700 transition hover:bg-rose-50"
               >
                 Remove Test Case

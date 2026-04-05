@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import SimpleMDE from 'react-simplemde-editor';
 import 'easymde/dist/easymde.min.css';
@@ -25,7 +26,14 @@ function normalizeDefaults(problem) {
       is_published: false,
       description: '',
       topics: [],
-      testCases: []
+      testCases: [
+        {
+          input_data: '',
+          expected_output: '',
+          is_hidden: false,
+          isExisting: false
+        }
+      ]
     };
   }
 
@@ -49,6 +57,7 @@ export default function ProblemForm({ problem, onSubmit, onCancel, isSaving }) {
   const {
     control,
     register,
+    reset,
     handleSubmit,
     formState: { errors }
   } = useForm({
@@ -58,6 +67,10 @@ export default function ProblemForm({ problem, onSubmit, onCancel, isSaving }) {
 
   const isEditMode = Boolean(problem?.problem_id);
 
+  useEffect(() => {
+    reset(normalizeDefaults(problem));
+  }, [problem, reset]);
+
   return (
     <section className="rounded-2xl border border-white/50 bg-white/80 p-6 shadow-xl backdrop-blur">
       <header className="mb-5 flex flex-wrap items-start justify-between gap-3">
@@ -66,7 +79,7 @@ export default function ProblemForm({ problem, onSubmit, onCancel, isSaving }) {
             {isEditMode ? `Edit #${problem.problem_id}` : 'Create New Problem'}
           </h2>
           <p className="text-sm text-slate-600">
-            Reuses existing API fields: name, difficulty_level, description, is_published, and test_cases payload.
+            Every coding problem should include at least one test case with input and expected output.
           </p>
         </div>
         <button
@@ -130,6 +143,10 @@ export default function ProblemForm({ problem, onSubmit, onCancel, isSaving }) {
           />
           {errors.description && <span className="text-xs text-rose-600">{errors.description.message}</span>}
         </section>
+
+        <div className="rounded-xl border border-sky-200 bg-sky-50 px-3 py-2 text-xs text-sky-800">
+          A first sample test is added automatically below so you can define what the user should solve right away.
+        </div>
 
         <section className="space-y-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
           <h3 className="text-base font-semibold text-slate-900">Tagging / Categorization</h3>

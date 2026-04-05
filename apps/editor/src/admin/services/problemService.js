@@ -1,8 +1,10 @@
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const deriveVisibility = (isPublished) => (isPublished ? 'PUBLIC' : 'HIDDEN');
+
 function resolveApiBaseUrl() {
   if (typeof window === 'undefined') {
-    return 'http://localhost:3000/api';
+    return 'http://localhost:3001/api';
   }
 
   const queryApiUrl = new URLSearchParams(window.location.search).get('api');
@@ -11,11 +13,11 @@ function resolveApiBaseUrl() {
   }
 
   if (window.location.protocol === 'file:') {
-    return 'http://localhost:3000/api';
+    return 'http://localhost:3001/api';
   }
 
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:3000/api';
+    return 'http://localhost:3001/api';
   }
 
   return `${window.location.origin.replace(/\/$/, '')}/api`;
@@ -49,7 +51,7 @@ export async function getProblems() {
 
 export async function getProblemDetails(problemId) {
   await wait(100);
-  const payload = await request(`/problems/${problemId}`, { method: 'GET' });
+  const payload = await request(`/admin/problems/${problemId}`, { method: 'GET' });
   return payload.data;
 }
 
@@ -89,6 +91,7 @@ export async function upsertProblemWithTestCases(mode, problemValues) {
     difficulty_level: problemValues.difficulty_level,
     description: problemValues.description,
     is_published: problemValues.is_published,
+    visibility: deriveVisibility(Boolean(problemValues.is_published)),
     constraints: ''
   };
 

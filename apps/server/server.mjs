@@ -1,4 +1,4 @@
-import { spawn, spawnSync } from 'node:child_process';
+﻿import { spawn, spawnSync } from 'node:child_process';
 import { createServer } from 'node:http';
 import { createReadStream } from 'node:fs';
 import { promises as fs } from 'node:fs';
@@ -12,7 +12,10 @@ const __dirname = path.dirname(__filename);
 
 const PORT = Number(process.env.PORT || 3000);
 const HOST = process.env.HOST || '127.0.0.1';
+const REST_API_PORT = Number(process.env.REST_API_PORT || 3001);
+const REST_API_BASE_URL = process.env.REST_API_BASE_URL || `http://127.0.0.1:${REST_API_PORT}`;
 const WEB_ROOT = path.join(__dirname, '..', 'web');
+const ADMIN_ROOT = path.join(__dirname, '..', '..', 'admin');
 const EDITOR_ENTRY = path.join(WEB_ROOT, 'editor', 'indexcodeeditor.html');
 const RUNTIME_ROOT = path.join(__dirname, 'runtime');
 
@@ -118,7 +121,16 @@ function getAllowedOrigin(request) {
   }
 }
 
+function applySecurityHeaders(response) {
+  response.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  response.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  response.setHeader('Referrer-Policy', 'same-origin');
+  response.setHeader('X-Content-Type-Options', 'nosniff');
+  response.setHeader('X-Frame-Options', 'DENY');
+}
+
 function setCorsHeaders(request, response) {
+  applySecurityHeaders(response);
   const allowedOrigin = getAllowedOrigin(request);
   if (!allowedOrigin) {
     return;
@@ -165,6 +177,24 @@ async function readJsonBody(request) {
     error.statusCode = 400;
     throw error;
   }
+}
+
+async function readRequestBody(request) {
+  const chunks = [];
+  let size = 0;
+
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > MAX_BODY_BYTES) {
+      const error = new Error('Request body is too large.');
+      error.statusCode = 413;
+      throw error;
+    }
+
+    chunks.push(chunk);
+  }
+
+  return chunks.length > 0 ? Buffer.concat(chunks) : null;
 }
 
 function validateExecutionPayload(payload) {
@@ -393,18 +423,61 @@ async function handleExecute(request, response) {
   }
 }
 
-function handleHealth(request, response) {
+function buildProxyHeaders(requestHeaders, body) {
+  const proxyHeaders = {};
+
+  for (const [key, value] of Object.entries(requestHeaders)) {
+    if (value === undefined) {
+      continue;
+    }
+
+    const lowerKey = key.toLowerCase();
+    if (lowerKey === 'host' || lowerKey === 'connection' || lowerKey === 'content-length') {
+      continue;
+    }
+
+    proxyHeaders[key] = Array.isArray(value) ? value.join(', ') : value;
+  }
+
+  if (body) {
+    proxyHeaders['content-length'] = String(body.length);
+  }
+
+  return proxyHeaders;
+}
+
+async function proxyApiRequest(request, response, url) {
   if (request.method === 'OPTIONS') {
     handleOptions(request, response);
     return;
   }
 
-  sendJson(request, response, 200, {
-    ok: true,
-    service: 'algoforge-executor',
-    languages: Object.keys(languageConfigs),
-    localOnly: true,
-  });
+  try {
+    const body = request.method === 'GET' || request.method === 'HEAD'
+      ? null
+      : await readRequestBody(request);
+
+    const upstreamResponse = await fetch(`${REST_API_BASE_URL}${url.pathname}${url.search}`, {
+      method: request.method,
+      headers: buildProxyHeaders(request.headers, body),
+      body,
+    });
+
+    applySecurityHeaders(response);
+    response.writeHead(
+      upstreamResponse.status,
+      Object.fromEntries(upstreamResponse.headers.entries()),
+    );
+
+    const payload = Buffer.from(await upstreamResponse.arrayBuffer());
+    response.end(payload);
+  } catch (error) {
+    sendJson(request, response, 502, {
+      success: false,
+      message: 'REST API is unavailable.',
+      errors: error.message || 'Failed to reach the upstream API.',
+    });
+  }
 }
 
 function decodePathname(pathname) {
@@ -422,6 +495,34 @@ function resolveStaticPath(pathname) {
 
   if (pathname === '/editor' || pathname === '/editor/') {
     return EDITOR_ENTRY;
+  }
+
+  if (pathname === '/admin' || pathname === '/admin/') {
+    return path.join(ADMIN_ROOT, 'dashboard.html');
+  }
+
+  if (pathname.startsWith('/admin/')) {
+    const relativeAdminPath = pathname.replace(/^\/admin\/+/, '');
+    const absoluteAdminPath = path.resolve(ADMIN_ROOT, relativeAdminPath);
+    const relativeToAdminRoot = path.relative(ADMIN_ROOT, absoluteAdminPath);
+
+    if (relativeToAdminRoot.startsWith('..') || path.isAbsolute(relativeToAdminRoot)) {
+      return null;
+    }
+
+    return absoluteAdminPath;
+  }
+
+  if (pathname.startsWith('/apps/web/')) {
+    const relativeWebAliasPath = pathname.replace(/^\/apps\/web\/+/, '');
+    const absoluteWebAliasPath = path.resolve(WEB_ROOT, relativeWebAliasPath);
+    const relativeToWebRoot = path.relative(WEB_ROOT, absoluteWebAliasPath);
+
+    if (relativeToWebRoot.startsWith('..') || path.isAbsolute(relativeToWebRoot)) {
+      return null;
+    }
+
+    return absoluteWebAliasPath;
   }
 
   const relativePath = pathname.replace(/^\/+/, '');
@@ -450,8 +551,17 @@ async function serveStatic(request, response) {
   const filePath = resolveStaticPath(decodedPathname);
 
   if (!filePath) {
+    applySecurityHeaders(response);
     response.writeHead(404);
     response.end('Not found');
+    return;
+  }
+
+  if (decodedPathname.startsWith('/admin') && !isLocalRequest(request)) {
+    sendJson(request, response, 403, {
+      success: false,
+      message: 'Admin pages are only available from this machine.',
+    });
     return;
   }
 
@@ -464,15 +574,15 @@ async function serveStatic(request, response) {
     }
 
     const extension = path.extname(filePath).toLowerCase();
+    applySecurityHeaders(response);
     response.writeHead(200, {
       'Content-Type': mimeTypes[extension] || 'application/octet-stream',
-      'Cache-Control': extension === '.html'
-        ? 'no-cache'
-        : 'public, max-age=31536000, immutable',
+      'Cache-Control': 'no-cache',
       'X-Content-Type-Options': 'nosniff',
     });
     createReadStream(filePath).pipe(response);
   } catch {
+    applySecurityHeaders(response);
     response.writeHead(404);
     response.end('Not found');
   }
@@ -481,13 +591,13 @@ async function serveStatic(request, response) {
 const server = createServer(async (request, response) => {
   const url = new URL(request.url, `http://${request.headers.host}`);
 
-  if (url.pathname === '/api/health') {
-    handleHealth(request, response);
+  if (url.pathname === '/api/execute') {
+    await handleExecute(request, response);
     return;
   }
 
-  if (url.pathname === '/api/execute') {
-    await handleExecute(request, response);
+  if (url.pathname.startsWith('/api/')) {
+    await proxyApiRequest(request, response, url);
     return;
   }
 
@@ -506,6 +616,7 @@ server.on('error', (error) => {
 server.listen(PORT, HOST, () => {
   console.log(`AlgoForge server listening on http://${HOST}:${PORT}`);
 });
+
 
 
 

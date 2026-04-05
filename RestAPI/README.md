@@ -52,7 +52,7 @@ A production-ready REST API for a LeetCode-style coding platform built with **No
    JWT_SECRET=your_super_secret_jwt_key_change_in_production
    JWT_EXPIRY=24h
 
-   PORT=3000
+   PORT=3001
    NODE_ENV=development
    ```
 
@@ -72,7 +72,7 @@ A production-ready REST API for a LeetCode-style coding platform built with **No
    npm start        # Production (requires build first)
    ```
 
-The API will be available at `http://localhost:3000`
+The API will be available at `http://localhost:3001`
 
 ---
 
@@ -633,7 +633,7 @@ curl -X POST http://localhost:3000/api/admin/problems \
 | `DB_NAME` | `coding_platform` | Database name |
 | `JWT_SECRET` | `dev-secret-key-change-in-production` | JWT signing secret |
 | `JWT_EXPIRY` | `24h` | Token expiration time |
-| `PORT` | `3000` | Server port |
+| `PORT` | `3001` | Server port |
 | `NODE_ENV` | `development` | Environment (development/production) |
 
 ---

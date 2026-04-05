@@ -2,6 +2,14 @@
  * Admin Dashboard
  * Loads and displays dashboard statistics and recent activity
  */
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
@@ -48,7 +56,7 @@ async function loadRecentActivity() {
     
     if (problemsResult.success && problemsResult.data && problemsResult.data.length > 0) {
       const recentProblems = problemsResult.data
-        .sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0))
+        .sort((a, b) => Number(b.problem_id || 0) - Number(a.problem_id || 0))
         .slice(0, 5);
       
       let html = '<div class="activity-items">';
@@ -66,10 +74,10 @@ async function loadRecentActivity() {
           <div class="activity-item">
             <div class="activity-icon">📚</div>
             <div class="activity-content">
-              <p><strong>${problem.name}</strong></p>
+              <p><strong>${escapeHtml(problem.name)}</strong></p>
               <span class="activity-time">${createdDate}</span>
             </div>
-            <span class="difficulty ${problem.difficulty_level}">${problem.difficulty_level}</span>
+            <span class="difficulty ${escapeHtml(problem.difficulty_level)}">${escapeHtml(problem.difficulty_level)}</span>
           </div>
         `;
       });
@@ -84,3 +92,4 @@ async function loadRecentActivity() {
     document.getElementById('activityList').innerHTML = '<p class="error-message">Erreur de chargement</p>';
   }
 }
+

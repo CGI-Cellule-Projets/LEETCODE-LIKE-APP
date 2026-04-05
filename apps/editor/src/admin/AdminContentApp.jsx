@@ -67,8 +67,9 @@ export default function AdminContentApp() {
       const details = await getProblemDetails(problem.problem_id);
       setActiveProblem({
         ...problem,
+        ...details,
         description: details?.description || problem.description || '',
-        testCases: details?.public_test_cases || []
+        testCases: details?.test_cases || []
       });
       setView('form');
     } catch {

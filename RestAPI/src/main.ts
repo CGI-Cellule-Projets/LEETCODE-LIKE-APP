@@ -16,22 +16,70 @@ import authRoutes from './routes/authRoutes';
 import contestRoutes from './routes/contestRoutes';
 
 const app = express();
+const allowedOrigins = new Set([
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost:3001',
+  'http://127.0.0.1:3001',
+]);
 
-// ============== CORS Configuration ==============
+if (process.env.APP_ORIGIN) {
+  allowedOrigins.add(process.env.APP_ORIGIN);
+}
+
+function isAllowedOrigin(origin: string | undefined): boolean {
+  if (!origin) {
+    return false;
+  }
+
+  if (allowedOrigins.has(origin)) {
+    return true;
+  }
+
+  if (NODE_ENV !== 'development') {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(origin);
+    return ['localhost', '127.0.0.1'].includes(parsed.hostname);
+  } catch {
+    return false;
+  }
+}
+
+app.disable('x-powered-by');
+
+// ============== Security + CORS Configuration ==============
 app.use((req: Request, res: Response, next: NextFunction) => {
-  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Cross-Origin-Opener-Policy', 'same-origin');
+  res.header('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  res.header('Referrer-Policy', 'same-origin');
+  res.header('X-Content-Type-Options', 'nosniff');
+  res.header('X-Frame-Options', 'DENY');
+
+  const origin = req.headers.origin;
+  if (origin && isAllowedOrigin(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Vary', 'Origin');
+  }
+
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  
+
   if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
+    if (origin && !isAllowedOrigin(origin)) {
+      return res.sendStatus(403);
+    }
+
+    return res.sendStatus(204);
   }
   next();
 });
 
 // ============== Middleware ==============
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: '256kb' }));
+app.use(express.urlencoded({ extended: true, limit: '256kb' }));
 
 // Request logging middleware (development)
 if (NODE_ENV === 'development') {

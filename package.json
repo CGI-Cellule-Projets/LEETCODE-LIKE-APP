@@ -2,10 +2,12 @@
   "name": "algoforge",
   "private": true,
   "scripts": {
-    "dev:api": "cd RestAPI && npm run dev",
+    "dev:api": "npm --prefix RestAPI run dev",
     "dev:frontend": "node apps/server/server.mjs",
-    "dev:full": "npm --prefix apps/editor run build && node apps/server/server.mjs",
+    "dev:full": "node scripts/start-local-stack.mjs --build-editor",
     "build": "npm --prefix apps/editor run build",
-    "serve": "node apps/server/server.mjs"
+    "serve": "node scripts/start-local-stack.mjs",
+    "serve:bg": "node scripts/start-local-background.mjs",
+    "stop:bg": "node scripts/stop-local-background.mjs"
   }
 }

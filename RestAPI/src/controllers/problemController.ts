@@ -30,7 +30,7 @@ export async function getAllProblems(req: Request, res: Response): Promise<void>
     const db = getDB();
 
     const result = await db.query(`
-      SELECT problem_id, name, difficulty_level, solve_rate
+      SELECT problem_id, name, difficulty_level, solve_rate, description
       FROM problems
       WHERE visibility = 'PUBLIC'
       ORDER BY problem_id ASC

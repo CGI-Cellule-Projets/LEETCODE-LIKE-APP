@@ -85,6 +85,29 @@ const normalizeTags = (rawTags) => {
 
 const isLocalHost = (hostname) => hostname === "localhost" || hostname === "127.0.0.1";
 
+const resolveApiBaseUrl = () => {
+  if (typeof window === "undefined") {
+    return "http://localhost:3000/api";
+  }
+
+  const queryApiUrl = new URLSearchParams(window.location.search).get("api");
+  if (queryApiUrl && queryApiUrl.trim()) {
+    return queryApiUrl.trim().replace(/\/$/, "");
+  }
+
+  if (window.location.protocol === "file:") {
+    return "http://localhost:3000/api";
+  }
+
+  if (isLocalHost(window.location.hostname)) {
+    return "http://localhost:3000/api";
+  }
+
+  return `${window.location.origin.replace(/\/$/, "")}/api`;
+};
+
+const API_BASE_URL = resolveApiBaseUrl();
+
 const readProblemFromSearch = () => {
   if (typeof window === "undefined") {
     return null;
@@ -103,16 +126,79 @@ const readProblemFromSearch = () => {
   }
 };
 
+const readProblemIdFromSearch = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const searchParams = new URLSearchParams(window.location.search);
+  const rawProblemId = searchParams.get("problemId");
+  const problemId = Number(rawProblemId);
+
+  return Number.isInteger(problemId) && problemId > 0 ? problemId : null;
+};
+
 const buildProblemQuery = (problem) => {
   if (!problem) {
     return "";
   }
 
   try {
-    return `?problem=${encodeURIComponent(JSON.stringify(problem))}`;
+    const searchParams = new URLSearchParams();
+    if (problem.problem_id) {
+      searchParams.set("problemId", String(problem.problem_id));
+    }
+    searchParams.set("problem", JSON.stringify(problem));
+    return `?${searchParams.toString()}`;
   } catch {
     return "";
   }
+};
+
+const normalizeDifficultyForEditor = (difficulty) => {
+  if (difficulty === "med") {
+    return "medium";
+  }
+
+  return difficulty || "easy";
+};
+
+const buildProblemFromApi = (problem, fallbackProblem = null) => ({
+  problem_id: problem.problem_id,
+  title: problem.name,
+  difficulty: normalizeDifficultyForEditor(problem.difficulty_level),
+  description: problem.description || fallbackProblem?.description || "",
+  tags: fallbackProblem?.tags || "",
+  sampleTests: Array.isArray(problem.public_test_cases)
+    ? problem.public_test_cases.map((testCase, index) => ({
+      name: `Sample ${index + 1}`,
+      input: testCase.input_data || "",
+      expectedOutput: testCase.expected_output || "",
+    }))
+    : [],
+  officialTests: Array.isArray(problem.public_test_cases)
+    ? problem.public_test_cases.map((testCase, index) => ({
+      name: `Test ${index + 1}`,
+      input: testCase.input_data || "",
+      expectedOutput: testCase.expected_output || "",
+    }))
+    : [],
+});
+
+const fetchProblemById = async (problemId) => {
+  const response = await fetch(`${API_BASE_URL}/problems/${problemId}`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  const payload = await response.json();
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.message || "Failed to load problem details.");
+  }
+
+  return payload.data;
 };
 
 const SAMPLE_TESTS_BY_TITLE = {
@@ -372,8 +458,8 @@ const updateProgressFromRun = (problem, result, requestedTimeLimit, isSubmit = f
 
 function App() {
   const [problem, setProblem] = useState(null);
-  const [language, setLanguage] = useState("javascript");
-  const [code, setCode] = useState(starterCode.javascript);
+  const [language, setLanguage] = useState("python");
+  const [code, setCode] = useState(starterCode.python);
   const [stdin, setStdin] = useState("");
   const [timeLimit] = useState("2000");
   const [showCustomInput, setShowCustomInput] = useState(false);
@@ -392,21 +478,43 @@ function App() {
   // Load problem data and sync theme/accent from main site settings
   useEffect(() => {
     const currentSearchProblem = readProblemFromSearch();
+    const currentProblemId = readProblemIdFromSearch();
+    let isCancelled = false;
 
-    try {
-      if (currentSearchProblem) {
-        const enrichedProblem = enrichProblem(currentSearchProblem);
-        setProblem(enrichedProblem);
-        localStorage.setItem("algoforge-current-problem", JSON.stringify(enrichedProblem));
-      } else {
-        const stored = localStorage.getItem("algoforge-current-problem");
-        if (stored) {
-          setProblem(enrichProblem(JSON.parse(stored)));
+    const hydrateProblem = async () => {
+      if (currentProblemId) {
+        try {
+          const apiProblem = await fetchProblemById(currentProblemId);
+          if (isCancelled) {
+            return;
+          }
+
+          const enrichedProblem = enrichProblem(buildProblemFromApi(apiProblem, currentSearchProblem));
+          setProblem(enrichedProblem);
+          localStorage.setItem("algoforge-current-problem", JSON.stringify(enrichedProblem));
+          return;
+        } catch (error) {
+          console.warn(error);
         }
       }
-    } catch (e) {
-      // ignore parse errors
-    }
+
+      try {
+        if (currentSearchProblem) {
+          const enrichedProblem = enrichProblem(currentSearchProblem);
+          setProblem(enrichedProblem);
+          localStorage.setItem("algoforge-current-problem", JSON.stringify(enrichedProblem));
+        } else {
+          const stored = localStorage.getItem("algoforge-current-problem");
+          if (stored) {
+            setProblem(enrichProblem(JSON.parse(stored)));
+          }
+        }
+      } catch (e) {
+        // ignore parse errors
+      }
+    };
+
+    hydrateProblem();
 
     // Apply saved theme & accent settings
     try {
@@ -435,6 +543,10 @@ function App() {
     } catch (e) {
       // use defaults
     }
+
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   useEffect(() => {

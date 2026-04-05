@@ -5,6 +5,7 @@
 import { Router } from 'express';
 import {
   getAllProblemsAdmin,
+  getProblemByIdAdmin,
   createProblem,
   updateProblem,
   deleteProblem,
@@ -13,20 +14,23 @@ import {
   updateContestAdmin,
   assignContestProblems
 } from '../controllers/adminController';
-import { requireAuth, requireAdmin } from '../middleware/authMiddleware';
+import { requireAdminAccess } from '../middleware/authMiddleware';
 
 const router = Router();
 
+router.use(requireAdminAccess);
+
 // Problem Management
 router.get('/problems', getAllProblemsAdmin);
+router.get('/problems/:id', getProblemByIdAdmin);
 router.post('/problems', createProblem);
 router.put('/problems/:id', updateProblem);
 router.delete('/problems/:id', deleteProblem);
 router.post('/problems/:id/testcases', addTestCase);
 
-// Contest Management (Strictly Protected)
-router.post('/contests', requireAuth, requireAdmin, createContestAdmin);
-router.put('/contests/:id', requireAuth, requireAdmin, updateContestAdmin);
-router.post('/contests/:id/problems', requireAuth, requireAdmin, assignContestProblems);
+// Contest Management
+router.post('/contests', createContestAdmin);
+router.put('/contests/:id', updateContestAdmin);
+router.post('/contests/:id/problems', assignContestProblems);
 
 export default router;

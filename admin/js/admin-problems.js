@@ -7,9 +7,9 @@ let allProblems = [];
 let editingProblemId = null;
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Load problems when page loads
   await loadProblems();
   setupEventListeners();
+  ensureAtLeastOneTestCase();
 });
 
 function setupEventListeners() {
@@ -18,6 +18,8 @@ function setupEventListeners() {
   const problemForm = document.getElementById('problemForm');
   const problemSearch = document.getElementById('problemSearch');
   const difficultyFilter = document.getElementById('difficultyFilter');
+  const addTestCaseBtn = document.getElementById('addTestCaseBtn');
+  const testCasesContainer = document.getElementById('testCasesContainer');
 
   if (createProblemBtn) {
     createProblemBtn.addEventListener('click', showCreateForm);
@@ -38,6 +40,184 @@ function setupEventListeners() {
   if (difficultyFilter) {
     difficultyFilter.addEventListener('change', filterProblems);
   }
+
+  if (addTestCaseBtn) {
+    addTestCaseBtn.addEventListener('click', () => {
+      appendTestCase();
+    });
+  }
+
+  if (testCasesContainer) {
+    testCasesContainer.addEventListener('click', (event) => {
+      const removeButton = event.target.closest('[data-remove-test-case]');
+      if (!removeButton) {
+        return;
+      }
+
+      const card = removeButton.closest('.test-case-card');
+      if (!card) {
+        return;
+      }
+
+      if (card.dataset.existing === 'true') {
+        alert('Les cas de test deja enregistres ne peuvent pas etre supprimes depuis cette page pour le moment.');
+        return;
+      }
+
+      card.remove();
+      ensureAtLeastOneTestCase();
+      updateRemoveButtonsState();
+    });
+  }
+}
+
+function getTestCasesContainer() {
+  return document.getElementById('testCasesContainer');
+}
+
+function createTestCaseMarkup(testCase = {}) {
+  const isExisting = Boolean(testCase.isExisting);
+  const index = getTestCasesContainer()?.querySelectorAll('.test-case-card').length ?? 0;
+  const title = isExisting ? `Cas de test enregistre ${index + 1}` : `Nouveau cas de test ${index + 1}`;
+  const readonlyHint = isExisting
+    ? '<p style="margin:0 0 12px;color:var(--text-secondary);font-size:0.85rem;">Ce cas de test existe deja dans la base. Vous pouvez en ajouter de nouveaux ci-dessous.</p>'
+    : '';
+
+  return `
+    <article
+      class="test-case-card panel"
+      data-test-case
+      data-existing="${isExisting ? 'true' : 'false'}"
+      style="padding:16px;margin-bottom:12px;border:1px solid rgba(148,163,184,0.24);"
+    >
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+        <strong>${title}</strong>
+        <button
+          type="button"
+          class="btn btn-ghost btn-sm"
+          data-remove-test-case
+          ${isExisting ? 'disabled' : ''}
+        >
+          Supprimer
+        </button>
+      </div>
+      ${readonlyHint}
+      <div class="form-row">
+        <div class="form-group">
+          <label>Input</label>
+          <textarea
+            class="test-case-input"
+            rows="4"
+            placeholder="Ex: 2 7 11 15"
+            ${isExisting ? 'readonly' : ''}
+          >${escapeHtml(testCase.input_data || '')}</textarea>
+        </div>
+        <div class="form-group">
+          <label>Output attendu</label>
+          <textarea
+            class="test-case-output"
+            rows="4"
+            placeholder="Ex: Hello from AlgoForge"
+            ${isExisting ? 'readonly' : ''}
+          >${escapeHtml(testCase.expected_output || '')}</textarea>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group checkbox-group">
+          <label>
+            <input type="checkbox" class="test-case-hidden" ${testCase.is_hidden ? 'checked' : ''} ${isExisting ? 'disabled' : ''}>
+            Cas cache (validation finale uniquement)
+          </label>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function appendTestCase(testCase = {}) {
+  const container = getTestCasesContainer();
+  if (!container) {
+    return;
+  }
+
+  container.insertAdjacentHTML('beforeend', createTestCaseMarkup(testCase));
+  updateRemoveButtonsState();
+}
+
+function updateRemoveButtonsState() {
+  const container = getTestCasesContainer();
+  if (!container) {
+    return;
+  }
+
+  const removableCards = Array.from(container.querySelectorAll('.test-case-card'))
+    .filter((card) => card.dataset.existing !== 'true');
+
+  removableCards.forEach((card) => {
+    const removeButton = card.querySelector('[data-remove-test-case]');
+    if (!removeButton) {
+      return;
+    }
+
+    removeButton.disabled = removableCards.length <= 1;
+  });
+}
+
+function ensureAtLeastOneTestCase() {
+  const container = getTestCasesContainer();
+  if (!container) {
+    return;
+  }
+
+  const testCaseCount = container.querySelectorAll('.test-case-card').length;
+  if (testCaseCount === 0) {
+    appendTestCase({
+      input_data: '',
+      expected_output: '',
+      is_hidden: false,
+      isExisting: false,
+    });
+  }
+}
+
+function collectTestCases() {
+  const container = getTestCasesContainer();
+  if (!container) {
+    return [];
+  }
+
+  return Array.from(container.querySelectorAll('.test-case-card')).map((card) => ({
+    input_data: card.querySelector('.test-case-input')?.value.trim() || '',
+    expected_output: card.querySelector('.test-case-output')?.value.trim() || '',
+    is_hidden: Boolean(card.querySelector('.test-case-hidden')?.checked),
+    isExisting: card.dataset.existing === 'true',
+  }));
+}
+
+function resetTestCases(testCases = []) {
+  const container = getTestCasesContainer();
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = '';
+
+  if (testCases.length === 0) {
+    ensureAtLeastOneTestCase();
+    return;
+  }
+
+  testCases.forEach((testCase) => appendTestCase(testCase));
+  updateRemoveButtonsState();
 }
 
 function showCreateForm() {
@@ -46,16 +226,18 @@ function showCreateForm() {
   const formSection = document.getElementById('createFormSection');
   const formTitle = document.getElementById('formTitle');
   const searchInput = document.getElementById('problemSearch');
+  const formError = document.getElementById('formError');
 
-  formTitle.textContent = 'Créer un Nouveau Problème';
+  formTitle.textContent = 'Creer un Nouveau Probleme';
   form.reset();
+  resetTestCases([]);
+  formError.style.display = 'none';
   formSection.style.display = 'block';
   document.querySelector('.problems-list-section').style.display = 'none';
   if (searchInput) {
     searchInput.value = '';
   }
-  
-  // Scroll to form
+
   formSection.scrollIntoView({ behavior: 'smooth' });
 }
 
@@ -74,42 +256,73 @@ async function handleFormSubmit(e) {
   const visibility = document.getElementById('problemVisibility').value;
   const isPublished = document.getElementById('isPublished').checked;
   const formError = document.getElementById('formError');
+  const testCases = collectTestCases();
 
-  // Validation
   if (!name || !difficulty || !description || !visibility) {
-    formError.textContent = '❌ Veuillez remplir tous les champs obligatoires';
+    formError.textContent = 'Veuillez remplir tous les champs obligatoires.';
+    formError.style.display = 'block';
+    return;
+  }
+
+  if (testCases.length === 0) {
+    formError.textContent = 'Ajoutez au moins un cas de test.';
+    formError.style.display = 'block';
+    return;
+  }
+
+  const invalidTestCase = testCases.find((testCase) => testCase.expected_output === '');
+  if (invalidTestCase) {
+    formError.textContent = 'Chaque cas de test doit avoir un input et un output attendu.';
     formError.style.display = 'block';
     return;
   }
 
   try {
     let result;
+    let problemId = editingProblemId;
 
     if (editingProblemId) {
-      // Update existing problem
       result = await apiAdminUpdateProblem(editingProblemId, {
         name,
         difficulty_level: difficulty,
         description,
         visibility,
-        is_published: isPublished
+        is_published: isPublished,
       });
     } else {
-      // Create new problem
       result = await apiAdminCreateProblem(name, difficulty, description, visibility, isPublished);
+      problemId = result?.data?.problem_id ?? null;
     }
 
-    if (result.success) {
-      formError.style.display = 'none';
-      hideCreateForm();
-      await loadProblems(); // Reload the list
-      alert('✓ Problème enregistré avec succès');
-    } else {
-      formError.textContent = `❌ ${result.message || 'Erreur'}`;
+    if (!result.success || !problemId) {
+      formError.textContent = result.message || 'Erreur lors de l enregistrement du probleme.';
       formError.style.display = 'block';
+      return;
     }
+
+    const pendingTestCases = editingProblemId
+      ? testCases.filter((testCase) => !testCase.isExisting)
+      : testCases;
+
+    for (const testCase of pendingTestCases) {
+      const testCaseResult = await apiAdminAddTestCase(
+        problemId,
+        testCase.input_data,
+        testCase.expected_output,
+        testCase.is_hidden,
+      );
+
+      if (!testCaseResult.success) {
+        throw new Error(testCaseResult.message || 'Erreur lors de l enregistrement des cas de test.');
+      }
+    }
+
+    formError.style.display = 'none';
+    hideCreateForm();
+    await loadProblems();
+    alert('Probleme enregistre avec succes');
   } catch (error) {
-    formError.textContent = '❌ Erreur lors de l\'enregistrement';
+    formError.textContent = error.message || 'Erreur lors de l enregistrement';
     formError.style.display = 'block';
     console.error('Form submit error:', error);
   }
@@ -135,7 +348,7 @@ function filterProblems() {
   const searchQuery = document.getElementById('problemSearch').value.toLowerCase();
   const difficultyFilter = document.getElementById('difficultyFilter').value;
 
-  const filtered = allProblems.filter(problem => {
+  const filtered = allProblems.filter((problem) => {
     const name = String(problem.name || '').toLowerCase();
     const description = String(problem.description || '').toLowerCase();
     const matchesSearch = name.includes(searchQuery) || description.includes(searchQuery);
@@ -151,7 +364,7 @@ function renderProblemsList(problems) {
   const container = document.getElementById('problemsTable');
 
   if (problems.length === 0) {
-    container.innerHTML = '<p class="no-data">Aucun problème trouvé</p>';
+    container.innerHTML = '<p class="no-data">Aucun probleme trouve</p>';
     return;
   }
 
@@ -160,25 +373,25 @@ function renderProblemsList(problems) {
       <thead>
         <tr>
           <th>Nom</th>
-          <th>Difficulté</th>
-          <th>Visibilité</th>
-          <th>Publié</th>
+          <th>Difficulte</th>
+          <th>Visibilite</th>
+          <th>Publie</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
   `;
 
-  problems.forEach(problem => {
-    const isPublished = problem.is_published ? '✓' : '✗';
+  problems.forEach((problem) => {
+    const isPublished = problem.is_published ? 'Oui' : 'Non';
     html += `
       <tr data-problem-id="${problem.problem_id}">
-        <td class="problem-name">${problem.name}</td>
-        <td><span class="difficulty ${problem.difficulty_level}">${problem.difficulty_level}</span></td>
-        <td>${problem.visibility || 'HIDDEN'}</td>
+        <td class="problem-name">${escapeHtml(problem.name)}</td>
+        <td><span class="difficulty ${problem.difficulty_level}">${escapeHtml(problem.difficulty_level)}</span></td>
+        <td>${escapeHtml(problem.visibility || 'HIDDEN')}</td>
         <td>${isPublished}</td>
         <td class="actions">
-          <button class="btn-icon btn-edit" onclick="editProblem(${problem.problem_id})" title="Éditer">Éditer</button>
+          <button class="btn-icon btn-edit" onclick="editProblem(${problem.problem_id})" title="Editer">Editer</button>
           <button class="btn-icon btn-delete" onclick="deleteProblem(${problem.problem_id})" title="Supprimer">Supprimer</button>
         </td>
       </tr>
@@ -194,31 +407,49 @@ function renderProblemsList(problems) {
 }
 
 async function editProblem(problemId) {
-  const problem = allProblems.find(p => p.problem_id === problemId);
-  if (!problem) return;
+  const problem = allProblems.find((item) => item.problem_id === problemId);
+  if (!problem) {
+    return;
+  }
 
   editingProblemId = problemId;
 
-  // Fill form with problem data
   document.getElementById('problemName').value = problem.name;
   document.getElementById('problemDifficulty').value = problem.difficulty_level;
   document.getElementById('problemDescription').value = problem.description || '';
   document.getElementById('problemVisibility').value = problem.visibility || 'HIDDEN';
   document.getElementById('isPublished').checked = problem.is_published || false;
+  document.getElementById('formError').style.display = 'none';
 
-  // Show form and scroll
+  resetTestCases([]);
+
+  try {
+    const details = await apiAdminGetProblemDetails(problemId);
+    if (details.success && details.data) {
+      resetTestCases((details.data.test_cases || []).map((testCase) => ({
+        input_data: testCase.input_data || '',
+        expected_output: testCase.expected_output || '',
+        is_hidden: Boolean(testCase.is_hidden),
+        isExisting: true,
+      })));
+    }
+  } catch (error) {
+    console.warn('Unable to load saved test cases for edit mode.', error);
+  }
+
   document.getElementById('createFormSection').style.display = 'block';
   document.querySelector('.problems-list-section').style.display = 'none';
-  document.getElementById('formTitle').textContent = `Éditer: ${problem.name}`;
-
+  document.getElementById('formTitle').textContent = `Editer: ${problem.name}`;
   document.getElementById('createFormSection').scrollIntoView({ behavior: 'smooth' });
 }
 
 async function deleteProblem(problemId) {
-  const problem = allProblems.find(p => p.problem_id === problemId);
-  if (!problem) return;
+  const problem = allProblems.find((item) => item.problem_id === problemId);
+  if (!problem) {
+    return;
+  }
 
-  if (!confirm(`Êtes-vous sûr de vouloir supprimer "${problem.name}" ? Cette action est irréversible.`)) {
+  if (!confirm(`Etes-vous sur de vouloir supprimer "${problem.name}" ? Cette action est irreversible.`)) {
     return;
   }
 
@@ -226,13 +457,13 @@ async function deleteProblem(problemId) {
     const result = await apiAdminDeleteProblem(problemId);
 
     if (result.success) {
-      alert('✓ Problème supprimé avec succès');
+      alert('Probleme supprime avec succes');
       await loadProblems();
     } else {
-      alert(`❌ ${result.message || 'Erreur lors de la suppression'}`);
+      alert(result.message || 'Erreur lors de la suppression');
     }
   } catch (error) {
-    alert('❌ Erreur lors de la suppression');
+    alert('Erreur lors de la suppression');
     console.error('Delete error:', error);
   }
 }

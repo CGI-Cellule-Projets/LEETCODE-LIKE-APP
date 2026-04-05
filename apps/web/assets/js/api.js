@@ -5,7 +5,7 @@
 
 function resolveApiBaseUrl() {
   if (typeof window === 'undefined') {
-    return 'http://localhost:3000/api';
+    return 'http://localhost:3001/api';
   }
 
   const queryApiUrl = new URLSearchParams(window.location.search).get('api');
@@ -27,11 +27,11 @@ function resolveApiBaseUrl() {
   }
 
   if (window.location.protocol === 'file:') {
-    return 'http://localhost:3000/api';
+    return 'http://localhost:3001/api';
   }
 
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:3000/api';
+    return 'http://localhost:3001/api';
   }
 
   return `${window.location.origin.replace(/\/$/, '')}/api`;
@@ -73,7 +73,6 @@ async function apiGetProblems() {
   try {
     const response = await fetch(`${API_BASE_URL}/problems`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
     });
     const data = await response.json();
     return data;
@@ -89,7 +88,6 @@ async function apiGetProblemById(problemId) {
   try {
     const response = await fetch(`${API_BASE_URL}/problems/${problemId}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
     });
     const data = await response.json();
     return data;
@@ -146,7 +144,6 @@ async function apiGetContests() {
   try {
     const response = await fetch(`${API_BASE_URL}/contests`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
     });
     return await response.json();
   } catch (error) {
@@ -161,7 +158,6 @@ async function apiGetContestById(contestId) {
   try {
     const response = await fetch(`${API_BASE_URL}/contests/${contestId}`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
     });
     return await response.json();
   } catch (error) {
@@ -201,9 +197,7 @@ async function apiAdminGetProblems() {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/problems`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAdminAuthHeaders(),
     });
     const data = await response.json();
     return data;
@@ -219,9 +213,7 @@ async function apiAdminCreateProblem(name, difficulty, description, visibility =
   try {
     const response = await fetch(`${API_BASE_URL}/admin/problems`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({
         name,
         difficulty_level: difficulty,
@@ -238,15 +230,29 @@ async function apiAdminCreateProblem(name, difficulty, description, visibility =
 }
 
 /**
+ * Get problem details with test cases (admin)
+ */
+async function apiAdminGetProblemDetails(problemId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/problems/${problemId}`, {
+      method: 'GET',
+      headers: getAdminAuthHeaders(),
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return { success: false, message: 'Failed to fetch problem details', errors: error.message };
+  }
+}
+
+/**
  * Update a problem (admin)
  */
 async function apiAdminUpdateProblem(problemId, updates) {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/problems/${problemId}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify(updates),
     });
     const data = await response.json();
@@ -263,9 +269,7 @@ async function apiAdminDeleteProblem(problemId) {
   try {
     const response = await fetch(`${API_BASE_URL}/admin/problems/${problemId}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAdminAuthHeaders(),
     });
     const data = await response.json();
     return data;
@@ -281,9 +285,7 @@ async function apiAdminAddTestCase(problemId, inputData, expectedOutput, isHidde
   try {
     const response = await fetch(`${API_BASE_URL}/admin/problems/${problemId}/testcases`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAdminAuthHeaders(),
       body: JSON.stringify({
         input_data: inputData,
         expected_output: expectedOutput,

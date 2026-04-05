@@ -7,6 +7,61 @@ import { getDB } from '../config/database';
 import { CreateProblemRequest, UpdateProblemRequest, CreateTestCaseRequest, ApiResponse } from '../types';
 import { AppError } from '../middleware/errorHandler';
 
+const allowedVisibilities = ['HIDDEN', 'CONTEST_ONLY', 'PUBLIC'] as const;
+
+function normalizeRequiredText(value: unknown, fieldName: string, maxLength: number): string {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  if (!normalized) {
+    throw new AppError(400, 'Missing required fields', `${fieldName} is required`);
+  }
+
+  if (normalized.length > maxLength) {
+    throw new AppError(400, 'Input too long', `${fieldName} must be ${maxLength} characters or fewer`);
+  }
+
+  return normalized;
+}
+
+function normalizeOptionalText(value: unknown, fieldName: string, maxLength: number): string | null | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null) {
+    return null;
+  }
+
+  if (typeof value !== 'string') {
+    throw new AppError(400, 'Invalid payload', `${fieldName} must be a string`);
+  }
+
+  const normalized = value.trim();
+  if (normalized.length > maxLength) {
+    throw new AppError(400, 'Input too long', `${fieldName} must be ${maxLength} characters or fewer`);
+  }
+
+  return normalized.length > 0 ? normalized : null;
+}
+
+function resolveProblemVisibility(
+  visibility: CreateProblemRequest['visibility'] | UpdateProblemRequest['visibility'] | undefined,
+  isPublished: boolean | undefined,
+): 'HIDDEN' | 'CONTEST_ONLY' | 'PUBLIC' | undefined {
+  if (visibility !== undefined) {
+    if (!allowedVisibilities.includes(visibility)) {
+      throw new AppError(400, 'Invalid visibility', 'visibility must be HIDDEN, CONTEST_ONLY, or PUBLIC');
+    }
+
+    return visibility;
+  }
+
+  if (isPublished === undefined) {
+    return undefined;
+  }
+
+  return isPublished ? 'PUBLIC' : 'HIDDEN';
+}
+
 /**
  * GET /api/admin/problems
  * Returns ALL problems including unpublished drafts (admin only)
@@ -32,7 +87,7 @@ export async function getAllProblemsAdmin(req: Request, res: Response): Promise<
     const db = getDB();
 
     const result = await db.query(`
-      SELECT problem_id, name, difficulty_level, solve_rate, description, visibility
+      SELECT problem_id, name, difficulty_level, solve_rate, description, constraints, visibility, is_published
       FROM problems
       ORDER BY problem_id ASC
     `);
@@ -50,6 +105,63 @@ export async function getAllProblemsAdmin(req: Request, res: Response): Promise<
       message: 'Failed to retrieve problems',
       errors: error instanceof Error ? error.message : 'Unknown error',
     });
+  }
+}
+
+/**
+ * GET /api/admin/problems/:id
+ * Returns a problem with all of its test cases for admin editing
+ */
+export async function getProblemByIdAdmin(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const problemId = parseInt(id);
+
+    if (isNaN(problemId)) {
+      throw new AppError(400, 'Invalid problem ID', 'Problem ID must be a valid number');
+    }
+
+    const db = getDB();
+
+    const problemResult = await db.query(`
+      SELECT problem_id, name, difficulty_level, solve_rate, description, constraints, visibility, is_published
+      FROM problems
+      WHERE problem_id = $1
+    `, [problemId]);
+
+    if (!problemResult.rows || problemResult.rows.length === 0) {
+      throw new AppError(404, 'Problem not found', `Problem with ID ${problemId} does not exist`);
+    }
+
+    const testCasesResult = await db.query(`
+      SELECT test_case_id, problem_id, input_data, expected_output, is_hidden
+      FROM test_cases
+      WHERE problem_id = $1
+      ORDER BY test_case_id ASC
+    `, [problemId]);
+
+    res.status(200).json({
+      success: true,
+      message: 'Problem retrieved successfully',
+      data: {
+        ...problemResult.rows[0],
+        test_cases: testCasesResult.rows || [],
+      },
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+        errors: error.details,
+      });
+    } else {
+      res.status(500).json({
+        success: false,
+        message: 'Failed to retrieve problem',
+        errors: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
   }
 }
 
@@ -83,21 +195,15 @@ export async function getAllProblemsAdmin(req: Request, res: Response): Promise<
 export async function createProblem(req: Request, res: Response): Promise<void> {
   try {
     const { name, difficulty_level, description, is_published, constraints, visibility } = req.body as CreateProblemRequest;
-
-    // Validation
-    if (!name || !difficulty_level) {
-      throw new AppError(400, 'Missing required fields', 'name and difficulty_level are required');
-    }
+    const safeName = normalizeRequiredText(name, 'name', 255);
+    const safeDescription = normalizeOptionalText(description, 'description', 10000);
+    const safeConstraints = normalizeOptionalText(constraints, 'constraints', 5000);
 
     if (!['easy', 'med', 'hard'].includes(difficulty_level)) {
       throw new AppError(400, 'Invalid difficulty level', 'difficulty_level must be "easy", "med", or "hard"');
     }
 
-    const allowedVisibilities = ['HIDDEN', 'CONTEST_ONLY', 'PUBLIC'];
-    const safeVisibility = visibility || 'HIDDEN';
-    if (!allowedVisibilities.includes(safeVisibility)) {
-      throw new AppError(400, 'Invalid visibility', 'visibility must be HIDDEN, CONTEST_ONLY, or PUBLIC');
-    }
+    const safeVisibility = resolveProblemVisibility(visibility, is_published) || 'HIDDEN';
 
     const db = getDB();
 
@@ -106,7 +212,7 @@ export async function createProblem(req: Request, res: Response): Promise<void> 
       INSERT INTO problems (name, difficulty_level, description, is_published, constraints, solve_rate, visibility)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING problem_id, name, difficulty_level, solve_rate, description, is_published, constraints, visibility
-    `, [name, difficulty_level, description || null, is_published || false, constraints || null, 0.0, safeVisibility]);
+    `, [safeName, difficulty_level, safeDescription ?? null, Boolean(is_published), safeConstraints ?? null, 0.0, safeVisibility]);
 
     if (!result.rows || result.rows.length === 0) {
       throw new AppError(500, 'Failed to create problem', 'Database insertion failed');
@@ -173,9 +279,7 @@ export async function updateProblem(req: Request, res: Response): Promise<void> 
       throw new AppError(400, 'Invalid difficulty level', 'difficulty_level must be "easy", "med", or "hard"');
     }
 
-    if (visibility && !['HIDDEN', 'CONTEST_ONLY', 'PUBLIC'].includes(visibility)) {
-      throw new AppError(400, 'Invalid visibility', 'visibility must be HIDDEN, CONTEST_ONLY, or PUBLIC');
-    }
+    const safeVisibility = resolveProblemVisibility(visibility, is_published);
 
     const db = getDB();
 
@@ -195,28 +299,31 @@ export async function updateProblem(req: Request, res: Response): Promise<void> 
     let paramIndex = 1;
 
     if (name !== undefined) {
+      const safeName = normalizeRequiredText(name, 'name', 255);
       updates.push(`name = $${paramIndex++}`);
-      values.push(name);
+      values.push(safeName);
     }
     if (difficulty_level !== undefined) {
       updates.push(`difficulty_level = $${paramIndex++}`);
       values.push(difficulty_level);
     }
     if (description !== undefined) {
+      const safeDescription = normalizeOptionalText(description, 'description', 10000);
       updates.push(`description = $${paramIndex++}`);
-      values.push(description);
+      values.push(safeDescription);
     }
     if (is_published !== undefined) {
       updates.push(`is_published = $${paramIndex++}`);
-      values.push(is_published);
+      values.push(Boolean(is_published));
     }
     if (constraints !== undefined) {
+      const safeConstraints = normalizeOptionalText(constraints, 'constraints', 5000);
       updates.push(`constraints = $${paramIndex++}`);
-      values.push(constraints);
+      values.push(safeConstraints);
     }
-    if (visibility !== undefined) {
+    if (safeVisibility !== undefined) {
       updates.push(`visibility = $${paramIndex++}`);
-      values.push(visibility);
+      values.push(safeVisibility);
     }
 
     if (updates.length === 0) {
@@ -358,6 +465,21 @@ export async function addTestCase(req: Request, res: Response): Promise<void> {
       );
     }
 
+    if (typeof input_data !== 'string' || typeof expected_output !== 'string') {
+      throw new AppError(400, 'Invalid payload', 'input_data and expected_output must be strings');
+    }
+
+    const safeInput = input_data.trim();
+    const safeExpectedOutput = expected_output.trim();
+
+    if (safeInput.length > 20000 || safeExpectedOutput.length > 20000) {
+      throw new AppError(400, 'Input too long', 'Test case input and output must be 20000 characters or fewer');
+    }
+
+    if (typeof is_hidden !== 'boolean') {
+      throw new AppError(400, 'Invalid payload', 'is_hidden must be a boolean');
+    }
+
     const db = getDB();
 
     // Verify problem exists
@@ -375,7 +497,7 @@ export async function addTestCase(req: Request, res: Response): Promise<void> {
       INSERT INTO test_cases (problem_id, input_data, expected_output, is_hidden)
       VALUES ($1, $2, $3, $4)
       RETURNING test_case_id, problem_id, input_data, expected_output, is_hidden
-    `, [problemId, input_data, expected_output, is_hidden]);
+    `, [problemId, safeInput, safeExpectedOutput, is_hidden]);
 
     if (!result.rows || result.rows.length === 0) {
       throw new AppError(500, 'Failed to add test case', 'Database insertion failed');

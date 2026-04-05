@@ -26,7 +26,7 @@
                 <a class="admin-nav-link" href="dashboard.html">Tableau de Bord</a>
                 <a class="admin-nav-link active" href="problems.html">Problèmes</a>
                 <a class="admin-nav-link" href="contests.html">Concours</a>
-                <a class="admin-nav-link" href="users.html">Utilisateurs</a>
+                <span class="admin-nav-link" aria-disabled="true">Utilisateurs</span>
             </nav>
             <div class="admin-actions">
                 <div class="user-info">
@@ -82,6 +82,18 @@
                             <textarea id="problemDescription" placeholder="Décrivez le problème..." required rows="6"></textarea>
                         </div>
 
+                        <div class="form-group">
+                            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px;">
+                                <div>
+                                    <label style="margin-bottom:4px;display:block;">Cas de test *</label>
+                                    <p style="margin:0;color:var(--text-secondary);font-size:0.9rem;">
+                                        Ajoutez au moins un exemple avec son input et son output attendu.
+                                    </p>
+                                </div>
+                                <button type="button" id="addTestCaseBtn" class="btn btn-ghost btn-sm">+ Ajouter un cas de test</button>
+                            </div>
+                            <div id="testCasesContainer" class="test-cases-stack"></div>
+                        </div>
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="problemCategory">Catégorie</label>
@@ -97,6 +109,7 @@
                             </div>
                         </div>
 
+
                         <div class="form-row">
                             <div class="form-group checkbox-group">
                                 <label for="isPublished">
@@ -105,6 +118,7 @@
                                 </label>
                             </div>
                         </div>
+
 
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary">Enregistrer</button>
@@ -140,3 +154,5 @@
 </body>
 
 </html>
+
+

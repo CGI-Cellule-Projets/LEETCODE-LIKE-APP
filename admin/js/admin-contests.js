@@ -5,6 +5,14 @@
 
 let allContests = [];
 let problemIndex = 0; // tracking row counts
+function escapeHtml(value) {
+    return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 const TEMP_ADMIN_CONTESTS = (window.CONTEST_MOCK_DATA && Array.isArray(window.CONTEST_MOCK_DATA.list))
     ? window.CONTEST_MOCK_DATA.list.map((contest) => ({
@@ -229,11 +237,11 @@ function renderContestsList(contests) {
                     <tr data-contest-id="${contest.contest_id}">
                         <td>
                                 <span class="status-pill ${statusClass}">
-                    ${contest.status}
+                    ${escapeHtml(contest.status)}
                 </span>
             </td>
                         <td>
-                                <div class="contest-title">${contest.title}</div>
+                                <div class="contest-title">${escapeHtml(contest.title)}</div>
             </td>
                         <td class="contest-date">
                 ${new Date(contest.start_time).toLocaleString()}
@@ -255,3 +263,4 @@ function renderContestsList(contests) {
 
     container.innerHTML = html;
 }
+
