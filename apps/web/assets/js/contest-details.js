@@ -116,7 +116,7 @@ async function handleRegistration() {
 
     try {
         // Requires user to be logged in
-        const token = localStorage.getItem('token');
+        const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
         if (!token) {
             msg.textContent = '❌ Vous devez être connecté (via Inscription) pour participer.';
             msg.style.color = '#d32f2f';

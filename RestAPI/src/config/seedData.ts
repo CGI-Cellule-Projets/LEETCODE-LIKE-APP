@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Database Initialization & Seed Data
  * Auto-creates default admin user for development
  */
@@ -25,7 +25,7 @@ export async function initializeDefaultAdmin(): Promise<void> {
     );
 
     if (result.rows.length > 0) {
-      console.log('✓ Default admin user already exists');
+      console.log(' Default admin user already exists');
       return;
     }
 
@@ -40,7 +40,7 @@ export async function initializeDefaultAdmin(): Promise<void> {
       [userId, 'admin', hashedPassword, 'admin@dev.local', 'beginner', true]
     );
 
-    console.log('✓ Default admin user created');
+    console.log(' Default admin user created');
     console.log('  Username: admin');
     console.log('  Email: admin@dev.local');
     console.log('  Password: admin123');
@@ -49,9 +49,10 @@ export async function initializeDefaultAdmin(): Promise<void> {
   } catch (error) {
     // Silently fail if table doesn't exist yet (first startup)
     if ((error as any).code === 'ECONNREFUSED' || (error as any).code === '42P1') {
-      console.warn('⚠️  Could not auto-create admin (database not ready yet)');
+      console.warn('  Could not auto-create admin (database not ready yet)');
       return;
     }
-    console.warn('⚠️  Error creating default admin:', (error as any).message);
+    console.warn('  Error creating default admin:', (error as any).message);
   }
 }
+

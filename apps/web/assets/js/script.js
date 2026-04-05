@@ -708,6 +708,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Save token and user details optionally
                     if (result.data && result.data.token) {
                         localStorage.setItem('auth_token', result.data.token);
+                        localStorage.setItem('token', result.data.token);
                         localStorage.setItem('user_info', JSON.stringify(result.data.user));
                     }
                     

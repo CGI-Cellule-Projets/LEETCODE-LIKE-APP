@@ -1,8 +1,8 @@
-# LeetCode-Style Platform REST API
+﻿# LeetCode-Style Platform REST API
 
 A production-ready REST API for a LeetCode-style coding platform built with **Node.js**, **Express**, and **TypeScript**.
 
-## 📋 Table of Contents
+##  Table of Contents
 
 - [Features](#features)
 - [Quick Setup](#quick-setup)
@@ -12,18 +12,18 @@ A production-ready REST API for a LeetCode-style coding platform built with **No
 - [Security Best Practices](#security-best-practices)
 - [Database Schema](#database-schema)
 
-## ✨ Features
+##  Features
 
-- ✅ JWT-based authentication
-- ✅ Role-based access control (Admin/User)
-- ✅ Problem management with test cases
-- ✅ Code submission tracking
-- ✅ Public/Hidden test case separation (security)
-- ✅ Comprehensive error handling
-- ✅ Type-safe with TypeScript
-- ✅ Modular architecture
+-  JWT-based authentication
+-  Role-based access control (Admin/User)
+-  Problem management with test cases
+-  Code submission tracking
+-  Public/Hidden test case separation (security)
+-  Comprehensive error handling
+-  Type-safe with TypeScript
+-  Modular architecture
 
-## 🚀 Quick Setup
+##  Quick Setup
 
 ### Prerequisites
 - Node.js 16+
@@ -58,7 +58,7 @@ A production-ready REST API for a LeetCode-style coding platform built with **No
 
 3. **Setup the database:**
    ```bash
-   psql -U postgres -d coding_platform -f ../DataStructure/coding_platform_db.sql
+   psql -U postgres -d coding_platform -f ../database/coding_platform_db.sql
    ```
 
 4. **Build TypeScript:**
@@ -76,7 +76,7 @@ The API will be available at `http://localhost:3001`
 
 ---
 
-## 📡 API Endpoints
+##  API Endpoints
 
 ### Authentication
 
@@ -118,8 +118,8 @@ Create a new user account.
 
 ---
 
-#### `POST /api/auth/login`
-Authenticate a user and receive a JWT token.
+#### `POST /api/auth/login` *(Not implemented yet)*
+This endpoint is documented for planned work, but the current codebase only exposes `POST /api/auth/register`.
 
 **Request:**
 ```json
@@ -187,7 +187,7 @@ List all published problems with basic info.
 #### `GET /api/problems/:id`
 Get detailed problem information with public test cases only.
 
-**⚠️ SECURITY NOTE:** Only public test cases (`is_hidden=false`) are returned. Hidden test cases are for grading only.
+** SECURITY NOTE:** Only public test cases (`is_hidden=false`) are returned. Hidden test cases are for grading only.
 
 **Response (200):**
 ```json
@@ -456,7 +456,7 @@ Add a test case to a problem.
 
 ---
 
-## 🔐 Authentication
+##  Authentication
 
 ### JWT Token Format
 Tokens include user ID, username, and admin status:
@@ -484,7 +484,7 @@ JWT_EXPIRY=24h
 
 ---
 
-## ⚠️ Error Handling
+##  Error Handling
 
 All errors follow a consistent format:
 
@@ -510,7 +510,7 @@ All errors follow a consistent format:
 
 ---
 
-## 🔒 Security Best Practices
+##  Security Best Practices
 
 ### 1. **Test Case Isolation**
 - Only **public test cases** (`is_hidden=false`) are returned to users
@@ -523,7 +523,7 @@ WHERE problem_id = $1 AND is_hidden = false
 ### 2. **Password Security**
 - Passwords are hashed with bcryptjs (10 salt rounds)
 - Never returning plain passwords in responses
-- Implemented in `utils/password.ts`
+- Implemented in `controllers/authController.ts` using `bcryptjs`
 
 ### 3. **JWT Secret Management**
 - Store `JWT_SECRET` in environment variables
@@ -551,7 +551,7 @@ if (submission.user_id !== req.user.user_id && !req.user.is_admin) {
 
 ---
 
-## 📦 Project Structure
+##  Project Structure
 
 ```
 RestAPI/
@@ -567,17 +567,13 @@ RestAPI/
 │   │   ├── submissionRoutes.ts
 │   │   └── adminRoutes.ts
 │   ├── middleware/           # Express middleware
-│   │   ├── authenticate.ts   # JWT verification
-│   │   ├── authorize.ts      # Admin role check
+│   │   ├── authMiddleware.ts # JWT verification + admin access checks
 │   │   └── errorHandler.ts   # Global error handler
 │   ├── config/               # Configuration files
 │   │   ├── database.ts
 │   │   └── jwt.ts
 │   ├── types/                # TypeScript interfaces
 │   │   └── index.ts
-│   ├── utils/                # Utility functions
-│   │   ├── password.ts
-│   │   └── token.ts
 │   └── main.ts               # Server entry point
 ├── package.json
 ├── tsconfig.json
@@ -587,7 +583,7 @@ RestAPI/
 
 ---
 
-## 🧪 Testing Endpoints
+##  Testing Endpoints
 
 ### Using cURL
 ```bash
@@ -595,11 +591,6 @@ RestAPI/
 curl -X POST http://localhost:3000/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"username":"john_doe","email":"john@example.com","password":"securePassword123"}'
-
-# Login
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"username":"john_doe","password":"securePassword123"}'
 
 # Get Problems
 curl http://localhost:3000/api/problems
@@ -622,7 +613,7 @@ curl -X POST http://localhost:3000/api/admin/problems \
 
 ---
 
-## 📝 Environment Variables
+##  Environment Variables
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -638,9 +629,9 @@ curl -X POST http://localhost:3000/api/admin/problems \
 
 ---
 
-## 📚 Database Integration
+##  Database Integration
 
-This API directly integrates with the PostgreSQL schema defined in `/DataStructure/coding_platform_db.sql`. Key tables:
+This API directly integrates with the PostgreSQL schema defined in `/database/coding_platform_db.sql`. Key tables:
 
 - **users**: User accounts with authentication
 - **problems**: Problem definitions
@@ -652,7 +643,7 @@ This API directly integrates with the PostgreSQL schema defined in `/DataStructu
 
 ---
 
-## 🚦 Next Steps
+##  Next Steps
 
 1. **Implement a job queue** (Redis/Bull) for processing submissions asynchronously
 2. **Add code execution service** that runs submissions against test cases
@@ -663,7 +654,8 @@ This API directly integrates with the PostgreSQL schema defined in `/DataStructu
 
 ---
 
-## 📄 License
+##  License
 
 This project is part of a LeetCode-style platform learning exercise.
+
 

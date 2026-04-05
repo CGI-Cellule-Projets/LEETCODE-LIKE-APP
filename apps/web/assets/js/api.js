@@ -39,6 +39,10 @@ function resolveApiBaseUrl() {
 
 const API_BASE_URL = resolveApiBaseUrl();
 
+function getStoredAuthToken() {
+  return localStorage.getItem('auth_token') || localStorage.getItem('token');
+}
+
 // ============== Auth Endpoints ==============
 
 /**
@@ -166,7 +170,7 @@ async function apiGetContestById(contestId) {
 }
 
 function getAuthHeaders() {
-  const token = localStorage.getItem('token');
+  const token = getStoredAuthToken();
   return {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
@@ -302,7 +306,7 @@ async function apiAdminAddTestCase(problemId, inputData, expectedOutput, isHidde
 // ============== Admin Contest Endpoints ==============
 
 function getAdminAuthHeaders() {
-  const token = localStorage.getItem('adminToken') || localStorage.getItem('token') || localStorage.getItem('auth_token');
+  const token = localStorage.getItem('adminToken') || getStoredAuthToken();
   return {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {})

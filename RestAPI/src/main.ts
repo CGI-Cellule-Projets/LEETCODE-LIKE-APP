@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Main Express Server
  * Initializes and configures the REST API
  */
@@ -128,9 +128,9 @@ async function startServer() {
 
     // Start listening
     app.listen(PORT, () => {
-      console.log(`\n✓ LeetCode API Server running on http://localhost:${PORT}`);
-      console.log(`✓ Environment: ${NODE_ENV}`);
-      console.log(`✓ Available endpoints:`);
+      console.log(`\n LeetCode API Server running on http://localhost:${PORT}`);
+      console.log(` Environment: ${NODE_ENV}`);
+      console.log(` Available endpoints:`);
       console.log(`  - GET    /api/problems`);
       console.log(`  - GET    /api/problems/:id`);
       console.log(`  - POST   /api/submissions`);
@@ -165,3 +165,4 @@ process.on('SIGINT', async () => {
 startServer();
 
 export default app;
+

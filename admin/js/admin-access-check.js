@@ -31,6 +31,7 @@ function checkAdminAccess() {
       e.preventDefault();
       localStorage.removeItem('adminToken');
       localStorage.removeItem('auth_token');
+      localStorage.removeItem('token');
       window.location.href = '../index.html';
     });
   });

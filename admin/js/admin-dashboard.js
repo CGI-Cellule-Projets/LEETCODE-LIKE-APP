@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Admin Dashboard
  * Loads and displays dashboard statistics and recent activity
  */
@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     // System status
     const healthCheck = await apiHealthCheck();
-    const systemStatus = healthCheck.success ? '✓' : '✗';
+    const systemStatus = healthCheck.success ? 'ONLINE' : 'OFFLINE';
     document.getElementById('systemStatus').textContent = systemStatus;
     
     // Load recent activity
@@ -72,7 +72,7 @@ async function loadRecentActivity() {
         
         html += `
           <div class="activity-item">
-            <div class="activity-icon">📚</div>
+            <div class="activity-icon">PB</div>
             <div class="activity-content">
               <p><strong>${escapeHtml(problem.name)}</strong></p>
               <span class="activity-time">${createdDate}</span>
@@ -92,4 +92,5 @@ async function loadRecentActivity() {
     document.getElementById('activityList').innerHTML = '<p class="error-message">Erreur de chargement</p>';
   }
 }
+
 

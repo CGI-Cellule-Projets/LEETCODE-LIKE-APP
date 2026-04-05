@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Admin Contests Management
  * Handles CRUD operations for coding contests via Vanilla JS
  */
@@ -120,7 +120,7 @@ async function handleFormSubmit(e) {
     const formSuccess = document.getElementById('formSuccess');
 
     if (!title || !description || !rawStart || !rawEnd) {
-        formError.textContent = '❌ Veuillez remplir tous les champs du sommet.';
+        formError.textContent = ' Veuillez remplir tous les champs du sommet.';
         formError.style.display = 'block';
         return;
     }
@@ -129,7 +129,7 @@ async function handleFormSubmit(e) {
     const end_time = new Date(rawEnd).toISOString();
 
     if (new Date(end_time) <= new Date(start_time)) {
-        formError.textContent = '❌ La date de fin doit être postérieure à la date de début.';
+        formError.textContent = ' La date de fin doit être postérieure à la date de début.';
         formError.style.display = 'block';
         return;
     }
@@ -143,7 +143,7 @@ async function handleFormSubmit(e) {
         const pPts = entry.querySelector('.prob-points-input').value;
         
         if (!pId) {
-            formError.textContent = '❌ Veuillez fournir un ID de problème valide pour chaque ligne.';
+            formError.textContent = ' Veuillez fournir un ID de problème valide pour chaque ligne.';
             formError.style.display = 'block';
             return;
         }
@@ -161,7 +161,7 @@ async function handleFormSubmit(e) {
         
         if (result.success) {
             formError.style.display = 'none';
-            formSuccess.textContent = '✓ Concours créé et problèmes mappés avec succès!';
+            formSuccess.textContent = ' Concours créé et problèmes mappés avec succès!';
             formSuccess.style.display = 'block';
             
             setTimeout(() => {
@@ -169,11 +169,11 @@ async function handleFormSubmit(e) {
                 loadContests();
             }, 1500);
         } else {
-            formError.textContent = `❌ ${result.message || 'Erreur lors de la création'}`;
+            formError.textContent = ` ${result.message || 'Erreur lors de la création'}`;
             formError.style.display = 'block';
         }
     } catch (error) {
-        formError.textContent = '❌ Erreur inattendue';
+        formError.textContent = ' Erreur inattendue';
         formError.style.display = 'block';
         console.error(error);
     }
@@ -263,4 +263,5 @@ function renderContestsList(contests) {
 
     container.innerHTML = html;
 }
+
 

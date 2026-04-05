@@ -1,11 +1,11 @@
-# 🧠 Leetcode Like App
+﻿#  Leetcode Like App
 
 ![Bannière du projet](https://github.com/CGI-Cellule-Projets/.github/blob/main/assets/leetcode-like-app.jpg?raw=true)
 
-## 💡 Idée du projet
+##  Idée du projet
 Une plateforme web inspirée de LeetCode, conçue pour héberger et gérer des compétitions de programmation au sein du club. Elle permet aux organisateurs de créer des défis techniques et aux participants de résoudre ces problèmes en temps réel dans un environnement structuré et interactif.
 
-## 🧰 Technologies
+##  Technologies
 - **Frontend (pages statiques)** : HTML, CSS pur (glassmorphism), JavaScript vanilla
 - **Éditeur de code** : React 19, Vite 7, Monaco Editor (le moteur de VS Code)
 - **Base de données** : PostgreSQL (schéma dans `database/`)
@@ -14,9 +14,9 @@ Une plateforme web inspirée de LeetCode, conçue pour héberger et gérer des c
 **8 Avril 2026**
 
 
-# 🚀 AlgoForge : le nom est temporaire.
+#  AlgoForge : le nom est temporaire.
 
-## ⚡ Installation & Lancement
+##  Installation & Lancement
 
 ### Prérequis
 - [Node.js](https://nodejs.org/) installé sur votre machine (v18 ou plus récent)
@@ -73,7 +73,7 @@ Attention : cela fonctionne pour l'affichage statique, mais **pas** pour l'exéc
 
 ---
 
-## 🔌 Installation REST API
+##  Installation REST API
 
 ### Prérequis supplémentaires
 - [PostgreSQL](https://www.postgresql.org/) installé et en cours d'exécution
@@ -98,7 +98,7 @@ cp .env.example .env
 
 **Étape 4** — Importer le schéma BDD :
 ```bash
-psql -U postgres -d coding_platform -f ../DataStructure/coding_platform_db.sql
+psql -U postgres -d coding_platform -f ../database/coding_platform_db.sql
 ```
 
 **Étape 5** — Démarrer le serveur API :
@@ -108,7 +108,7 @@ npm run dev
 > L'API REST directe sera accessible sur `http://localhost:3001`
 > Quand le site principal tourne via `npm run serve` ou `npm run dev:full`, les requêtes `/api/*` du frontend passent automatiquement par le serveur web sur `http://localhost:3000`.
 
-### 👤 Développement - Identifiants par défaut
+###  Développement - Identifiants par défaut
 
 Lors du premier démarrage de l'API en mode développement, un utilisateur administrateur par défaut est créé automatiquement :
 
@@ -117,13 +117,13 @@ Lors du premier démarrage de l'API en mode développement, un utilisateur admin
 | **Nom d'utilisateur** | `admin` |
 | **Email** | `admin@dev.local` |
 | **Mot de passe** | `admin123` |
-| **Accès admin** | ✓ Oui |
+| **Accès admin** |  Oui |
 
 **Accès :**
 1. Aller à `http://localhost:3000/admin/dashboard.html`
 2. Le mode local fonctionne actuellement sans authentification
 
-> ⚠️ Ces identifiants ne sont que pour le développement. En production, créer des utilisateurs avec des mots de passe forts.
+>  Ces identifiants ne sont que pour le développement. En production, créer des utilisateurs avec des mots de passe forts.
 
 ### Architecture REST API
 
@@ -169,7 +169,7 @@ Lors du premier démarrage de l'API en mode développement, un utilisateur admin
 
 ---
 
-## 📂 Structure du Projet
+##  Structure du Projet
 
 > Source unique de l'éditeur: `apps/editor/`.
 
@@ -205,7 +205,7 @@ LEETCODE-LIKE-APP/
 └── README.md
 ```
 
-## 🆕 Fonctionnalités récentes
+##  Fonctionnalités récentes
 
 ### Éditeur de code intégré
 - **Monaco Editor** (le moteur de VS Code) avec support de 2 langages dans cette première version d'exécution : JavaScript et Python
@@ -224,7 +224,7 @@ LEETCODE-LIKE-APP/
 - **3 palettes d'accent** : Sunset (orange), Ocean (bleu), Mint (vert)
 - **Désactivation des animations** pour l'accessibilité
 
-## 📝 Pages du site
+##  Pages du site
 
 * **`/index.html`** : La page d'accueil (Hero section, roadmap, FAQ). Hadi hya lfirst page li hadi tban normalement fsite
 * **`/problems.html`** : La bibliothèque d'exercices avec recherche et filtres de difficulté fonctionnels. Chaque problème a un bouton "Résoudre" qui ouvre l'éditeur.
@@ -241,7 +241,7 @@ lte7t kayn explication dial lminimum ila bghito tzido page etc...
 
 * **`apps/web/assets/js/script.js`** : Gère la logique front-end (menu mobile, animations au scroll, sauvegarde des préférences dans le localStorage, navigation vers l'éditeur).
 
-## 💡 Comment contribuer ?
+##  Comment contribuer ?
 
 ### Ajouter une nouvelle page
 
@@ -290,3 +290,4 @@ Les choses principales à retenir :
 - **`.reveal`** : Ajoute cette classe à un élément HTML pour qu'il apparaisse en douceur quand l'utilisateur scrolle (géré par `script.js`).
 
 wlk kifma glt likom 9bl, design machi darori, task first.
+

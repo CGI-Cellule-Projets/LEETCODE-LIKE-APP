@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Contests Listing Logic
  * Dynamically binds raw API responses into a unified native Grid
  */
@@ -127,8 +127,8 @@ function renderGrid(contests) {
                 <h3>${c.title}</h3>
                 <p>${c.description}</p>
                 <div class="contest-time">
-                    <strong>🕒 Début :</strong> ${startDate}<br>
-                    <strong>⌛ Fin :</strong> ${endDate}
+                    <strong> Début :</strong> ${startDate}<br>
+                    <strong>Fin :</strong> ${endDate}
                 </div>
                 <div class="problem-actions">
                     <span class="difficulty medium">-</span>
@@ -140,3 +140,4 @@ function renderGrid(contests) {
 
     container.innerHTML = html;
 }
+

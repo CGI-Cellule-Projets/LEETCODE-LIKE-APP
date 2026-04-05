@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Admin Contest Editor
  * Dedicated admin page to inspect and update a single contest.
  */
@@ -131,7 +131,7 @@ async function handleFormSubmit(e) {
   formSuccess.style.display = 'none';
 
   if (!title || !description || !rawStart || !rawEnd) {
-    formError.textContent = '❌ Veuillez remplir tous les champs obligatoires.';
+    formError.textContent = ' Veuillez remplir tous les champs obligatoires.';
     formError.style.display = 'block';
     return;
   }
@@ -140,7 +140,7 @@ async function handleFormSubmit(e) {
   const end_time = new Date(rawEnd).toISOString();
 
   if (new Date(end_time) <= new Date(start_time)) {
-    formError.textContent = '❌ La date de fin doit être postérieure à la date de début.';
+    formError.textContent = ' La date de fin doit être postérieure à la date de début.';
     formError.style.display = 'block';
     return;
   }
@@ -153,7 +153,7 @@ async function handleFormSubmit(e) {
     const pPts = entry.querySelector('.prob-points-input').value;
 
     if (!pId) {
-      formError.textContent = '❌ Tous les IDs de problème doivent être renseignés.';
+      formError.textContent = ' Tous les IDs de problème doivent être renseignés.';
       formError.style.display = 'block';
       return;
     }
@@ -165,7 +165,7 @@ async function handleFormSubmit(e) {
   }
 
   if (currentContestIsTemporary) {
-    formSuccess.textContent = '✓ Mode démo: modifications locales validées (aucune écriture API).';
+    formSuccess.textContent = ' Mode démo: modifications locales validées (aucune écriture API).';
     formSuccess.style.display = 'block';
     return;
   }
@@ -174,11 +174,11 @@ async function handleFormSubmit(e) {
   const result = await apiAdminUpdateContest(currentContestId, payloadHeader, mappingPayload);
 
   if (result.success) {
-    formSuccess.textContent = '✓ Concours mis à jour avec succès.';
+    formSuccess.textContent = ' Concours mis à jour avec succès.';
     formSuccess.style.display = 'block';
     showInfo(`Dernière mise à jour: ${new Date().toLocaleString()}`);
   } else {
-    formError.textContent = `❌ ${result.message || 'Erreur lors de la mise à jour.'}`;
+    formError.textContent = ` ${result.message || 'Erreur lors de la mise à jour.'}`;
     formError.style.display = 'block';
   }
 }
@@ -204,3 +204,4 @@ function toDateTimeLocal(value) {
 }
 
 window.removeProblemRow = removeProblemRow;
+

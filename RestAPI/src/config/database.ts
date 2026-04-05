@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Database Configuration and Connection
  */
 import { Client } from 'pg';
@@ -17,10 +17,10 @@ const client = new Client({
 export async function connectDB() {
   try {
     await client.connect();
-    console.log('✓ Database connected successfully');
+    console.log(' Database connected successfully');
     return client;
   } catch (error) {
-    console.error('✗ Database connection failed:', error);
+    console.error(' Database connection failed:', error);
     process.exit(1);
   }
 }
@@ -32,3 +32,4 @@ export function getDB() {
 export async function disconnectDB() {
   await client.end();
 }
+
