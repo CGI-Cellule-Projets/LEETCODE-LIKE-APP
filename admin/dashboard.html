@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fr">
 
 <head>
@@ -23,16 +23,13 @@
         <div class="container admin-topbar-inner">
             <a class="brand" href="dashboard.html"><span>Algo</span>Forge <span class="badge">Admin</span></a>
             <nav class="admin-nav">
-                <a class="admin-nav-link active" href="dashboard.html">Tableau de Bord</a>
                 <a class="admin-nav-link" href="problems.html">Problèmes</a>
                 <a class="admin-nav-link" href="contests.html">Concours</a>
                 <a class="admin-nav-link" href="users.html">Utilisateurs</a>
             </nav>
             <div class="admin-actions">
-                <div class="user-info">
-                    <span id="adminUsername">Admin</span>
-                    <button id="logoutBtn" class="btn btn-ghost btn-sm">Déconnecter</button>
-                </div>
+                <a id="userSpaceBtn" class="btn btn-ghost" href="../apps/web/parameters.html">Espace Utilisateur</a>
+                <button id="logoutBtn" class="btn btn-ghost btn-sm">Déconnexion</button>
             </div>
         </div>
     </header>
@@ -41,7 +38,7 @@
         <section class="admin-container">
             <div class="admin-header admin-hero">
                 <div>
-                    <p class="eyebrow">Vue d’ensemble</p>
+                    <p class="eyebrow">Vue d'ensemble</p>
                     <h1>Tableau de Bord Administrateur</h1>
                     <p>Gérez les problèmes, utilisateurs et contenu de la plateforme depuis un seul point de contrôle.</p>
                 </div>
@@ -75,7 +72,7 @@
                     <div class="stat-content">
                         <h3>Soumissions</h3>
                         <p class="stat-number" id="totalSubmissions">0</p>
-                        <p class="stat-note">Historique d’exécution</p>
+                        <p class="stat-note">Historique d'exécution</p>
                     </div>
                 </div>
 

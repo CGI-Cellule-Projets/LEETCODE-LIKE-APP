@@ -57,6 +57,7 @@ function setupEventListeners() {
 
 function showCreateForm() {
     const formSection = document.getElementById('createFormSection');
+    const listSection = document.querySelector('.problems-list-section');
     const form = document.getElementById('contestForm');
     
     // reset defaults
@@ -65,17 +66,22 @@ function showCreateForm() {
     problemIndex = 0;
     addProblemRow();
     
-    document.getElementById('formError').style.display = 'none';
-    document.getElementById('formSuccess').style.display = 'none';
+    document.getElementById('formError').hidden = true;
+    document.getElementById('formSuccess').hidden = true;
     
-    formSection.style.display = 'block';
-    document.querySelector('.problems-list-section').style.display = 'none';
+    formSection.hidden = false;
+    if (listSection) {
+        listSection.hidden = true;
+    }
     formSection.scrollIntoView({ behavior: 'smooth' });
 }
 
 function hideCreateForm() {
-    document.getElementById('createFormSection').style.display = 'none';
-    document.querySelector('.problems-list-section').style.display = 'block';
+    document.getElementById('createFormSection').hidden = true;
+    const listSection = document.querySelector('.problems-list-section');
+    if (listSection) {
+        listSection.hidden = false;
+    }
 }
 
 function addProblemRow() {
@@ -118,10 +124,12 @@ async function handleFormSubmit(e) {
     
     const formError = document.getElementById('formError');
     const formSuccess = document.getElementById('formSuccess');
+    formError.hidden = true;
+    formSuccess.hidden = true;
 
     if (!title || !description || !rawStart || !rawEnd) {
         formError.textContent = ' Veuillez remplir tous les champs du sommet.';
-        formError.style.display = 'block';
+        formError.hidden = false;
         return;
     }
 
@@ -130,7 +138,7 @@ async function handleFormSubmit(e) {
 
     if (new Date(end_time) <= new Date(start_time)) {
         formError.textContent = ' La date de fin doit être postérieure à la date de début.';
-        formError.style.display = 'block';
+        formError.hidden = false;
         return;
     }
 
@@ -144,7 +152,7 @@ async function handleFormSubmit(e) {
         
         if (!pId) {
             formError.textContent = ' Veuillez fournir un ID de problème valide pour chaque ligne.';
-            formError.style.display = 'block';
+            formError.hidden = false;
             return;
         }
         
@@ -160,9 +168,9 @@ async function handleFormSubmit(e) {
         const result = await apiAdminCreateContest(payloadHeader, mappingPayload);
         
         if (result.success) {
-            formError.style.display = 'none';
+            formError.hidden = true;
             formSuccess.textContent = ' Concours créé et problèmes mappés avec succès!';
-            formSuccess.style.display = 'block';
+            formSuccess.hidden = false;
             
             setTimeout(() => {
                 hideCreateForm();
@@ -170,11 +178,11 @@ async function handleFormSubmit(e) {
             }, 1500);
         } else {
             formError.textContent = ` ${result.message || 'Erreur lors de la création'}`;
-            formError.style.display = 'block';
+            formError.hidden = false;
         }
     } catch (error) {
         formError.textContent = ' Erreur inattendue';
-        formError.style.display = 'block';
+        formError.hidden = false;
         console.error(error);
     }
 }

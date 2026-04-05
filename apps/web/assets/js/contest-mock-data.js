@@ -7,7 +7,7 @@
     {
       contest_id: 9001,
       title: 'Spring Sprint 2026',
-      description: '6 problèmes orientés tableaux et glouton avec classement en direct.',
+      description: '6 problemes orientes tableaux et glouton avec classement en direct.',
       start_time: '2026-04-06T18:00:00Z',
       end_time: '2026-04-06T20:00:00Z',
       listing_type: 'upcoming'
@@ -23,7 +23,7 @@
     {
       contest_id: 9003,
       title: 'Binary Cup Warmup',
-      description: 'Compétition active pour consolider recherches binaires et tris.',
+      description: 'Competition active pour consolider recherches binaires et tris.',
       start_time: '2026-04-04T13:00:00Z',
       end_time: '2026-04-04T16:00:00Z',
       listing_type: 'active'
@@ -31,7 +31,7 @@
     {
       contest_id: 9004,
       title: 'DP Arena Live',
-      description: 'Round en cours dédié à la programmation dynamique par étapes.',
+      description: 'Round en cours dedie a la programmation dynamique par etapes.',
       start_time: '2026-04-04T15:00:00Z',
       end_time: '2026-04-04T18:00:00Z',
       listing_type: 'active'
@@ -39,7 +39,7 @@
     {
       contest_id: 9005,
       title: 'Weekly Contest 117',
-      description: 'Archive hebdomadaire avec analyse éditoriale disponible.',
+      description: 'Archive hebdomadaire avec analyse editoriale disponible.',
       start_time: '2026-03-30T19:00:00Z',
       end_time: '2026-03-30T21:00:00Z',
       listing_type: 'past'
@@ -47,7 +47,7 @@
     {
       contest_id: 9006,
       title: 'Bug Bash Tournament',
-      description: 'Edition terminée axée debugging et edge cases.',
+      description: 'Edition terminee axee debugging et edge cases.',
       start_time: '2026-03-25T17:00:00Z',
       end_time: '2026-03-25T19:00:00Z',
       listing_type: 'past'
@@ -58,7 +58,7 @@
     {
       contest_id: 9001,
       title: 'Spring Sprint 2026',
-      description: 'Edition temporaire: 6 problèmes progressifs orientés array, hash map et greedy.',
+      description: 'Edition temporaire: 6 problemes progressifs orientes array, hash map et greedy.',
       start_time: '2026-04-06T18:00:00Z',
       end_time: '2026-04-06T20:00:00Z',
       problems: [
@@ -70,7 +70,7 @@
     {
       contest_id: 9002,
       title: 'Night Owl Challenge',
-      description: 'Edition nocturne orientée graphes, shortest path et parcours optimisé.',
+      description: 'Edition nocturne orientee graphes, shortest path et parcours optimise.',
       start_time: '2026-04-08T21:00:00Z',
       end_time: '2026-04-08T22:30:00Z',
       problems: [
@@ -94,7 +94,7 @@
     {
       contest_id: 9004,
       title: 'DP Arena Live',
-      description: 'Tour actif centré sur les transitions d’état et optimisation mémoire.',
+      description: 'Tour actif centre sur les transitions detat et optimisation memoire.',
       start_time: '2026-04-04T15:00:00Z',
       end_time: '2026-04-04T18:00:00Z',
       problems: [
@@ -106,7 +106,7 @@
     {
       contest_id: 9005,
       title: 'Weekly Contest 117',
-      description: 'Archive complète avec problèmes classiques et set final expert.',
+      description: 'Archive complete avec problemes classiques et set final expert.',
       start_time: '2026-03-30T19:00:00Z',
       end_time: '2026-03-30T21:00:00Z',
       problems: [
@@ -118,7 +118,7 @@
     {
       contest_id: 9006,
       title: 'Bug Bash Tournament',
-      description: 'Archive debugging avec jeux de tests piégés et corner cases.',
+      description: 'Archive debugging avec jeux de tests pieges et corner cases.',
       start_time: '2026-03-25T17:00:00Z',
       end_time: '2026-03-25T19:00:00Z',
       problems: [

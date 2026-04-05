@@ -1,8 +1,8 @@
-﻿/* ============================================
+/* ============================================
     DESIGN TOKENS (Couleurs et variables)
-   Toutes les couleurs et tailles principales sont définies ici. 
+   Toutes les couleurs et tailles principales sont d�finies ici. 
    Modifiez ces valeurs pour changer l'ambiance globale du site.
-   Le mode sombre (Night mode) écrase ces variables plus bas.
+   Le mode sombre (Night mode) �crase ces variables plus bas.
    ============================================ */
 :root {
     --bg: #f8f7f3;
@@ -21,6 +21,7 @@
     --radius-lg: 24px;
     --radius-md: 16px;
     --radius-sm: 12px;
+    --nav-action-gap: 12px;
 }
 
 /* ============================================
@@ -32,8 +33,12 @@
     padding: 0;
 }
 
+[hidden] {
+    display: none !important;
+}
+
 /* ============================================
-    ACCESSIBILITY HELPERS (Accessibilité)
+    ACCESSIBILITY HELPERS (Accessibilit�)
    Quelques classes pour rendre le site utilisable par tous.
    ============================================ */
 
@@ -72,7 +77,7 @@
    BASE STYLES
    ============================================ */
 
-/* zoom: 1.1 makes everything slightly larger — intentional design choice so that we can see the whole page */
+/* zoom: 1.1 makes everything slightly larger � intentional design choice so that we can see the whole page */
 html {
     scroll-behavior: smooth;
     zoom: 1.1;
@@ -107,7 +112,7 @@ body.no-scroll {
     overflow: hidden;
 }
 
-/* Night theme — toggled from settings page, swaps all color tokens */
+/* Night theme � toggled from settings page, swaps all color tokens */
 body.theme-night {
     --bg: #0f1722;
     --surface: rgba(17, 28, 42, 0.74);
@@ -129,9 +134,9 @@ body.motion-off *::after {
 }
 
 /* ============================================
-    BACKGROUND GLOWS (Effets de lumière en fond)
-   Deux cercles flous animés positionnés dans les coins.
-   Présents sur toutes les pages.
+    BACKGROUND GLOWS (Effets de lumi�re en fond)
+   Deux cercles flous anim�s positionn�s dans les coins.
+   Pr�sents sur toutes les pages.
    ============================================ */
 .site-glow {
     position: fixed;
@@ -209,11 +214,23 @@ a {
     margin: 0 auto;
 }
 
+.mt-4 {
+    margin-top: 1rem !important;
+}
+
+.mt-8 {
+    margin-top: 2rem !important;
+}
+
+.mb-4 {
+    margin-bottom: 1rem !important;
+}
+
 /* ============================================
     NAVIGATION
-   La barre du haut qui reste collée sur toutes les pages.
-   Sur PC : les liens sont affichés horizontalement.
-   Sur Mobile (<1020px) : on affiche un menu qui glisse vers le bas.
+   La barre du haut qui reste coll�e sur toutes les pages.
+   Sur PC : les liens sont affich�s horizontalement.
+   Sur Mobile (<1160px) : on affiche un menu qui glisse vers le bas.
    ============================================ */
 .topbar {
     position: sticky;
@@ -268,6 +285,10 @@ body.theme-night .topbar.scrolled {
     justify-content: center;
 }
 
+body.is-admin-user .main-nav {
+    transform: translateX(-22px);
+}
+
 .nav-actions {
     grid-column: 3;
     width: 100%;
@@ -275,7 +296,7 @@ body.theme-night .topbar.scrolled {
     flex-wrap: nowrap;
     justify-content: flex-end;
     white-space: nowrap;
-    gap: 10px;
+    gap: var(--nav-action-gap);
 }
 
 .nav-actions .btn {
@@ -298,7 +319,7 @@ body.theme-night .topbar.scrolled {
     background: var(--accent-soft);
 }
 
-/* Hamburger button — hidden on desktop, shown at 1020px breakpoint, hamburger menu howa hada  */ 
+/* Hamburger button � hidden on desktop, shown at 1160px breakpoint, hamburger menu howa hada  */ 
 .menu-toggle {
     width: 44px;
     height: 44px;
@@ -358,7 +379,7 @@ body.theme-night .topbar.scrolled {
     padding: 12px 4% 18px;
 }
 
-/* Dark overlay behind mobile menu — click it to close */
+/* Dark overlay behind mobile menu � click it to close */
 .menu-backdrop {
     position: fixed;
     inset: 0;
@@ -384,7 +405,7 @@ body.theme-night .topbar.scrolled {
     BUTTONS (Boutons)
    UTILISATION : 
    - .btn : Classe de base pour les liens <a> ou les <button>.
-   - .btn-primary : Action principale (dégradé orange).
+   - .btn-primary : Action principale (d�grad� orange).
    - .btn-ghost : Action secondaire (fond transparent, avec bordure).
    - .btn.wide : Prend 100% de la largeur du parent.
    ============================================ */
@@ -399,6 +420,11 @@ body.theme-night .topbar.scrolled {
     font-weight: 700;
     border: 1px solid transparent;
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.btn-sm {
+    padding: 8px 13px;
+    font-size: 0.84rem;
 }
 
 .btn:hover {
@@ -448,7 +474,6 @@ body.theme-night .topbar.scrolled {
     color: #fff;
     border: 1px solid rgba(20, 107, 57, 0.2);
     box-shadow: 0 12px 26px rgba(33, 182, 99, 0.24);
-    margin-left: 14px;
 }
 
 .nav-shortcut-profile.is-active {
@@ -472,13 +497,18 @@ body.theme-night .nav-shortcut-settings.is-active {
     background: rgba(211, 47, 47, 0.12);
 }
 
+.profile-logout-wrap {
+    display: flex;
+    justify-content: flex-end;
+}
+
 /* ============================================
-    SHARED COMPONENTS (Composants réutilisables)
+    SHARED COMPONENTS (Composants r�utilisables)
    UTILISATION :
-   - .panel : Ajoute un fond translucide (glassmorphism), une bordure et une ombre (idéal pour les cartes).
-   - .section-subtitle : Petit texte d'en-tête en majuscules (généralement placé au-dessus d'un h2/h3).
+   - .panel : Ajoute un fond translucide (glassmorphism), une bordure et une ombre (id�al pour les cartes).
+   - .section-subtitle : Petit texte d'en-t�te en majuscules (g�n�ralement plac� au-dessus d'un h2/h3).
    - .section : Padding vertical standard pour espacer les blocs.
-   - .lead / .muted : Couleurs atténuées pour le texte secondaire.
+   - .lead / .muted : Couleurs att�nu�es pour le texte secondaire.
    ============================================ */
 .section {
     padding: 78px 0;
@@ -505,8 +535,8 @@ body.theme-night .nav-shortcut-settings.is-active {
 }
 
 /* ============================================
-    HOME PAGE — HERO SECTION (index.html)
-   Mise en page sur 2 colonnes : texte à gauche, carte de code animée à droite.
+    HOME PAGE � HERO SECTION (index.html)
+   Mise en page sur 2 colonnes : texte � gauche, carte de code anim�e � droite.
    ============================================ */
 .hero {
     padding: 86px 0 40px;
@@ -526,7 +556,7 @@ body.theme-night .nav-shortcut-settings.is-active {
     letter-spacing: -0.03em;
 }
 
-/* Rotating words in hero h1 — JS cycles through them with a fade effect */
+/* Rotating words in hero h1 � JS cycles through them with a fade effect */
 [data-rotating-words] {
     color: var(--accent);
     display: inline-block;
@@ -587,7 +617,7 @@ body.theme-night .nav-shortcut-settings.is-active {
     gap: 12px;
 }
 
-/* Hero stat counters — 3 cards with animated number counting (driven by JS) */
+/* Hero stat counters � 3 cards with animated number counting (driven by JS) */
 .stat-row {
     margin-top: 30px;
     display: grid;
@@ -613,7 +643,7 @@ body.theme-night .nav-shortcut-settings.is-active {
 }
 
 /* ============================================
-   HOME PAGE — TERMINAL CARD (hero right side)
+   HOME PAGE � TERMINAL CARD (hero right side)
    3D hover effect: JS updates --pointer-rot-x/y on mousemove
    to tilt the card, and --sheen-x for the gloss sweep.
    ============================================ */
@@ -658,7 +688,7 @@ body.theme-night .nav-shortcut-settings.is-active {
     animation: glow-pulse 6s ease-in-out infinite;
 }
 
-/* Gloss/sheen layer — sweeps across on hover via --sheen-x */
+/* Gloss/sheen layer � sweeps across on hover via --sheen-x */
 .terminal-card::after {
     content: "";
     position: absolute;
@@ -695,7 +725,7 @@ body.theme-night .nav-shortcut-settings.is-active {
     }
 }
 
-/* Hover state — JS adds .is-hovering on pointerenter */
+/* Hover state � JS adds .is-hovering on pointerenter */
 .hero-visual.is-hovering .terminal-wrap {
     animation-duration: 7.1s;
 }
@@ -709,7 +739,7 @@ body.theme-night .nav-shortcut-settings.is-active {
     opacity: 1;
 }
 
-/* Terminal header bar — traffic light dots + filename */
+/* Terminal header bar � traffic light dots + filename */
 .terminal-head {
     display: flex;
     align-items: center;
@@ -773,10 +803,10 @@ body.theme-night .nav-shortcut-settings.is-active {
 }
 
 /* ============================================
-    SECTION HEADERS (En-têtes de section)
+    SECTION HEADERS (En-t�tes de section)
    UTILISATION :
    Enveloppez un .section-subtitle et un <h2> dans une <div> avec la classe .section-head.
-   Utilisé pour les sections standards (features, roadmap, FAQ, badges).
+   Utilis� pour les sections standards (features, roadmap, FAQ, badges).
    ============================================ */
 .section-head {
     margin-bottom: 26px;
@@ -790,7 +820,7 @@ body.theme-night .nav-shortcut-settings.is-active {
 }
 
 /* ============================================
-   HOME PAGE — FEATURES GRID (index.html #features)
+   HOME PAGE � FEATURES GRID (index.html #features)
    3 columns on desktop, 2 on tablet, 1 on mobile.
    ============================================ */
 .feature-grid {
@@ -800,7 +830,7 @@ body.theme-night .nav-shortcut-settings.is-active {
 }
 
 /* Hover effect for all interactive cards across the site.
-   Uses layered box-shadow only — transforms cause text blur. */
+   Uses layered box-shadow only � transforms cause text blur. */
 .feature-card,
 .roadmap-step,
 .problem-card {
@@ -832,8 +862,8 @@ body.theme-night .nav-shortcut-settings.is-active {
 }
 
 /* ============================================
-   HOME PAGE — ROADMAP (index.html #roadmap)
-   3 columns on desktop. On mobile (<1020px) collapses
+   HOME PAGE � ROADMAP (index.html #roadmap)
+   3 columns on desktop. On mobile (<1160px) collapses
    to single column with a vertical timeline line.
    ============================================ */
 .roadmap {
@@ -879,7 +909,7 @@ body.theme-night .roadmap {
 }
 
 /* ============================================
-   HOME PAGE — CTA BANNER
+   HOME PAGE � CTA BANNER
    Call-to-action section right before the footer.
    ============================================ */
 .cta {
@@ -911,7 +941,7 @@ body.theme-night .roadmap {
 }
 
 /* ============================================
-   FOOTER — present on all pages
+   FOOTER � present on all pages
    ============================================ */
 .footer {
     padding: 32px 0 44px;
@@ -928,7 +958,7 @@ body.theme-night .roadmap {
 }
 
 /* ============================================
-   INNER PAGES — COMPACT HERO
+   INNER PAGES � COMPACT HERO
    Shorter hero used on problems, profile, and settings pages.
    ============================================ */
 .page-hero.compact {
@@ -943,7 +973,7 @@ body.theme-night .roadmap {
 
 /* ============================================
    PROFILE PAGE (profile.html)
-   Task LLA-24 — layout ready, content is placeholder.
+   Task LLA-24 � layout ready, content is placeholder.
    ============================================ */
 
 /* Shared grid base for profile, split, and settings layouts */
@@ -1058,7 +1088,7 @@ body.theme-night .roadmap {
     padding: 22px;
 }
 
-/* Streak heatmap — 20 columns of day cells, generated by JS */
+/* Streak heatmap � 20 columns of day cells, generated by JS */
 .streak-grid {
     margin-top: 14px;
     display: grid;
@@ -1073,7 +1103,7 @@ body.theme-night .roadmap {
     background: rgba(127, 151, 186, 0.15);
 }
 
-/* Activity levels — darker green = more activity */
+/* Activity levels � darker green = more activity */
 .day.level-1 {
     background: rgba(85, 210, 154, 0.35);
 }
@@ -1090,7 +1120,7 @@ body.theme-night .roadmap {
     background: rgba(24, 139, 98, 0.95);
 }
 
-/* Progress bars — width is animated by IntersectionObserver in JS */
+/* Progress bars � width is animated by IntersectionObserver in JS */
 .goal-list {
     margin-top: 14px;
     display: grid;
@@ -1121,7 +1151,7 @@ body.theme-night .roadmap {
     transition: width 0.9s ease;
 }
 
-/* Achievement badges — 3-column grid */
+/* Achievement badges � 3-column grid */
 .achievement-grid {
     margin-top: 16px;
     display: grid;
@@ -1164,7 +1194,7 @@ body.theme-night .roadmap {
     font-size: 1.06rem;
 }
 
-/* Theme color picker — 3 round swatch buttons */
+/* Theme color picker � 3 round swatch buttons */
 .accent-row {
     display: flex;
     gap: 10px;
@@ -1190,7 +1220,7 @@ body.theme-night .roadmap {
     background: linear-gradient(140deg, #14b884, #9ad84b);
 }
 
-/* JS toggles .active on click — shows border around selected swatch */
+/* JS toggles .active on click � shows border around selected swatch */
 .accent-swatch.active {
     border-color: var(--text);
     transform: scale(1.08);
@@ -1233,7 +1263,7 @@ body.theme-night .roadmap {
     font-weight: 600;
 }
 
-/* Right sidebar — shows a preview of the user's current config */
+/* Right sidebar � shows a preview of the user's current config */
 .preview-pane {
     padding: 20px;
     border-radius: var(--radius-md);
@@ -1404,9 +1434,9 @@ body.theme-night .difficulty.hard {
 /* ============================================
     SCROLL REVEAL ANIMATION (Apparition au scroll)
    UTILISATION :
-   Ajoutez la classe .reveal à n'importe quel élément HTML. 
-   Il apparaîtra avec un glissement vers le haut lors du scroll.
-   (Géré via IntersectionObserver dans script.js).
+   Ajoutez la classe .reveal � n'importe quel �l�ment HTML. 
+   Il appara�tra avec un glissement vers le haut lors du scroll.
+   (G�r� via IntersectionObserver dans script.js).
    ============================================ */
 .reveal {
     opacity: 0;
@@ -1476,7 +1506,7 @@ body.theme-night .difficulty.hard {
 
 /* ============================================
    FAQ (index.html #faq)
-   Native <details>/<summary> — no JS required.
+   Native <details>/<summary> � no JS required.
    The "+" rotates 45deg to become "x" when open.
    ============================================ */
 .faq-list {
@@ -1536,7 +1566,7 @@ body.theme-night .difficulty.hard {
     font-weight: 600;
 }
 
-/* Live counter: "X problemes trouves" — has aria-live for screen readers */
+/* Live counter: "X problemes trouves" � has aria-live for screen readers */
 .card-count {
     font-size: 0.85rem;
     color: var(--muted);
@@ -1595,7 +1625,7 @@ body.theme-night .difficulty.hard {
 .contest-loading,
 .contest-error {
     text-align: center;
-    padding: 4rem;
+    padding: 4rem 2rem;
 }
 
 .contest-error h2 {
@@ -1604,8 +1634,10 @@ body.theme-night .difficulty.hard {
 }
 
 .contest-details-card {
-    padding: 2.2rem;
+    padding: 2rem;
     margin-bottom: 2rem;
+    display: grid;
+    gap: 1rem;
 }
 
 .contest-details-meta {
@@ -1622,7 +1654,9 @@ body.theme-night .difficulty.hard {
 }
 
 .contest-register {
-    margin-top: 1.6rem;
+    margin-top: 0.4rem;
+    display: grid;
+    gap: 0.8rem;
 }
 
 .contest-register .btn {
@@ -1631,9 +1665,12 @@ body.theme-night .difficulty.hard {
 }
 
 .contest-register-msg {
-    margin-top: 0.8rem;
     font-weight: 700;
-    display: none;
+    min-height: 1.2rem;
+}
+
+.contest-table-shell {
+    overflow-x: auto;
 }
 
 .contest-problems-table {
@@ -1677,18 +1714,42 @@ body.theme-night .difficulty.hard {
 .auth-page {
     background: linear-gradient(180deg, var(--bg), var(--surface));
     min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-login-layout {
+    grid-template-columns: 1fr;
+    max-width: 560px;
+    gap: 0;
+}
+
+.auth-login-card {
+    position: relative;
+    overflow: hidden;
+    background:
+        radial-gradient(circle at 100% 0%, rgba(var(--accent-rgb), 0.15), transparent 32%),
+        linear-gradient(180deg, var(--surface-2), rgba(255, 255, 255, 0.82));
+}
+
+body.theme-night .auth-login-card {
+    background:
+        radial-gradient(circle at 100% 0%, rgba(var(--accent-rgb), 0.18), transparent 34%),
+        linear-gradient(180deg, rgba(20, 32, 48, 0.94), rgba(15, 23, 34, 0.9));
 }
 
 .auth-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 3rem;
-    min-height: 100vh;
+    min-height: calc(100vh - 2rem);
     align-items: center;
     justify-items: center;
     padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
+    width: 100%;
+    flex: 1;
 }
 
 .auth-card {
@@ -1696,6 +1757,55 @@ body.theme-night .difficulty.hard {
     border-radius: var(--radius-md);
     max-width: 400px;
     width: 100%;
+    justify-self: center;
+}
+
+.auth-demo-note {
+    margin-top: 0.85rem;
+    color: var(--muted);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.8rem;
+}
+
+.auth-helper {
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.auth-helper code {
+    font-family: "JetBrains Mono", monospace;
+    background: rgba(0, 0, 0, 0.06);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.1rem 0.35rem;
+    color: var(--text);
+}
+
+.auth-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+}
+
+.auth-switch-btn {
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--muted);
+    border-radius: 999px;
+    padding: 0.55rem 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.auth-switch-btn.active {
+    color: var(--text);
+    background: var(--accent-soft);
+    border-color: rgba(var(--accent-rgb), 0.35);
+}
+
+.auth-panel[hidden] {
+    display: none !important;
 }
 
 .auth-header {
@@ -1786,6 +1896,22 @@ body.theme-night .difficulty.hard {
     border: 1px solid rgba(244, 67, 54, 0.3);
 }
 
+.success-message {
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #0d7b46;
+    background: rgba(13, 123, 70, 0.12);
+    border: 1px solid rgba(13, 123, 70, 0.28);
+}
+
+body.theme-night .success-message {
+    color: #8cf7c5;
+    background: rgba(25, 180, 105, 0.16);
+    border-color: rgba(25, 180, 105, 0.32);
+}
+
 .auth-footer {
     text-align: center;
     margin-top: 2rem;
@@ -1807,6 +1933,16 @@ body.theme-night .difficulty.hard {
 
 .auth-footer a:hover {
     text-decoration: underline;
+}
+
+.auth-footer .auth-footer-toggle {
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    text-decoration: underline;
+    cursor: pointer;
+    font: inherit;
+    padding: 0;
 }
 
 .auth-info {
@@ -1848,38 +1984,46 @@ body.theme-night .difficulty.hard {
    ADMIN DASHBOARD PAGES
    Admin-specific layout and component styles.
    ============================================ */
+.admin-page {
+    background:
+        radial-gradient(circle at 10% -20%, rgba(255, 129, 84, 0.22), transparent 40%),
+        radial-gradient(circle at 95% 20%, rgba(92, 201, 245, 0.2), transparent 42%),
+        #f5f5f3;
+}
+
 .admin-topbar {
-    background: #f7f5f1;
-    border-bottom: 1px solid rgba(23, 33, 45, 0.14);
-    box-shadow: 0 10px 26px rgba(17, 27, 40, 0.08);
+    background: rgba(245, 245, 243, 0.88);
+    border-bottom: 1px solid rgba(23, 33, 45, 0.1);
+    box-shadow: 0 8px 24px rgba(17, 27, 40, 0.07);
     padding: 0.8rem 0;
     position: sticky;
     top: 0;
     z-index: 100;
-    backdrop-filter: none;
+    backdrop-filter: blur(10px);
 }
 
 body.theme-night .admin-topbar {
-    background: #111b29;
+    background: rgba(17, 27, 41, 0.88);
     border-bottom: 1px solid rgba(173, 190, 216, 0.2);
     box-shadow: 0 10px 26px rgba(0, 0, 0, 0.34);
 }
 
 .admin-topbar-inner {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-start;
     align-items: center;
-    gap: 1.4rem;
+    gap: 1.1rem;
 }
 
 .admin-topbar .brand {
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 800;
     color: var(--text);
     text-decoration: none;
     display: flex;
     align-items: center;
     gap: 0.5rem;
+    line-height: 1;
 }
 
 .admin-topbar .badge {
@@ -1888,30 +2032,31 @@ body.theme-night .admin-topbar {
     color: white;
     padding: 0.24rem 0.66rem;
     border-radius: 999px;
-    font-size: 0.75rem;
+    font-size: 0.68rem;
     font-weight: 700;
-    margin-left: 0.5rem;
+    margin-left: 0.2rem;
 }
 
 .admin-nav {
     display: flex;
-    gap: 0.4rem;
-    flex: 1;
+    gap: 0.25rem;
+    margin-left: 2.2rem;
+    flex: 1 1 auto;
 }
 
 .admin-nav-link {
     color: var(--muted);
     text-decoration: none;
-    font-weight: 700;
-    padding: 0.62rem 1rem;
-    border-radius: var(--radius-sm);
+    font-weight: 600;
+    padding: 0.62rem 0.95rem;
+    border-radius: 999px;
     transition: all 0.2s ease;
 }
 
 .admin-nav-link:hover,
 .admin-nav-link.active {
     color: #1a2635;
-    background: linear-gradient(135deg, rgba(255, 107, 61, 0.16), rgba(255, 159, 28, 0.2));
+    background: rgba(255, 107, 61, 0.15);
 }
 
 body.theme-night .admin-nav-link:hover,
@@ -1923,23 +2068,25 @@ body.theme-night .admin-nav-link.active {
 .admin-actions {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.75rem;
+    margin-left: auto;
 }
 
-.user-info {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
+.admin-actions .btn {
+    border-radius: 999px;
+    padding: 0.65rem 1.15rem;
+    font-weight: 700;
+    box-shadow: none;
 }
 
-.user-info span {
-    font-size: 0.9rem;
-    color: var(--muted);
+.admin-actions #logoutBtn {
+    background: rgba(23, 33, 45, 0.06);
+    border-color: rgba(23, 33, 45, 0.1);
 }
 
 .admin-main {
     min-height: calc(100vh - 80px);
-    padding: 2rem 0 1.5rem;
+    padding: 2.1rem 0 1.5rem;
 }
 
 .admin-container {
@@ -1949,7 +2096,7 @@ body.theme-night .admin-nav-link.active {
 }
 
 .admin-header {
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
 }
 
 .admin-hero {
@@ -1957,13 +2104,13 @@ body.theme-night .admin-nav-link.active {
     align-items: flex-end;
     justify-content: space-between;
     gap: 1.5rem;
-    padding: 1.45rem 1.7rem;
+    padding: 1.5rem 1.8rem;
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
     background:
         radial-gradient(circle at 85% 0%, rgba(255, 159, 28, 0.12), transparent 38%),
         linear-gradient(135deg, var(--surface-2), rgba(255, 255, 255, 0.65));
-    box-shadow: var(--shadow);
+    box-shadow: 0 14px 32px rgba(17, 27, 40, 0.1);
 }
 
 body.theme-night .admin-hero {
@@ -1975,7 +2122,7 @@ body.theme-night .admin-hero {
 .admin-hero .eyebrow {
     margin-bottom: 0.35rem;
     text-transform: uppercase;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.12em;
     font-size: 0.74rem;
     font-weight: 700;
     color: var(--accent);
@@ -2002,8 +2149,8 @@ body.theme-night .admin-hero {
 }
 
 .admin-header h1 {
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: clamp(2rem, 2.7vw, 2.75rem);
+    font-weight: 800;
     color: var(--text);
     margin-bottom: 0.35rem;
 }
@@ -2019,15 +2166,15 @@ body.theme-night .admin-hero {
    ============================================ */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.9rem;
     margin-bottom: 2rem;
 }
 
 .stat-card {
     background: linear-gradient(135deg, var(--surface), rgba(0, 0, 0, 0.02));
     border: 1px solid var(--border);
-    padding: 1.25rem;
+    padding: 1.2rem;
     border-radius: var(--radius-md);
     display: flex;
     gap: 0.95rem;
@@ -2086,9 +2233,9 @@ body.theme-night .stat-icon {
 }
 
 .stat-number {
-    font-size: 1.45rem;
-    font-weight: 700;
-    color: var(--accent);
+    font-size: 2rem;
+    font-weight: 800;
+    color: #0f1722;
     margin-bottom: 0.35rem;
 }
 
@@ -2102,6 +2249,31 @@ body.theme-night .stat-icon {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 1.5rem;
+}
+
+.test-case-card {
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.24);
+}
+
+.test-case-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.test-case-note {
+    margin: 0 0 12px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.test-case-card .form-row {
+    margin-top: 0;
 }
 
 .problem-entry {
@@ -2143,16 +2315,6 @@ body.theme-night .stat-icon {
     margin: 1.4rem 0;
     border: none;
     border-top: 1px solid var(--surface-board);
-}
-
-.success-message {
-    display: none;
-    padding: 1rem;
-    background: #e8f5e9;
-    color: #2e7d32;
-    border-radius: 8px;
-    margin-top: 1rem;
-    font-weight: 700;
 }
 
 .status-pill {
@@ -2223,14 +2385,15 @@ body.theme-night .admin-note.warning {
 }
 
 .recent-activity h2 {
-    font-size: 1.2rem;
-    font-weight: 600;
+    font-size: 2rem;
+    font-weight: 800;
     margin-bottom: 1rem;
     color: var(--text);
 }
 
 .activity-list {
-    padding: 1rem;
+    padding: 0;
+    overflow: hidden;
 }
 
 .activity-items {
@@ -2294,7 +2457,7 @@ body.theme-night .activity-icon {
 }
 
 .no-data {
-    padding: 2rem;
+    padding: 2.2rem;
     text-align: center;
     color: var(--muted);
 }
@@ -2501,7 +2664,7 @@ body.theme-night .activity-icon {
 }
 
 /* ============================================
-   RESPONSIVE — ADMIN / AUTH ON TABLET
+   RESPONSIVE � ADMIN / AUTH ON TABLET
    ============================================ */
 @media (max-width: 768px) {
     .auth-container {
@@ -2513,13 +2676,16 @@ body.theme-night .activity-icon {
     }
 
     .admin-topbar-inner {
-        flex-direction: column;
-        gap: 1rem;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.8rem;
     }
 
     .admin-nav {
-        flex-direction: column;
-        gap: 0;
+        margin-left: 0;
+        justify-content: center;
+        flex-wrap: wrap;
+        width: 100%;
     }
 
     .list-controls {
@@ -2545,7 +2711,7 @@ body.theme-night .activity-icon {
 }
 
 /* ============================================
-   RESPONSIVE — ADMIN / AUTH ON MOBILE
+   RESPONSIVE � ADMIN / AUTH ON MOBILE
    ============================================ */
 @media (max-width: 680px) {
     .auth-container {
@@ -2567,6 +2733,11 @@ body.theme-night .activity-icon {
         grid-template-columns: 1fr;
     }
 
+    .admin-actions {
+        width: 100%;
+        justify-content: center;
+    }
+
     .action-buttons {
         flex-direction: column;
     }
@@ -2582,12 +2753,12 @@ body.theme-night .activity-icon {
 }
 
 /* ============================================
-   RESPONSIVE — TABLET (max-width: 1020px)
+   RESPONSIVE � TABLET (max-width: 1160px)
    Desktop nav hides, hamburger shows. ()
    Multi-column grids collapse.
    Roadmap gets a vertical timeline line on the left.
    ============================================ */
-@media (max-width: 1020px) {
+@media (max-width: 1160px) {
 
     .main-nav,
     .nav-actions {
@@ -2648,7 +2819,7 @@ body.theme-night .activity-icon {
 }
 
 /* ============================================
-   RESPONSIVE — SMALL TABLET (max-width: 768px)
+   RESPONSIVE � SMALL TABLET (max-width: 768px)
    ============================================ */
 @media (max-width: 768px) {
     .section {
@@ -2683,7 +2854,7 @@ body.theme-night .activity-icon {
 }
 
 /* ============================================
-   RESPONSIVE — MOBILE (max-width: 680px)
+   RESPONSIVE � MOBILE (max-width: 680px)
    Everything single column. Compact spacing.
    ============================================ */
 @media (max-width: 680px) {
@@ -2711,7 +2882,7 @@ body.theme-night .activity-icon {
 }
 
 /* ============================================
-   ACCESSIBILITY — REDUCED MOTION
+   ACCESSIBILITY � REDUCED MOTION
    Respects OS-level "prefers-reduced-motion" setting.
    ============================================ */
 @media (prefers-reduced-motion: reduce) {

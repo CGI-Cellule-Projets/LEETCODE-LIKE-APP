@@ -1,6 +1,6 @@
 /**
  * Contest Details Logic
- * Extracts URL search params, fetches specifics, and handles Registration
+ * Extracts URL search params, fetches specifics, and handles registration.
  */
 
 let currentContestId = null;
@@ -18,14 +18,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    if (isNaN(parseInt(idParam))) {
+    if (isNaN(parseInt(idParam, 10))) {
         showErrorView();
         return;
     }
 
-    currentContestId = parseInt(idParam);
+    currentContestId = parseInt(idParam, 10);
     await fetchAndRenderContest(currentContestId);
-    
+
     const registerBtn = document.getElementById('registerBtn');
     if (registerBtn) {
         registerBtn.addEventListener('click', handleRegistration);
@@ -33,70 +33,69 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 function showErrorView() {
-    document.getElementById('loadingView').style.display = 'none';
-    document.getElementById('contestDataView').style.display = 'none';
-    document.getElementById('errorView').style.display = 'block';
+    document.getElementById('loadingView').hidden = true;
+    document.getElementById('contestDataView').hidden = true;
+    document.getElementById('errorView').hidden = false;
 }
 
 async function fetchAndRenderContest(id) {
     try {
         const response = await apiGetContestById(id);
-        
+
         if (response.success && response.data) {
             renderContestUI(response.data, false);
         } else {
-            const tempContest = TEMP_CONTEST_DETAILS.find(c => c.contest_id === id);
+            const tempContest = TEMP_CONTEST_DETAILS.find((contest) => contest.contest_id === id);
             if (tempContest) {
                 renderContestUI(tempContest, true);
             } else {
                 showErrorView();
             }
         }
-    } catch (err) {
-        const tempContest = TEMP_CONTEST_DETAILS.find(c => c.contest_id === id);
+    } catch (error) {
+        const tempContest = TEMP_CONTEST_DETAILS.find((contest) => contest.contest_id === id);
         if (tempContest) {
             renderContestUI(tempContest, true);
         } else {
             showErrorView();
         }
-        console.error(err);
+        console.error(error);
     }
 }
 
 function renderContestUI(contest, isTemporary = false) {
     isTemporaryContest = isTemporary;
-    document.getElementById('loadingView').style.display = 'none';
-    document.getElementById('contestDataView').style.display = 'block';
+    document.getElementById('loadingView').hidden = true;
+    document.getElementById('contestDataView').hidden = false;
+    document.getElementById('errorView').hidden = true;
 
     document.getElementById('cTitle').textContent = contest.title;
     document.getElementById('cDesc').textContent = isTemporary
-        ? `${contest.description} (Données temporaires)`
+        ? `${contest.description} (donnees temporaires)`
         : contest.description;
-    
-    document.getElementById('cStart').textContent = new Date(contest.start_time).toLocaleString();
-    document.getElementById('cEnd').textContent = new Date(contest.end_time).toLocaleString();
+
+    document.getElementById('cStart').textContent = new Date(contest.start_time).toLocaleString('fr-FR');
+    document.getElementById('cEnd').textContent = new Date(contest.end_time).toLocaleString('fr-FR');
 
     const tbody = document.getElementById('problemsTbody');
-    let html = '';
 
     if (!contest.problems || contest.problems.length === 0) {
-        html = '<tr><td colspan="4" class="no-data">Aucun défi associé.</td></tr>';
-    } else {
-        contest.problems.forEach(p => {
-            html += `
-              <tr>
-                  <td class="contest-problem-id">#${p.problem_id}</td>
-                  <td class="contest-problem-name">${p.name}</td>
-                  <td class="contest-problem-points">${p.points} XP</td>
-                  <td>
-                      <span class="difficulty ${p.difficulty_level}">${p.difficulty_level}</span>
-                  </td>
-              </tr>
-            `;
-        });
+        tbody.innerHTML = '<tr><td colspan="4" class="no-data">Aucun defi associe.</td></tr>';
+        return;
     }
 
-    tbody.innerHTML = html;
+    const rows = contest.problems.map((problem) => `
+      <tr>
+          <td class="contest-problem-id">#${problem.problem_id}</td>
+          <td class="contest-problem-name">${problem.name}</td>
+          <td class="contest-problem-points">${problem.points} XP</td>
+          <td>
+              <span class="difficulty ${problem.difficulty_level}">${problem.difficulty_level}</span>
+          </td>
+      </tr>
+    `);
+
+    tbody.innerHTML = rows.join('');
 }
 
 async function handleRegistration() {
@@ -104,47 +103,46 @@ async function handleRegistration() {
     const msg = document.getElementById('registerMsg');
 
     if (isTemporaryContest) {
-        msg.textContent = 'Mode démo: inscription non disponible sur les concours temporaires.';
+        msg.textContent = 'Mode demo: inscription non disponible sur les concours temporaires.';
         msg.style.color = '#854d0e';
-        msg.style.display = 'block';
+        msg.hidden = false;
         return;
     }
-    
+
     btn.disabled = true;
     btn.textContent = 'Enregistrement...';
-    msg.style.display = 'none';
+    msg.hidden = true;
 
     try {
-        // Requires user to be logged in
         const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
         if (!token) {
-            msg.textContent = '❌ Vous devez être connecté (via Inscription) pour participer.';
+            msg.textContent = 'Vous devez etre connecte pour participer.';
             msg.style.color = '#d32f2f';
-            msg.style.display = 'block';
+            msg.hidden = false;
             btn.disabled = false;
-            btn.textContent = "S'inscrire au Tournoi";
+            btn.textContent = "S'inscrire au Concours";
             return;
         }
 
-        const res = await apiRegisterForContest(currentContestId);
-        
-        if (res.success) {
-            msg.textContent = '✓ Vous êtes inscrit au concours avec succès !';
+        const result = await apiRegisterForContest(currentContestId);
+
+        if (result.success) {
+            msg.textContent = 'Vous etes inscrit au concours avec succes.';
             msg.style.color = '#166534';
-            msg.style.display = 'block';
-            btn.style.display = 'none';
+            msg.hidden = false;
+            btn.hidden = true;
         } else {
-            msg.textContent = `❌ Erreur : ${res.message || 'Impossible de s\'inscrire.'}`;
+            msg.textContent = `Erreur: ${result.message || "Impossible de s'inscrire."}`;
             msg.style.color = '#d32f2f';
-            msg.style.display = 'block';
+            msg.hidden = false;
             btn.disabled = false;
-            btn.textContent = "S'inscrire au Tournoi";
+            btn.textContent = "S'inscrire au Concours";
         }
-    } catch (err) {
-        msg.textContent = '❌ Erreur de réseau';
+    } catch (error) {
+        msg.textContent = 'Erreur reseau.';
         msg.style.color = '#d32f2f';
-        msg.style.display = 'block';
+        msg.hidden = false;
         btn.disabled = false;
-        btn.textContent = "S'inscrire au Tournoi";
+        btn.textContent = "S'inscrire au Concours";
     }
 }

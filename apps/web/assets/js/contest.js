@@ -92,11 +92,11 @@ function renderGrid(contests) {
     const countElement = document.getElementById('cardCount');
     
     if (countElement) {
-        countElement.textContent = `${contests.length} tournoi${contests.length !== 1 ? 's' : ''} trouvé${contests.length !== 1 ? 's' : ''}`;
+        countElement.textContent = `${contests.length} concours trouve${contests.length !== 1 ? 's' : ''}`;
     }
 
     if (contests.length === 0) {
-        container.innerHTML = `<p class="no-data" style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">Aucun concours ne correspond à vos critères.</p>`;
+        container.innerHTML = `<p class="no-data" style="grid-column: 1 / -1; text-align: center; padding: 3rem; color: var(--text-muted);">Aucun concours ne correspond a vos criteres.</p>`;
         return;
     }
 
@@ -105,15 +105,15 @@ function renderGrid(contests) {
         const type = c.listing_type;
         
         let tagDetails = { text: 'N/A', bg: 'rgba(var(--accent-rgb), 0.15)', color: 'var(--accent)' };
-        if (type === 'upcoming') tagDetails = { text: 'Bientôt Ouvert', bg: 'var(--surface-board)', color: 'var(--text)' };
+        if (type === 'upcoming') tagDetails = { text: 'A venir', bg: 'var(--surface-board)', color: 'var(--text)' };
         if (type === 'active') tagDetails = { text: 'En cours', bg: '#dcfce7', color: '#166534' };
-        if (type === 'past') tagDetails = { text: 'Terminé', bg: '#f1f5f9', color: '#475569' };
+        if (type === 'past') tagDetails = { text: 'Termine', bg: '#f1f5f9', color: '#475569' };
 
         const startDate = new Date(c.start_time).toLocaleString();
         const endDate = new Date(c.end_time).toLocaleString();
         
         let actionsHtml = `
-            <a class="btn btn-primary solve-btn" href="contest-details.html?id=${c.contest_id}">Voir les détails</a>
+            <a class="btn btn-primary solve-btn" href="contest-details.html?id=${c.contest_id}">Voir les details</a>
         `;
         if (type === 'past') {
             actionsHtml = `<a class="btn btn-ghost solve-btn" href="contest-details.html?id=${c.contest_id}">Archive</a>`;
@@ -127,7 +127,7 @@ function renderGrid(contests) {
                 <h3>${c.title}</h3>
                 <p>${c.description}</p>
                 <div class="contest-time">
-                    <strong> Début :</strong> ${startDate}<br>
+                    <strong>Debut :</strong> ${startDate}<br>
                     <strong>Fin :</strong> ${endDate}
                 </div>
                 <div class="problem-actions">
@@ -140,4 +140,3 @@ function renderGrid(contests) {
 
     container.innerHTML = html;
 }
-

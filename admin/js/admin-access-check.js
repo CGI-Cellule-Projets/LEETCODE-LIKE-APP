@@ -10,7 +10,7 @@ function checkAdminAccess() {
 
   if (!isLocalFile && !isLocalHost) {
     alert('Admin pages are available only on the local development machine.');
-    window.location.href = '../index.html';
+    window.location.href = '../apps/web/index.html';
     return false;
   }
 
@@ -38,7 +38,7 @@ function checkAdminAccess() {
     const userSpaceBtn = document.createElement('a');
     userSpaceBtn.id = 'userSpaceBtn';
     userSpaceBtn.className = 'btn btn-ghost';
-    userSpaceBtn.href = '../apps/web/index.html';
+    userSpaceBtn.href = '../apps/web/parameters.html';
     userSpaceBtn.textContent = 'Espace Utilisateur';
     adminActions.prepend(userSpaceBtn);
   }
@@ -51,7 +51,8 @@ function checkAdminAccess() {
       localStorage.removeItem('adminToken');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('token');
-      window.location.href = '../index.html';
+      localStorage.removeItem('user_info');
+      window.location.replace('../apps/web/index.html');
     });
   });
 

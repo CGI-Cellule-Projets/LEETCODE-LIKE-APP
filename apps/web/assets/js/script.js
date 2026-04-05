@@ -59,8 +59,13 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelectorAll(".guest-only").forEach((node) => setNodeVisibility(node, !isLoggedIn));
     };
 
+    const syncAdminLayoutState = () => {
+        const shouldUseAdminLayout = hasAuthSession() && isAdminUser();
+        body.classList.toggle("is-admin-user", shouldUseAdminLayout);
+    };
+
     const injectAdminShortcuts = () => {
-        if (!isAdminUser()) return;
+        if (!hasAuthSession() || !isAdminUser()) return;
 
         const dashboardHref = "../../admin/dashboard.html";
         const navActions = document.querySelector(".nav-actions");
@@ -70,7 +75,7 @@ document.addEventListener("DOMContentLoaded", () => {
             adminButton.className = "btn btn-ghost";
             adminButton.href = dashboardHref;
             adminButton.textContent = "Admin Dashboard";
-            navActions.prepend(adminButton);
+            navActions.appendChild(adminButton);
         }
 
         const mobileMenu = document.getElementById("mobileMenu");
@@ -100,6 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     syncHomeAuthButtons();
     syncAuthVisibility();
+    syncAdminLayoutState();
 
     const bindUserLogout = () => {
         const logoutButtons = document.querySelectorAll("[data-logout='user']");
@@ -114,6 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 localStorage.removeItem("user_info");
                 syncHomeAuthButtons();
                 syncAuthVisibility();
+                syncAdminLayoutState();
                 window.location.href = "index.html";
             });
         });
@@ -224,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         window.addEventListener("resize", () => {
-            if (window.innerWidth > 1020) {
+            if (window.innerWidth > 1160) {
                 closeMenu();
             }
         });

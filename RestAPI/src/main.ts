@@ -32,6 +32,10 @@ function isAllowedOrigin(origin: string | undefined): boolean {
     return false;
   }
 
+  if (origin === 'null') {
+    return NODE_ENV !== 'production';
+  }
+
   if (allowedOrigins.has(origin)) {
     return true;
   }

@@ -127,12 +127,12 @@ async function handleFormSubmit(e) {
 
   const formError = document.getElementById('formError');
   const formSuccess = document.getElementById('formSuccess');
-  formError.style.display = 'none';
-  formSuccess.style.display = 'none';
+  formError.hidden = true;
+  formSuccess.hidden = true;
 
   if (!title || !description || !rawStart || !rawEnd) {
     formError.textContent = ' Veuillez remplir tous les champs obligatoires.';
-    formError.style.display = 'block';
+    formError.hidden = false;
     return;
   }
 
@@ -141,7 +141,7 @@ async function handleFormSubmit(e) {
 
   if (new Date(end_time) <= new Date(start_time)) {
     formError.textContent = ' La date de fin doit être postérieure à la date de début.';
-    formError.style.display = 'block';
+    formError.hidden = false;
     return;
   }
 
@@ -154,7 +154,7 @@ async function handleFormSubmit(e) {
 
     if (!pId) {
       formError.textContent = ' Tous les IDs de problème doivent être renseignés.';
-      formError.style.display = 'block';
+      formError.hidden = false;
       return;
     }
 
@@ -166,7 +166,7 @@ async function handleFormSubmit(e) {
 
   if (currentContestIsTemporary) {
     formSuccess.textContent = ' Mode démo: modifications locales validées (aucune écriture API).';
-    formSuccess.style.display = 'block';
+    formSuccess.hidden = false;
     return;
   }
 
@@ -175,11 +175,11 @@ async function handleFormSubmit(e) {
 
   if (result.success) {
     formSuccess.textContent = ' Concours mis à jour avec succès.';
-    formSuccess.style.display = 'block';
+    formSuccess.hidden = false;
     showInfo(`Dernière mise à jour: ${new Date().toLocaleString()}`);
   } else {
     formError.textContent = ` ${result.message || 'Erreur lors de la mise à jour.'}`;
-    formError.style.display = 'block';
+    formError.hidden = false;
   }
 }
 

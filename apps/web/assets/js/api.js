@@ -306,7 +306,7 @@ async function apiAdminAddTestCase(problemId, inputData, expectedOutput, isHidde
 // ============== Admin Contest Endpoints ==============
 
 function getAdminAuthHeaders() {
-  const token = localStorage.getItem('adminToken') || getStoredAuthToken();
+  const token = localStorage.getItem('adminToken');
   return {
     'Content-Type': 'application/json',
     ...(token ? { 'Authorization': `Bearer ${token}` } : {})

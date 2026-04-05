@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlgoForge | Details du Concours</title>
+    <title>AlgoForge | Details du Concours (BETA)</title>
     <meta name="description" content="Apercu des defis algorithmiques du concours.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,11 +24,12 @@
             <nav class="main-nav">
                 <a class="nav-link" href="index.html">Accueil</a>
                 <a class="nav-link" href="problems.html">Problemes</a>
-                <a class="nav-link active" href="contest.html" aria-current="page">Concours (Beta)</a>
+                <a class="nav-link active" href="contest.html" aria-current="page">Concours (BETA)</a>
             </nav>
             <div class="nav-actions">
+                <a class="btn btn-primary guest-only" href="login.html">Connexion</a>
                 <a class="btn nav-shortcut nav-shortcut-settings" href="parameters.html">Parametres</a>
-                <a class="btn nav-shortcut nav-shortcut-profile requires-auth" data-auth-target="profile" href="profile.html">Profil</a>
+                <a class="btn nav-shortcut nav-shortcut-profile" href="profile.html">Profil</a>
             </div>
             <button type="button" class="menu-toggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Ouvrir le menu">
                 <span aria-hidden="true"></span>
@@ -39,9 +40,10 @@
         <div id="mobileMenu" class="mobile-menu">
             <a class="mobile-link" href="index.html">Accueil</a>
             <a class="mobile-link" href="problems.html">Problemes</a>
-            <a class="mobile-link" href="contest.html" aria-current="page">Concours (Beta)</a>
+            <a class="mobile-link" href="contest.html" aria-current="page">Concours (BETA)</a>
             <a class="mobile-link" href="parameters.html">Parametres</a>
-            <a class="mobile-link requires-auth" data-auth-target="profile" href="profile.html">Profil</a>
+            <a class="mobile-link" href="profile.html">Profil</a>
+            <a class="btn btn-primary wide guest-only" href="login.html">Connexion</a>
         </div>
     </header>
     <div id="menuBackdrop" class="menu-backdrop"></div>
@@ -53,13 +55,13 @@
                     &larr; Retour aux concours
                 </a>
 
-                <div id="loadingView" class="contest-loading" style="display: block;">
-                    <div class="loading-placeholder">Chargement des details du tournoi...</div>
+                <div id="loadingView" class="contest-loading">
+                    <div class="loading-placeholder">Chargement des details du concours...</div>
                 </div>
 
-                <div id="contestDataView" style="display: none;">
+                <div id="contestDataView" hidden>
                     <div class="panel contest-details-card">
-                        <h1 id="cTitle">Titre du Tournoi</h1>
+                        <h1 id="cTitle">Titre du Concours</h1>
                         <p id="cDesc" class="lead">Description lorem ipsum dolor</p>
 
                         <div class="contest-details-meta">
@@ -70,13 +72,13 @@
                         </div>
 
                         <div class="contest-register">
-                            <button id="registerBtn" class="btn btn-primary">S'inscrire au Tournoi</button>
+                            <button id="registerBtn" class="btn btn-primary">S'inscrire au Concours</button>
                             <p id="registerMsg" class="contest-register-msg"></p>
                         </div>
                     </div>
 
                     <h2 class="mb-4">Defis Associes</h2>
-                    <div class="panel" style="overflow-x: auto;">
+                    <div class="panel contest-table-shell">
                         <table class="contest-problems-table">
                             <thead>
                                 <tr>
@@ -92,8 +94,8 @@
                     </div>
                 </div>
 
-                <div id="errorView" class="contest-error" style="display: none;">
-                    <h2>Tournoi Introuvable</h2>
+                <div id="errorView" class="contest-error" hidden>
+                    <h2>Concours Introuvable</h2>
                     <p>L'ID fourni est invalide ou le concours n'existe pas.</p>
                 </div>
             </div>

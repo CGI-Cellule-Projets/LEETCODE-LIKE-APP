@@ -5,6 +5,48 @@
 
 let allProblems = [];
 let editingProblemId = null;
+const DEMO_PROBLEMS_KEY = 'algoforge-admin-demo-problems';
+
+function readDemoProblems() {
+  try {
+    const stored = localStorage.getItem(DEMO_PROBLEMS_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (error) {
+    return [];
+  }
+}
+
+function writeDemoProblems(problems) {
+  localStorage.setItem(DEMO_PROBLEMS_KEY, JSON.stringify(problems));
+}
+
+function isNetworkFailure(result) {
+  if (!result || result.success !== false) {
+    return false;
+  }
+
+  const errorText = String(result.errors || result.message || '');
+  return /failed to fetch|networkerror|network request failed|load failed/i.test(errorText);
+}
+
+function createDemoProblemRecord({ name, difficulty, description, visibility, isPublished, testCases }) {
+  return {
+    problem_id: Date.now(),
+    name,
+    difficulty_level: difficulty,
+    description,
+    visibility,
+    is_published: Boolean(isPublished),
+    solve_rate: 0,
+    test_cases: testCases.map((testCase) => ({
+      input_data: testCase.input_data,
+      expected_output: testCase.expected_output,
+      is_hidden: Boolean(testCase.is_hidden),
+      isExisting: true,
+    })),
+  };
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadProblems();
@@ -224,6 +266,7 @@ function showCreateForm() {
   editingProblemId = null;
   const form = document.getElementById('problemForm');
   const formSection = document.getElementById('createFormSection');
+  const problemsListSection = document.querySelector('.problems-list-section');
   const formTitle = document.getElementById('formTitle');
   const searchInput = document.getElementById('problemSearch');
   const formError = document.getElementById('formError');
@@ -231,9 +274,11 @@ function showCreateForm() {
   formTitle.textContent = 'Creer un Nouveau Probleme';
   form.reset();
   resetTestCases([]);
-  formError.style.display = 'none';
-  formSection.style.display = 'block';
-  document.querySelector('.problems-list-section').style.display = 'none';
+  formError.hidden = true;
+  formSection.hidden = false;
+  if (problemsListSection) {
+    problemsListSection.hidden = true;
+  }
   if (searchInput) {
     searchInput.value = '';
   }
@@ -242,8 +287,11 @@ function showCreateForm() {
 }
 
 function hideCreateForm() {
-  document.getElementById('createFormSection').style.display = 'none';
-  document.querySelector('.problems-list-section').style.display = 'block';
+  document.getElementById('createFormSection').hidden = true;
+  const problemsListSection = document.querySelector('.problems-list-section');
+  if (problemsListSection) {
+    problemsListSection.hidden = false;
+  }
   editingProblemId = null;
 }
 
@@ -257,29 +305,31 @@ async function handleFormSubmit(e) {
   const isPublished = document.getElementById('isPublished').checked;
   const formError = document.getElementById('formError');
   const testCases = collectTestCases();
+  formError.hidden = true;
 
   if (!name || !difficulty || !description || !visibility) {
     formError.textContent = 'Veuillez remplir tous les champs obligatoires.';
-    formError.style.display = 'block';
+    formError.hidden = false;
     return;
   }
 
   if (testCases.length === 0) {
     formError.textContent = 'Ajoutez au moins un cas de test.';
-    formError.style.display = 'block';
+    formError.hidden = false;
     return;
   }
 
   const invalidTestCase = testCases.find((testCase) => testCase.expected_output === '');
   if (invalidTestCase) {
     formError.textContent = 'Chaque cas de test doit avoir un input et un output attendu.';
-    formError.style.display = 'block';
+    formError.hidden = false;
     return;
   }
 
   try {
     let result;
     let problemId = editingProblemId;
+    let createdLocally = false;
 
     if (editingProblemId) {
       result = await apiAdminUpdateProblem(editingProblemId, {
@@ -289,41 +339,98 @@ async function handleFormSubmit(e) {
         visibility,
         is_published: isPublished,
       });
+
+      if (!result.success && isNetworkFailure(result)) {
+        const demoProblems = readDemoProblems();
+        const demoProblemIndex = demoProblems.findIndex((problem) => problem.problem_id === editingProblemId);
+
+        if (demoProblemIndex !== -1) {
+          const existingTestCases = demoProblems[demoProblemIndex].test_cases || [];
+          demoProblems[demoProblemIndex] = {
+            ...demoProblems[demoProblemIndex],
+            name,
+            difficulty_level: difficulty,
+            description,
+            visibility,
+            is_published: Boolean(isPublished),
+            test_cases: existingTestCases,
+          };
+          writeDemoProblems(demoProblems);
+          allProblems = demoProblems;
+          result = { success: true, message: 'Updated locally' };
+        }
+      }
     } else {
       result = await apiAdminCreateProblem(name, difficulty, description, visibility, isPublished);
       problemId = result?.data?.problem_id ?? null;
+
+      if (!result.success && isNetworkFailure(result)) {
+        const demoProblems = readDemoProblems();
+        const demoProblem = createDemoProblemRecord({
+          name,
+          difficulty,
+          description,
+          visibility,
+          isPublished,
+          testCases,
+        });
+
+        demoProblems.unshift(demoProblem);
+        writeDemoProblems(demoProblems);
+        allProblems = demoProblems;
+        problemId = demoProblem.problem_id;
+        createdLocally = true;
+      }
     }
 
     if (!result.success || !problemId) {
-      formError.textContent = result.message || 'Erreur lors de l enregistrement du probleme.';
-      formError.style.display = 'block';
-      return;
+      if (createdLocally) {
+        formError.hidden = true;
+      } else {
+        formError.textContent = result.message || 'Erreur lors de l enregistrement du probleme.';
+        formError.hidden = false;
+        return;
+      }
     }
 
     const pendingTestCases = editingProblemId
       ? testCases.filter((testCase) => !testCase.isExisting)
       : testCases;
 
-    for (const testCase of pendingTestCases) {
-      const testCaseResult = await apiAdminAddTestCase(
-        problemId,
-        testCase.input_data,
-        testCase.expected_output,
-        testCase.is_hidden,
-      );
+    if (createdLocally) {
+      const demoProblems = readDemoProblems();
+      const demoProblem = demoProblems.find((problem) => problem.problem_id === problemId);
+      if (demoProblem) {
+        demoProblem.test_cases = pendingTestCases.map((testCase) => ({
+          input_data: testCase.input_data,
+          expected_output: testCase.expected_output,
+          is_hidden: Boolean(testCase.is_hidden),
+          isExisting: true,
+        }));
+        writeDemoProblems(demoProblems);
+      }
+    } else {
+      for (const testCase of pendingTestCases) {
+        const testCaseResult = await apiAdminAddTestCase(
+          problemId,
+          testCase.input_data,
+          testCase.expected_output,
+          testCase.is_hidden,
+        );
 
-      if (!testCaseResult.success) {
-        throw new Error(testCaseResult.message || 'Erreur lors de l enregistrement des cas de test.');
+        if (!testCaseResult.success) {
+          throw new Error(testCaseResult.message || 'Erreur lors de l enregistrement des cas de test.');
+        }
       }
     }
 
-    formError.style.display = 'none';
+    formError.hidden = true;
     hideCreateForm();
     await loadProblems();
-    alert('Probleme enregistre avec succes');
+    alert(createdLocally ? 'Probleme enregistre en mode demo local.' : 'Probleme enregistre avec succes');
   } catch (error) {
     formError.textContent = error.message || 'Erreur lors de l enregistrement';
-    formError.style.display = 'block';
+    formError.hidden = false;
     console.error('Form submit error:', error);
   }
 }
@@ -336,10 +443,24 @@ async function loadProblems() {
       allProblems = result.data;
       renderProblemsList(allProblems);
     } else {
+      const demoProblems = readDemoProblems();
+      if (demoProblems.length > 0) {
+        allProblems = demoProblems;
+        renderProblemsList(allProblems);
+        return;
+      }
+
       document.getElementById('problemsTable').innerHTML = '<p class="error-message">Erreur de chargement</p>';
     }
   } catch (error) {
     console.error('Error loading problems:', error);
+    const demoProblems = readDemoProblems();
+    if (demoProblems.length > 0) {
+      allProblems = demoProblems;
+      renderProblemsList(allProblems);
+      return;
+    }
+
     document.getElementById('problemsTable').innerHTML = '<p class="error-message">Erreur de chargement</p>';
   }
 }
@@ -419,7 +540,7 @@ async function editProblem(problemId) {
   document.getElementById('problemDescription').value = problem.description || '';
   document.getElementById('problemVisibility').value = problem.visibility || 'HIDDEN';
   document.getElementById('isPublished').checked = problem.is_published || false;
-  document.getElementById('formError').style.display = 'none';
+  document.getElementById('formError').hidden = true;
 
   resetTestCases([]);
 
@@ -432,13 +553,35 @@ async function editProblem(problemId) {
         is_hidden: Boolean(testCase.is_hidden),
         isExisting: true,
       })));
+      document.getElementById('createFormSection').hidden = false;
+      const problemsListSection = document.querySelector('.problems-list-section');
+      if (problemsListSection) {
+        problemsListSection.hidden = true;
+      }
+      document.getElementById('formTitle').textContent = `Editer: ${problem.name}`;
+      document.getElementById('createFormSection').scrollIntoView({ behavior: 'smooth' });
+      return;
     }
   } catch (error) {
     console.warn('Unable to load saved test cases for edit mode.', error);
   }
 
-  document.getElementById('createFormSection').style.display = 'block';
-  document.querySelector('.problems-list-section').style.display = 'none';
+  const demoProblems = readDemoProblems();
+  const demoProblem = demoProblems.find((item) => item.problem_id === problemId);
+  if (demoProblem) {
+    resetTestCases((demoProblem.test_cases || []).map((testCase) => ({
+      input_data: testCase.input_data || '',
+      expected_output: testCase.expected_output || '',
+      is_hidden: Boolean(testCase.is_hidden),
+      isExisting: true,
+    })));
+  }
+
+  document.getElementById('createFormSection').hidden = false;
+  const problemsListSection = document.querySelector('.problems-list-section');
+  if (problemsListSection) {
+    problemsListSection.hidden = true;
+  }
   document.getElementById('formTitle').textContent = `Editer: ${problem.name}`;
   document.getElementById('createFormSection').scrollIntoView({ behavior: 'smooth' });
 }
