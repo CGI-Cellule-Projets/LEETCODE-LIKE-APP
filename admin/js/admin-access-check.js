@@ -16,13 +16,32 @@ function checkAdminAccess() {
 
   console.log('Admin access limited to the local machine in development mode.');
   const token = localStorage.getItem('adminToken') || localStorage.getItem('token') || localStorage.getItem('auth_token');
-  const adminLabel = token ? 'Authenticated Admin' : 'Local Admin';
+  let adminLabel = token ? 'Authenticated Admin' : 'Local Admin';
+
+  try {
+    const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+    if (userInfo && (userInfo.is_admin === true || userInfo.role === 'admin' || userInfo.level === 'admin')) {
+      adminLabel = userInfo.username || userInfo.email || 'Admin';
+    }
+  } catch (error) {
+    // Ignore invalid local user payloads
+  }
   
   // Display admin username in navbar
   const adminUsernameElements = document.querySelectorAll('#adminUsername');
   adminUsernameElements.forEach(el => {
     el.textContent = adminLabel;
   });
+
+  const adminActions = document.querySelector('.admin-actions');
+  if (adminActions && !document.getElementById('userSpaceBtn')) {
+    const userSpaceBtn = document.createElement('a');
+    userSpaceBtn.id = 'userSpaceBtn';
+    userSpaceBtn.className = 'btn btn-ghost';
+    userSpaceBtn.href = '../apps/web/index.html';
+    userSpaceBtn.textContent = 'Espace Utilisateur';
+    adminActions.prepend(userSpaceBtn);
+  }
 
   // Setup logout button
   const logoutBtns = document.querySelectorAll('#logoutBtn');

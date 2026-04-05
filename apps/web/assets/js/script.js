@@ -2,10 +2,124 @@ document.addEventListener("DOMContentLoaded", () => {
     const body = document.body;
     const root = document.documentElement;
     const PROGRESS_KEY = "algoforge-progress";
+    const USER_INFO_KEY = "user_info";
 
     document.querySelectorAll(".year").forEach((node) => {
         node.textContent = new Date().getFullYear();
     });
+
+    const readUserInfo = () => {
+        try {
+            return JSON.parse(localStorage.getItem(USER_INFO_KEY) || "{}");
+        } catch (error) {
+            return {};
+        }
+    };
+
+    const isAdminUser = () => {
+        const userInfo = readUserInfo();
+        if (!userInfo || typeof userInfo !== "object") return false;
+        return userInfo.is_admin === true || userInfo.role === "admin" || userInfo.level === "admin";
+    };
+
+    const hasAuthSession = () => {
+        const token = localStorage.getItem("auth_token")
+            || localStorage.getItem("token")
+            || localStorage.getItem("adminToken");
+        const userInfo = readUserInfo();
+        const hasUserInfo = Boolean(userInfo && (userInfo.email || userInfo.username || userInfo.role || userInfo.is_admin));
+        return Boolean(token || hasUserInfo);
+    };
+
+    const enforceProfileAccess = () => {
+        const currentPath = window.location.pathname.toLowerCase();
+        const isProfilePage = currentPath.endsWith("/profile.html") || currentPath.endsWith("profile.html");
+        if (isProfilePage && !hasAuthSession()) {
+            window.location.replace("login.html");
+            return false;
+        }
+        return true;
+    };
+
+    if (!enforceProfileAccess()) return;
+
+    const setNodeVisibility = (node, isVisible) => {
+        if (!node) return;
+        node.hidden = !isVisible;
+        if (isVisible) {
+            node.removeAttribute("aria-hidden");
+            return;
+        }
+        node.setAttribute("aria-hidden", "true");
+    };
+
+    const syncAuthVisibility = () => {
+        const isLoggedIn = hasAuthSession();
+        document.querySelectorAll(".requires-auth").forEach((node) => setNodeVisibility(node, isLoggedIn));
+        document.querySelectorAll(".guest-only").forEach((node) => setNodeVisibility(node, !isLoggedIn));
+    };
+
+    const injectAdminShortcuts = () => {
+        if (!isAdminUser()) return;
+
+        const dashboardHref = "../../admin/dashboard.html";
+        const navActions = document.querySelector(".nav-actions");
+        if (navActions && !document.getElementById("adminDashboardShortcut")) {
+            const adminButton = document.createElement("a");
+            adminButton.id = "adminDashboardShortcut";
+            adminButton.className = "btn btn-ghost";
+            adminButton.href = dashboardHref;
+            adminButton.textContent = "Admin Dashboard";
+            navActions.prepend(adminButton);
+        }
+
+        const mobileMenu = document.getElementById("mobileMenu");
+        if (mobileMenu && !document.getElementById("adminMobileShortcut")) {
+            const adminLink = document.createElement("a");
+            adminLink.id = "adminMobileShortcut";
+            adminLink.className = "mobile-link";
+            adminLink.href = dashboardHref;
+            adminLink.textContent = "Admin Dashboard";
+            mobileMenu.appendChild(adminLink);
+        }
+    };
+
+    injectAdminShortcuts();
+
+    const syncHomeAuthButtons = () => {
+        const registerButton = document.getElementById("openRegisterModal");
+        const loginButton = document.getElementById("homeLoginButton");
+        const mobileLoginButton = document.getElementById("homeMobileLoginButton");
+        const ctaLoginButton = document.getElementById("homeCtaLoginButton");
+        const isLoggedIn = hasAuthSession();
+
+        [registerButton, loginButton, mobileLoginButton, ctaLoginButton].forEach((node) => {
+            setNodeVisibility(node, !isLoggedIn);
+        });
+    };
+
+    syncHomeAuthButtons();
+    syncAuthVisibility();
+
+    const bindUserLogout = () => {
+        const logoutButtons = document.querySelectorAll("[data-logout='user']");
+        if (!logoutButtons.length) return;
+
+        logoutButtons.forEach((button) => {
+            button.addEventListener("click", (event) => {
+                event.preventDefault();
+                localStorage.removeItem("auth_token");
+                localStorage.removeItem("token");
+                localStorage.removeItem("adminToken");
+                localStorage.removeItem("user_info");
+                syncHomeAuthButtons();
+                syncAuthVisibility();
+                window.location.href = "index.html";
+            });
+        });
+    };
+
+    bindUserLogout();
 
     const toDateKey = (date) => {
         const year = date.getFullYear();

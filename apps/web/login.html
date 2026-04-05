@@ -1,529 +1,414 @@
-
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LikeApp – Login</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AlgoForge | Login</title>
+    <meta name="description" content="Connexion a AlgoForge pour retrouver vos preferences, votre progression et vos exercices.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <style>
+        .auth-login-layout {
+            grid-template-columns: 1fr;
+            max-width: 560px;
+            gap: 0;
+        }
 
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f5f5f5;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+        .auth-login-card {
+            position: relative;
+            overflow: hidden;
+        }
 
-    /* ───── ÉCRANS ───── */
-    .screen { display: none; flex-direction: column; min-height: 100vh; }
-    .screen.active { display: flex; }
+        .auth-login-card {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(var(--accent-rgb), 0.15), transparent 32%),
+                linear-gradient(180deg, var(--surface-2), rgba(255, 255, 255, 0.82));
+        }
 
-    /* ───── LOGIN ───── */
-    #loginScreen {
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
-    }
+        body.theme-night .auth-login-card {
+            background:
+                radial-gradient(circle at 100% 0%, rgba(var(--accent-rgb), 0.18), transparent 34%),
+                linear-gradient(180deg, rgba(20, 32, 48, 0.94), rgba(15, 23, 34, 0.9));
+        }
 
-    .card {
-      background: white;
-      border-radius: 12px;
-      border: 1px solid #e5e5e5;
-      padding: 2rem 1.75rem;
-      width: 100%;
-      max-width: 380px;
-    }
+        .auth-demo-note {
+            margin-top: 0.85rem;
+            color: var(--muted);
+            font-family: "JetBrains Mono", monospace;
+            font-size: 0.8rem;
+        }
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 1.75rem;
-    }
+        .auth-helper {
+            color: var(--muted);
+            font-size: 0.82rem;
+        }
 
-    .logo-heart {
-      width: 34px;
-      height: 34px;
-      background: #e24b4a;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      font-size: 16px;
-    }
+        .auth-helper code {
+            font-family: "JetBrains Mono", monospace;
+            background: rgba(0, 0, 0, 0.06);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.1rem 0.35rem;
+            color: var(--text);
+        }
 
-    .logo-text {
-      font-size: 18px;
-      font-weight: 600;
-      color: #111;
-    }
+        .auth-switch {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1.2rem;
+        }
 
-    h2 {
-      font-size: 22px;
-      font-weight: 600;
-      color: #111;
-      margin-bottom: 4px;
-    }
+        .auth-switch-btn {
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--muted);
+            border-radius: 999px;
+            padding: 0.55rem 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
 
-    .subtitle {
-      font-size: 14px;
-      color: #777;
-      margin-bottom: 1.5rem;
-    }
+        .auth-switch-btn.active {
+            color: var(--text);
+            background: var(--accent-soft);
+            border-color: rgba(var(--accent-rgb), 0.35);
+        }
 
-    .field {
-      margin-bottom: 1rem;
-    }
+        .auth-panel[hidden] {
+            display: none !important;
+        }
 
-    .field label {
-      display: block;
-      font-size: 13px;
-      font-weight: 500;
-      color: #555;
-      margin-bottom: 6px;
-    }
+        .success-message {
+            color: #0d7b46;
+            background: rgba(13, 123, 70, 0.12);
+            border: 1px solid rgba(13, 123, 70, 0.28);
+        }
 
-    .field input {
-      width: 100%;
-      height: 40px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 0 12px;
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
+        body.theme-night .success-message {
+            color: #8cf7c5;
+            background: rgba(25, 180, 105, 0.16);
+            border-color: rgba(25, 180, 105, 0.32);
+        }
 
-    .field input:focus {
-      border-color: #e24b4a;
-      box-shadow: 0 0 0 3px rgba(226, 75, 74, 0.12);
-    }
+        .auth-footer .auth-footer-toggle {
+            border: 0;
+            background: transparent;
+            color: var(--accent);
+            text-decoration: underline;
+            cursor: pointer;
+            font: inherit;
+            padding: 0;
+        }
 
-    .error-msg {
-      font-size: 13px;
-      color: #c0392b;
-      margin-bottom: 12px;
-      min-height: 18px;
-    }
-
-    .btn-primary {
-      width: 100%;
-      height: 42px;
-      background: #e24b4a;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: opacity 0.15s, transform 0.1s;
-    }
-
-    .btn-primary:hover { opacity: 0.88; }
-    .btn-primary:active { transform: scale(0.98); }
-
-    .hint {
-      font-size: 12px;
-      color: #aaa;
-      margin-top: 12px;
-      text-align: center;
-    }
-
-    /* ───── DASHBOARD ───── */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0.9rem 1.25rem;
-      background: white;
-      border-bottom: 1px solid #eee;
-    }
-
-    .topbar-logo {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .avatar {
-      width: 34px;
-      height: 34px;
-      border-radius: 50%;
-      background: #fcebeb;
-      color: #a32d2d;
-      font-size: 13px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .user-name {
-      font-size: 14px;
-      font-weight: 500;
-      color: #111;
-    }
-
-    .btn-logout {
-      height: 32px;
-      padding: 0 14px;
-      background: transparent;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      font-size: 13px;
-      color: #555;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s, border-color 0.15s;
-    }
-
-    .btn-logout:hover {
-      background: #fcebeb;
-      color: #a32d2d;
-      border-color: #f09595;
-    }
-
-    .feed {
-      padding: 1.25rem;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      max-width: 600px;
-      width: 100%;
-      margin: 0 auto;
-    }
-
-    .welcome-banner {
-      background: #fcebeb;
-      border-radius: 8px;
-      padding: 10px 14px;
-      font-size: 13px;
-      color: #a32d2d;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .post-card {
-      background: white;
-      border: 1px solid #eee;
-      border-radius: 12px;
-      padding: 1rem 1.25rem;
-    }
-
-    .post-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .post-avatar {
-      width: 30px;
-      height: 30px;
-      border-radius: 50%;
-      font-size: 12px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .post-user { font-size: 13px; font-weight: 600; color: #111; }
-    .post-time { font-size: 12px; color: #aaa; }
-
-    .post-content {
-      font-size: 14px;
-      color: #333;
-      line-height: 1.6;
-      margin-bottom: 12px;
-    }
-
-    .post-actions {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .like-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-      color: #888;
-      padding: 4px 0;
-      transition: color 0.15s;
-    }
-
-    .like-btn.liked { color: #e24b4a; }
-
-    .like-btn svg {
-      width: 16px;
-      height: 16px;
-      transition: transform 0.15s;
-    }
-
-    .like-btn:active svg { transform: scale(1.3); }
-
-    .comment-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      font-size: 13px;
-      color: #888;
-      padding: 4px 0;
-    }
-  </style>
+    </style>
 </head>
-<body>
 
-  <!-- ══════════════════════════════
-       ÉCRAN 1 : LOGIN
-  ══════════════════════════════ -->
-  <div id="loginScreen" class="screen active">
-    <div class="card">
-      <div class="logo">
-        <div class="logo-heart">&#9829;</div>
-        <span class="logo-text">LikeApp</span>
-      </div>
+<body class="auth-page">
+    <a href="#main-content" class="skip-link">Aller au contenu principal</a>
+    <div class="site-glow glow-a"></div>
+    <div class="site-glow glow-b"></div>
 
-      <h2>Bienvenue</h2>
-      <p class="subtitle">Connectez-vous à votre compte</p>
+    <main id="main-content">
+        <div class="auth-container auth-login-layout">
+            <section class="auth-card panel auth-login-card">
+                <div class="auth-header">
+                    <p class="section-subtitle">Acces membre</p>
+                    <h1><span>Algo</span>Forge</h1>
+                    <p>Connecte-toi pour retrouver tes exercices, tes preferences et ta progression.</p>
+                </div>
 
-      <div class="field">
-        <label for="email">Email</label>
-        <input type="email" id="email" placeholder="vous@exemple.com" />
-      </div>
+                <div class="auth-switch" role="tablist" aria-label="Connexion ou inscription">
+                    <button id="loginTabBtn" type="button" class="auth-switch-btn active" role="tab" aria-selected="true">Connexion</button>
+                    <button id="registerTabBtn" type="button" class="auth-switch-btn" role="tab" aria-selected="false">Inscription</button>
+                </div>
 
-      <div class="field">
-        <label for="password">Mot de passe</label>
-        <input type="password" id="password" placeholder="••••••••" />
-      </div>
+                <form id="loginForm" class="auth-form auth-panel" novalidate>
+                    <div id="loginMessage" class="auth-message error-message" hidden></div>
 
-      <!-- Message d'erreur -->
-      <p class="error-msg" id="errorMsg"></p>
+                    <div class="form-group">
+                        <label for="email">Adresse email</label>
+                        <input type="email" id="email" name="email" placeholder="vous@exemple.com" autocomplete="email" required>
+                    </div>
 
-      <button class="btn-primary" id="loginBtn">Se connecter</button>
+                    <div class="form-group">
+                        <label for="password">Mot de passe</label>
+                        <input type="password" id="password" name="password" placeholder="Entrez votre mot de passe" autocomplete="current-password" required>
+                        <p class="auth-helper">Admin temp: <code>admin.temp@algoforge.dev</code> / <code>AdminTemp#2026</code></p>
+                        <p class="auth-helper">User temp: <code>user.temp@algoforge.dev</code> / <code>UserTemp#2026</code></p>
+                    </div>
 
-      <p class="hint">Démo : n'importe quel email + mot de passe "1234"</p>
-    </div>
-  </div>
+                    <button type="submit" id="loginButton" class="btn btn-primary auth-btn">Se connecter</button>
+                </form>
 
+                <form id="registerInlineForm" class="auth-form auth-panel" hidden novalidate>
+                    <div id="registerMessage" class="auth-message error-message" hidden></div>
 
-  <!-- ══════════════════════════════
-       ÉCRAN 2 : DASHBOARD
-  ══════════════════════════════ -->
-  <div id="dashScreen" class="screen">
+                    <div class="form-group">
+                        <label for="registerUsername">Nom d'utilisateur</label>
+                        <input type="text" id="registerUsername" name="username" placeholder="johndoe" minlength="3" required>
+                    </div>
 
-    <!-- Barre de navigation -->
-    <div class="topbar">
-      <div class="topbar-logo">
-        <div class="logo-heart" style="width:28px;height:28px;font-size:14px;">&#9829;</div>
-        <span style="font-size:16px;font-weight:600;color:#111;">LikeApp</span>
-      </div>
-      <div class="user-info">
-        <div class="avatar" id="userAvatar">JD</div>
-        <span class="user-name" id="userName">Jane D.</span>
-        <button class="btn-logout" id="logoutBtn">Se déconnecter</button>
-      </div>
-    </div>
+                    <div class="form-group">
+                        <label for="registerEmail">Adresse email</label>
+                        <input type="email" id="registerEmail" name="email" placeholder="vous@exemple.com" autocomplete="email" required>
+                    </div>
 
-    <!-- Fil d'actualité -->
-    <div class="feed">
+                    <div class="form-group">
+                        <label for="registerPassword">Mot de passe</label>
+                        <input type="password" id="registerPassword" name="password" placeholder="Minimum 6 caracteres" minlength="6" required>
+                    </div>
 
-      <!-- Message de bienvenue -->
-      <div class="welcome-banner">
-        &#9829; <span id="welcomeText">Bienvenue !</span>
-      </div>
+                    <div class="form-group">
+                        <label for="registerConfirmPassword">Confirmer le mot de passe</label>
+                        <input type="password" id="registerConfirmPassword" name="confirmPassword" placeholder="Confirmer le mot de passe" minlength="6" required>
+                    </div>
 
-      <!-- Post 1 -->
-      <div class="post-card">
-        <div class="post-header">
-          <div class="post-avatar" style="background:#eaf3de;color:#3b6d11;">AL</div>
-          <div>
-            <p class="post-user">Alex Lima</p>
-            <p class="post-time">il y a 2 min</p>
-          </div>
+                    <button type="submit" id="registerButton" class="btn btn-primary auth-btn">Creer un compte</button>
+                </form>
+
+                <div class="auth-footer">
+                    <p>Pas encore de compte ? <button type="button" id="switchToRegisterBtn" class="auth-footer-toggle">Inscris-toi ici</button></p>
+                    <p>Deja inscrit ? <button type="button" id="switchToLoginBtn" class="auth-footer-toggle">Retour a la connexion</button></p>
+                </div>
+            </section>
+
         </div>
-        <p class="post-content">Randonnée jusqu'au sommet aujourd'hui — la vue valait chaque effort. La nature ne déçoit jamais. 🏔️</p>
-        <div class="post-actions">
-          <button class="like-btn" onclick="toggleLike(this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-            <span class="like-count">24</span>
-          </button>
-          <button class="comment-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            8
-          </button>
-        </div>
-      </div>
+    </main>
 
-      <!-- Post 2 -->
-      <div class="post-card">
-        <div class="post-header">
-          <div class="post-avatar" style="background:#e6f1fb;color:#185fa5;">MR</div>
-          <div>
-            <p class="post-user">Maya Roux</p>
-            <p class="post-time">il y a 1 h</p>
-          </div>
-        </div>
-        <p class="post-content">Nouvelle recette aujourd'hui — ramen maison depuis zéro. 4h de préparation mais ça valait le coup. 🍜</p>
-        <div class="post-actions">
-          <button class="like-btn" onclick="toggleLike(this)">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-            <span class="like-count">51</span>
-          </button>
-          <button class="comment-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            13
-          </button>
-        </div>
-      </div>
+    <script src="assets/js/api.js"></script>
+    <script>
+        (function applyStoredPreferences() {
+            const root = document.documentElement;
+            const body = document.body;
+            const SETTINGS_KEY = "algoforge-settings";
+            const defaultSettings = {
+                accent: "sunset",
+                theme: "light",
+                motion: true
+            };
+            const accentPalette = {
+                sunset: { accent: "#ff6b3d", accent2: "#ff9f1c", soft: "rgba(255, 107, 61, 0.18)" },
+                ocean: { accent: "#1f7fff", accent2: "#00b4d8", soft: "rgba(31, 127, 255, 0.2)" },
+                mint: { accent: "#14b884", accent2: "#9ad84b", soft: "rgba(20, 184, 132, 0.2)" }
+            };
 
-    </div>
-  </div>
+            let settings = defaultSettings;
 
+            try {
+                const storedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}");
+                settings = { ...defaultSettings, ...storedSettings };
+            } catch (error) {
+                settings = defaultSettings;
+            }
 
-  <!-- ══════════════════════════════
-       JAVASCRIPT
-  ══════════════════════════════ -->
-  <script>
+            const palette = accentPalette[settings.accent] || accentPalette.sunset;
+            root.style.setProperty("--accent", palette.accent);
+            root.style.setProperty("--accent-2", palette.accent2);
+            root.style.setProperty("--accent-soft", palette.soft);
 
-    // ── Données des utilisateurs (simulation)
-    const utilisateurs = {
-      "user@example.com": { nom: "Jane Doe", initiales: "JD", motDePasse: "1234" },
-      "alex@test.com":    { nom: "Alex Lima", initiales: "AL", motDePasse: "1234" },
-    };
+            const accentMatch = palette.accent.match(/\w\w/g) || [];
+            if (accentMatch.length === 3) {
+                root.style.setProperty("--accent-rgb", accentMatch.map((value) => parseInt(value, 16)).join(", "));
+            }
 
-    // ── Récupération des éléments HTML
-    const loginScreen = document.getElementById("loginScreen");
-    const dashScreen  = document.getElementById("dashScreen");
-    const loginBtn    = document.getElementById("loginBtn");
-    const logoutBtn   = document.getElementById("logoutBtn");
-    const emailInput  = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const errorMsg    = document.getElementById("errorMsg");
-    const userAvatar  = document.getElementById("userAvatar");
-    const userNameEl  = document.getElementById("userName");
-    const welcomeText = document.getElementById("welcomeText");
+            body.classList.toggle("theme-night", settings.theme === "night");
+            body.classList.toggle("motion-off", !settings.motion);
+        })();
 
+        const loginTabBtn = document.getElementById("loginTabBtn");
+        const registerTabBtn = document.getElementById("registerTabBtn");
+        const switchToRegisterBtn = document.getElementById("switchToRegisterBtn");
+        const switchToLoginBtn = document.getElementById("switchToLoginBtn");
+        const loginForm = document.getElementById("loginForm");
+        const registerForm = document.getElementById("registerInlineForm");
+        const loginMessage = document.getElementById("loginMessage");
+        const registerMessage = document.getElementById("registerMessage");
+        const loginButton = document.getElementById("loginButton");
+        const registerButton = document.getElementById("registerButton");
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+        const registerUsernameInput = document.getElementById("registerUsername");
+        const registerEmailInput = document.getElementById("registerEmail");
+        const registerPasswordInput = document.getElementById("registerPassword");
+        const registerConfirmPasswordInput = document.getElementById("registerConfirmPassword");
+        const TEMP_ADMIN_EMAIL = "admin.temp@algoforge.dev";
+        const TEMP_ADMIN_PASSWORD = "AdminTemp#2026";
+        const TEMP_USER_EMAIL = "user.temp@algoforge.dev";
+        const TEMP_USER_PASSWORD = "UserTemp#2026";
 
-    // ── FONCTION : Obtenir les initiales à partir d'un nom
-    function getInitiales(nom) {
-      return nom.split(" ").map(mot => mot[0]).join("").toUpperCase().slice(0, 2);
-    }
+        function setActiveMode(mode) {
+            const isLoginMode = mode === "login";
+            loginForm.hidden = !isLoginMode;
+            registerForm.hidden = isLoginMode;
 
+            loginTabBtn.classList.toggle("active", isLoginMode);
+            loginTabBtn.setAttribute("aria-selected", String(isLoginMode));
+            registerTabBtn.classList.toggle("active", !isLoginMode);
+            registerTabBtn.setAttribute("aria-selected", String(!isLoginMode));
+        }
 
-    // ── FONCTION : Connexion
-    function seConnecter() {
-      const email    = emailInput.value.trim();
-      const password = passwordInput.value;
+        function showMessage(node, message, type) {
+            node.textContent = message;
+            node.classList.toggle("success-message", type === "success");
+            node.classList.toggle("error-message", type !== "success");
+            node.hidden = false;
+        }
 
-      // Validation : champs vides
-      if (!email || !password) {
-        errorMsg.textContent = "Veuillez remplir tous les champs.";
-        return;
-      }
+        function clearMessage(node) {
+            node.hidden = true;
+            node.textContent = "";
+            node.classList.remove("success-message");
+            node.classList.remove("error-message");
+        }
 
-      // Chercher l'utilisateur ou créer un générique si mot de passe = "1234"
-      let user = utilisateurs[email];
+        function createUserSession(username, email) {
+            const userSession = {
+                username,
+                email,
+                level: "beginner",
+                is_admin: false,
+                role: "user"
+            };
+            localStorage.removeItem("adminToken");
+            localStorage.setItem("auth_token", "demo-user-token");
+            localStorage.setItem("token", "demo-user-token");
+            localStorage.setItem("user_info", JSON.stringify(userSession));
+        }
 
-      if (!user && password === "1234") {
-        // Utilisateur inconnu mais bon mot de passe → on accepte quand même (démo)
-        const nomGenere = email.split("@")[0].replace(/[._]/g, " ")
-                               .replace(/\b\w/g, c => c.toUpperCase());
-        user = { nom: nomGenere, initiales: getInitiales(nomGenere), motDePasse: "1234" };
-      }
+        loginTabBtn.addEventListener("click", function () {
+            setActiveMode("login");
+        });
 
-      // Vérification du mot de passe
-      if (!user || password !== user.motDePasse) {
-        errorMsg.textContent = "Email ou mot de passe incorrect. (indice : '1234')";
-        passwordInput.value = "";
-        return;
-      }
+        registerTabBtn.addEventListener("click", function () {
+            setActiveMode("register");
+        });
 
-      // ✅ Connexion réussie
-      errorMsg.textContent = "";
+        switchToRegisterBtn.addEventListener("click", function () {
+            setActiveMode("register");
+        });
 
-      // Mettre à jour l'interface avec les infos de l'utilisateur
-      userAvatar.textContent  = user.initiales;
-      userNameEl.textContent  = user.nom.split(" ")[0] + " " + user.nom.split(" ")[1][0] + ".";
-      welcomeText.textContent = "Bienvenue, " + user.nom.split(" ")[0] + " !";
+        switchToLoginBtn.addEventListener("click", function () {
+            setActiveMode("login");
+        });
 
-      // Afficher le dashboard, cacher le login
-      loginScreen.classList.remove("active");
-      dashScreen.classList.add("active");
-    }
+        setActiveMode("login");
 
+        loginForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            clearMessage(loginMessage);
 
-    // ── FONCTION : Déconnexion
-    function seDeconnecter() {
-      // Réinitialiser le formulaire
-      emailInput.value    = "";
-      passwordInput.value = "";
-      errorMsg.textContent = "";
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
 
-      // Réinitialiser les likes
-      document.querySelectorAll(".like-btn.liked").forEach(btn => {
-        btn.classList.remove("liked");
-        btn.querySelector("svg").style.fill = "none";
-      });
+            if (!email || !password) {
+                showMessage(loginMessage, "Veuillez remplir votre email et votre mot de passe.");
+                return;
+            }
 
-      // Afficher le login, cacher le dashboard
-      dashScreen.classList.remove("active");
-      loginScreen.classList.add("active");
-    }
+            const isAdminLogin = email.toLowerCase() === TEMP_ADMIN_EMAIL && password === TEMP_ADMIN_PASSWORD;
+            const isUserLogin = email.toLowerCase() === TEMP_USER_EMAIL && password === TEMP_USER_PASSWORD;
 
+            if (!isAdminLogin && !isUserLogin) {
+                showMessage(loginMessage, "Identifiants invalides. Utilisez un compte temporaire affiche sous le mot de passe.");
+                passwordInput.value = "";
+                passwordInput.focus();
+                return;
+            }
 
-    // ── FONCTION : Liker / unliker un post
-    function toggleLike(btn) {
-      const estLike   = btn.classList.toggle("liked");
-      const compteur  = btn.querySelector(".like-count");
-      const icone     = btn.querySelector("svg");
+            loginButton.disabled = true;
+            loginButton.textContent = "Connexion...";
 
-      // Incrémenter ou décrémenter le compteur
-      compteur.textContent = estLike
-        ? parseInt(compteur.textContent) + 1
-        : parseInt(compteur.textContent) - 1;
+            if (isAdminLogin) {
+                const adminSession = {
+                    username: "Temporary Admin",
+                    email: TEMP_ADMIN_EMAIL,
+                    level: "admin",
+                    is_admin: true,
+                    role: "admin"
+                };
 
-      // Remplir ou vider le coeur
-      icone.style.fill = estLike ? "currentColor" : "none";
-    }
+                // Keep admin endpoints using local bypass: do not persist fake auth tokens.
+                localStorage.removeItem("adminToken");
+                localStorage.removeItem("auth_token");
+                localStorage.removeItem("token");
+                localStorage.setItem("user_info", JSON.stringify(adminSession));
 
+                window.setTimeout(function () {
+                    window.location.href = "../../admin/dashboard.html";
+                }, 220);
+                return;
+            }
 
-    // ── ÉVÉNEMENTS
-    loginBtn.addEventListener("click", seConnecter);
-    logoutBtn.addEventListener("click", seDeconnecter);
+            createUserSession("Temporary User", TEMP_USER_EMAIL);
 
-    // Connexion en appuyant sur Entrée
-    passwordInput.addEventListener("keydown", function(e) {
-      if (e.key === "Enter") seConnecter();
-    });
+            window.setTimeout(function () {
+                window.location.href = "problems.html";
+            }, 220);
+        });
 
-  </script>
+        registerForm.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            clearMessage(registerMessage);
 
+            const username = registerUsernameInput.value.trim();
+            const email = registerEmailInput.value.trim();
+            const password = registerPasswordInput.value;
+            const confirmPassword = registerConfirmPasswordInput.value;
+
+            if (!username || !email || !password || !confirmPassword) {
+                showMessage(registerMessage, "Veuillez remplir tous les champs.");
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage(registerMessage, "Le mot de passe doit contenir au moins 6 caracteres.");
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showMessage(registerMessage, "Les mots de passe ne correspondent pas.");
+                return;
+            }
+
+            registerButton.disabled = true;
+            registerButton.textContent = "Creation...";
+
+            try {
+                if (typeof apiRegister === "function") {
+                    const result = await apiRegister(username, email, password);
+                    if (result && result.success) {
+                        const apiUser = (result.data && result.data.user) || {};
+                        const resolvedUsername = apiUser.username || username;
+                        const resolvedEmail = apiUser.email || email;
+                        createUserSession(resolvedUsername, resolvedEmail);
+                        showMessage(registerMessage, "Compte cree. Redirection...", "success");
+                        window.setTimeout(function () {
+                            window.location.href = "problems.html";
+                        }, 320);
+                        return;
+                    }
+                }
+
+                // Fallback local mode when API registration is unavailable.
+                createUserSession(username, email);
+                showMessage(registerMessage, "Compte cree en mode local. Redirection...", "success");
+                window.setTimeout(function () {
+                    window.location.href = "problems.html";
+                }, 320);
+            } catch (error) {
+                showMessage(registerMessage, "Impossible de creer le compte pour le moment.");
+            } finally {
+                registerButton.disabled = false;
+                registerButton.textContent = "Creer un compte";
+            }
+        });
+    </script>
 </body>
+
 </html>

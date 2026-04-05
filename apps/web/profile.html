@@ -27,12 +27,11 @@
                 <a class="nav-link" href="index.html">Accueil</a>
                 <a class="nav-link" href="problems.html">Problemes</a>
                 <a class="nav-link" href="contest.html">Concours (Beta)</a>
-                <a class="nav-link active" href="profile.html" aria-current="page">Profil</a>
-                <a class="nav-link" href="parameters.html">Parametres</a>
             </nav>
             <div class="nav-actions">
-                <a class="btn btn-ghost" href="problems.html">Continuer</a>
-                <a class="btn btn-primary" href="parameters.html">Reglages</a>
+                <a class="btn nav-shortcut nav-shortcut-settings" href="parameters.html">Parametres</a>
+                <a class="btn nav-shortcut nav-shortcut-profile requires-auth is-active" data-auth-target="profile" href="profile.html" aria-current="page">Profil</a>
+                <button type="button" id="userLogoutBtn" class="btn btn-ghost requires-auth" data-auth-target="profile" data-logout="user">Se deconnecter</button>
             </div>
             <button type="button" class="menu-toggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Ouvrir le menu">
                 <span aria-hidden="true"></span>
@@ -44,8 +43,9 @@
             <a class="mobile-link" href="index.html">Accueil</a>
             <a class="mobile-link" href="problems.html">Problemes</a>
             <a class="mobile-link" href="contest.html">Concours (Beta)</a>
-            <a class="mobile-link" href="profile.html" aria-current="page">Profil</a>
             <a class="mobile-link" href="parameters.html">Parametres</a>
+            <a class="mobile-link requires-auth" data-auth-target="profile" href="profile.html" aria-current="page">Profil</a>
+            <button type="button" class="btn btn-ghost wide requires-auth" data-auth-target="profile" data-logout="user">Se deconnecter</button>
         </div>
     </header>
     <div id="menuBackdrop" class="menu-backdrop"></div>
