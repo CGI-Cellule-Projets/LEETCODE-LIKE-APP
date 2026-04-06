@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", () => {
             adminButton.id = "adminDashboardShortcut";
             adminButton.className = "btn btn-ghost";
             adminButton.href = dashboardHref;
-            adminButton.textContent = "Admin Dashboard";
+            adminButton.textContent = "Espace Admin";
             navActions.appendChild(adminButton);
         }
 
@@ -84,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
             adminLink.id = "adminMobileShortcut";
             adminLink.className = "mobile-link";
             adminLink.href = dashboardHref;
-            adminLink.textContent = "Admin Dashboard";
+            adminLink.textContent = "Espace Admin";
             mobileMenu.appendChild(adminLink);
         }
     };

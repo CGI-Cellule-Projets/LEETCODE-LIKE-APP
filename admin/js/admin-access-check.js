@@ -39,7 +39,7 @@ function checkAdminAccess() {
     userSpaceBtn.id = 'userSpaceBtn';
     userSpaceBtn.className = 'btn btn-ghost';
     userSpaceBtn.href = '../apps/web/parameters.html';
-    userSpaceBtn.textContent = 'Espace Utilisateur';
+    userSpaceBtn.textContent = 'Parametres';
     adminActions.prepend(userSpaceBtn);
   }
 
@@ -59,7 +59,46 @@ function checkAdminAccess() {
   return true;
 }
 
+function applyStoredPreferences() {
+  const root = document.documentElement;
+  const body = document.body;
+  const SETTINGS_KEY = 'algoforge-settings';
+  const defaultSettings = {
+    accent: 'sunset',
+    theme: 'light',
+    motion: true,
+  };
+  const accentPalette = {
+    sunset: { accent: '#ff6b3d', accent2: '#ff9f1c', soft: 'rgba(255, 107, 61, 0.18)' },
+    ocean: { accent: '#1f7fff', accent2: '#00b4d8', soft: 'rgba(31, 127, 255, 0.2)' },
+    mint: { accent: '#14b884', accent2: '#9ad84b', soft: 'rgba(20, 184, 132, 0.2)' },
+  };
+
+  let settings = defaultSettings;
+
+  try {
+    const storedSettings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    settings = { ...defaultSettings, ...storedSettings };
+  } catch (error) {
+    settings = defaultSettings;
+  }
+
+  const palette = accentPalette[settings.accent] || accentPalette.sunset;
+  root.style.setProperty('--accent', palette.accent);
+  root.style.setProperty('--accent-2', palette.accent2);
+  root.style.setProperty('--accent-soft', palette.soft);
+
+  const accentMatch = palette.accent.match(/\w\w/g) || [];
+  if (accentMatch.length === 3) {
+    root.style.setProperty('--accent-rgb', accentMatch.map((value) => parseInt(value, 16)).join(', '));
+  }
+
+  body.classList.toggle('theme-night', settings.theme === 'night');
+  body.classList.toggle('motion-off', !settings.motion);
+}
+
 // Run check when page loads and every 5 minutes
 document.addEventListener('DOMContentLoaded', () => {
+  applyStoredPreferences();
   checkAdminAccess();
 });

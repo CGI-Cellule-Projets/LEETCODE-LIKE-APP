@@ -1718,10 +1718,18 @@ body.theme-night .difficulty.hard {
     flex-direction: column;
 }
 
+.auth-page #main-content {
+    flex: 1;
+    display: grid;
+    place-items: center;
+    width: 100%;
+}
+
 .auth-login-layout {
     grid-template-columns: 1fr;
     max-width: 560px;
     gap: 0;
+    min-height: auto;
 }
 
 .auth-login-card {
@@ -1742,7 +1750,7 @@ body.theme-night .auth-login-card {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 3rem;
-    min-height: calc(100vh - 2rem);
+    min-height: auto;
     align-items: center;
     justify-items: center;
     padding: 2rem;
@@ -1752,12 +1760,36 @@ body.theme-night .auth-login-card {
     flex: 1;
 }
 
+.auth-container.auth-login-layout {
+    grid-template-columns: 1fr;
+    justify-content: center;
+}
+
 .auth-card {
     padding: 3rem;
     border-radius: var(--radius-md);
     max-width: 400px;
     width: 100%;
     justify-self: center;
+}
+
+.auth-back-link {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.45rem;
+    height: 2.45rem;
+    padding: 0;
+    border-radius: 999px;
+}
+
+.auth-back-link svg {
+    width: 1.2rem;
+    height: 1.2rem;
 }
 
 .auth-demo-note {
@@ -1985,21 +2017,39 @@ body.theme-night .success-message {
    Admin-specific layout and component styles.
    ============================================ */
 .admin-page {
+    --admin-surface: rgba(255, 255, 255, 0.82);
+    --admin-surface-strong: rgba(255, 255, 255, 0.94);
+    --admin-border: rgba(24, 44, 68, 0.14);
+    --admin-ink: #122033;
+    --admin-muted: #4f647d;
+    --admin-accent: #0f9bb8;
+    --admin-accent-soft: rgba(15, 155, 184, 0.14);
     background:
-        radial-gradient(circle at 10% -20%, rgba(255, 129, 84, 0.22), transparent 40%),
-        radial-gradient(circle at 95% 20%, rgba(92, 201, 245, 0.2), transparent 42%),
-        #f5f5f3;
+        radial-gradient(circle at 5% -18%, rgba(15, 155, 184, 0.22), transparent 42%),
+        radial-gradient(circle at 100% 15%, rgba(255, 159, 28, 0.14), transparent 40%),
+        radial-gradient(circle at 80% 100%, rgba(59, 130, 246, 0.12), transparent 46%),
+        #f3f7fb;
+}
+
+body.theme-night.admin-page {
+    --admin-surface: rgba(17, 28, 42, 0.76);
+    --admin-surface-strong: rgba(20, 32, 48, 0.92);
+    --admin-border: rgba(166, 186, 214, 0.22);
+    --admin-ink: #eaf2ff;
+    --admin-muted: #b6c6df;
+    --admin-accent: #38c7de;
+    --admin-accent-soft: rgba(56, 199, 222, 0.2);
 }
 
 .admin-topbar {
-    background: rgba(245, 245, 243, 0.88);
-    border-bottom: 1px solid rgba(23, 33, 45, 0.1);
-    box-shadow: 0 8px 24px rgba(17, 27, 40, 0.07);
+    background: rgba(255, 255, 255, 0.86);
+    border-bottom: 1px solid var(--admin-border);
+    box-shadow: 0 10px 28px rgba(17, 27, 40, 0.08);
     padding: 0.8rem 0;
     position: sticky;
     top: 0;
     z-index: 100;
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
 }
 
 body.theme-night .admin-topbar {
@@ -2016,9 +2066,9 @@ body.theme-night .admin-topbar {
 }
 
 .admin-topbar .brand {
-    font-size: 2rem;
+    font-size: 1.55rem;
     font-weight: 800;
-    color: var(--text);
+    color: var(--admin-ink);
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -2028,7 +2078,7 @@ body.theme-night .admin-topbar {
 
 .admin-topbar .badge {
     display: inline-block;
-    background: var(--accent);
+    background: linear-gradient(135deg, var(--admin-accent), #16b37f);
     color: white;
     padding: 0.24rem 0.66rem;
     border-radius: 999px;
@@ -2045,24 +2095,26 @@ body.theme-night .admin-topbar {
 }
 
 .admin-nav-link {
-    color: var(--muted);
+    color: var(--admin-muted);
     text-decoration: none;
     font-weight: 600;
     padding: 0.62rem 0.95rem;
+    border: 1px solid transparent;
     border-radius: 999px;
     transition: all 0.2s ease;
 }
 
 .admin-nav-link:hover,
 .admin-nav-link.active {
-    color: #1a2635;
-    background: rgba(255, 107, 61, 0.15);
+    color: var(--admin-ink);
+    background: var(--admin-accent-soft);
+    border-color: rgba(15, 155, 184, 0.34);
 }
 
 body.theme-night .admin-nav-link:hover,
 body.theme-night .admin-nav-link.active {
-    color: #edf3ff;
-    background: linear-gradient(135deg, rgba(255, 107, 61, 0.24), rgba(255, 159, 28, 0.26));
+    color: var(--admin-ink);
+    background: linear-gradient(135deg, rgba(56, 199, 222, 0.28), rgba(22, 179, 127, 0.22));
 }
 
 .admin-actions {
@@ -2080,8 +2132,13 @@ body.theme-night .admin-nav-link.active {
 }
 
 .admin-actions #logoutBtn {
-    background: rgba(23, 33, 45, 0.06);
-    border-color: rgba(23, 33, 45, 0.1);
+    background: rgba(190, 32, 32, 0.08);
+    border-color: rgba(190, 32, 32, 0.24);
+    color: #b53b3b;
+}
+
+.admin-actions #logoutBtn:hover {
+    background: rgba(190, 32, 32, 0.14);
 }
 
 .admin-main {
@@ -2105,11 +2162,11 @@ body.theme-night .admin-nav-link.active {
     justify-content: space-between;
     gap: 1.5rem;
     padding: 1.5rem 1.8rem;
-    border: 1px solid var(--border);
+    border: 1px solid var(--admin-border);
     border-radius: var(--radius-lg);
     background:
-        radial-gradient(circle at 85% 0%, rgba(255, 159, 28, 0.12), transparent 38%),
-        linear-gradient(135deg, var(--surface-2), rgba(255, 255, 255, 0.65));
+        radial-gradient(circle at 88% 0%, rgba(15, 155, 184, 0.2), transparent 40%),
+        linear-gradient(135deg, var(--admin-surface-strong), rgba(255, 255, 255, 0.72));
     box-shadow: 0 14px 32px rgba(17, 27, 40, 0.1);
 }
 
@@ -2125,7 +2182,7 @@ body.theme-night .admin-hero {
     letter-spacing: 0.12em;
     font-size: 0.74rem;
     font-weight: 700;
-    color: var(--accent);
+    color: var(--admin-accent);
 }
 
 .admin-hero h1 {
@@ -2151,12 +2208,12 @@ body.theme-night .admin-hero {
 .admin-header h1 {
     font-size: clamp(2rem, 2.7vw, 2.75rem);
     font-weight: 800;
-    color: var(--text);
+    color: var(--admin-ink);
     margin-bottom: 0.35rem;
 }
 
 .admin-header p {
-    color: var(--muted);
+    color: var(--admin-muted);
     font-size: 0.98rem;
     margin-bottom: 1rem;
 }
@@ -2171,9 +2228,9 @@ body.theme-night .admin-hero {
     margin-bottom: 2rem;
 }
 
-.stat-card {
-    background: linear-gradient(135deg, var(--surface), rgba(0, 0, 0, 0.02));
-    border: 1px solid var(--border);
+.admin-page .stat-card {
+    background: linear-gradient(145deg, #17314a, #213f5d 62%, #29577a);
+    border: 1px solid rgba(117, 177, 226, 0.34);
     padding: 1.2rem;
     border-radius: var(--radius-md);
     display: flex;
@@ -2182,23 +2239,24 @@ body.theme-night .admin-hero {
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 14px 30px rgba(7, 17, 29, 0.26);
 }
 
-.stat-card::after {
+.admin-page .stat-card::after {
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 100% 0%, rgba(255, 159, 28, 0.2), transparent 42%);
+    background: radial-gradient(circle at 100% 0%, rgba(99, 179, 237, 0.2), transparent 44%);
     pointer-events: none;
 }
 
-.stat-card:hover {
-    border-color: var(--accent);
+.admin-page .stat-card:hover {
+    border-color: rgba(130, 201, 242, 0.7);
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 20px 40px rgba(7, 17, 29, 0.33);
 }
 
-.stat-icon {
+.admin-page .stat-icon {
     width: 2.35rem;
     height: 2.35rem;
     min-width: 2.35rem;
@@ -2209,40 +2267,50 @@ body.theme-night .admin-hero {
     font-size: 0.66rem;
     font-weight: 800;
     letter-spacing: 0.08em;
-    color: #17212d;
-    background: linear-gradient(145deg, rgba(255, 159, 28, 0.24), rgba(255, 107, 61, 0.34));
-    border: 1px solid rgba(255, 107, 61, 0.3);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42), 0 8px 16px rgba(255, 107, 61, 0.18);
+    color: #fff8ea;
+    background: linear-gradient(145deg, rgba(255, 180, 92, 0.28), rgba(255, 137, 76, 0.35));
+    border: 1px solid rgba(255, 178, 105, 0.42);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 8px 16px rgba(255, 137, 76, 0.2);
     font-family: "JetBrains Mono", monospace;
 }
 
-body.theme-night .stat-icon {
+body.theme-night.admin-page .stat-icon {
     color: #ffe7da;
     background: linear-gradient(145deg, rgba(255, 159, 28, 0.24), rgba(255, 107, 61, 0.3));
     border-color: rgba(255, 159, 28, 0.35);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 16px rgba(0, 0, 0, 0.28);
 }
 
-.stat-content h3 {
+.admin-page .stat-content h3 {
     font-size: 0.82rem;
     font-weight: 600;
-    color: var(--muted);
+    color: #b8cde6;
     margin-bottom: 0.5rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
 
-.stat-number {
+.admin-page .stat-number {
     font-size: 2rem;
     font-weight: 800;
-    color: #0f1722;
+    color: #f7fbff;
     margin-bottom: 0.35rem;
+    text-shadow: 0 3px 10px rgba(8, 16, 27, 0.35);
 }
 
-.stat-note {
-    color: var(--muted);
+body.theme-night.admin-page .stat-number {
+    color: #f5f9ff;
+}
+
+.admin-page .stat-note {
+    color: #d4e4f6;
     font-size: 0.8rem;
     font-weight: 500;
+}
+
+body.theme-night.admin-page .stat-card {
+    background: linear-gradient(145deg, rgba(21, 35, 53, 0.95), rgba(24, 44, 66, 0.95));
+    border-color: rgba(117, 177, 226, 0.28);
 }
 
 .admin-workspace {
@@ -2472,8 +2540,8 @@ body.theme-night .activity-icon {
    ADMIN PROBLEMS FORM
    ============================================ */
 .problem-form-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
     padding: 1.35rem;
     border-radius: var(--radius-md);
     margin-bottom: 1.25rem;
@@ -2565,8 +2633,8 @@ body.theme-night .activity-icon {
    ADMIN PROBLEMS LIST
    ============================================ */
 .problems-list-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: var(--admin-surface);
+    border: 1px solid var(--admin-border);
     border-radius: var(--radius-md);
     overflow: hidden;
     box-shadow: var(--shadow);
@@ -2576,16 +2644,16 @@ body.theme-night .activity-icon {
     display: flex;
     gap: 1rem;
     padding: 1rem;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.64), rgba(255, 255, 255, 0.38));
-    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(15, 155, 184, 0.08), rgba(255, 255, 255, 0.32));
+    border-bottom: 1px solid var(--admin-border);
     flex-wrap: wrap;
 }
 
 .search-input,
 .filter-select {
-    background: rgba(0, 0, 0, 0.04);
-    border: 1px solid var(--border);
-    color: var(--text);
+    background: rgba(255, 255, 255, 0.74);
+    border: 1px solid var(--admin-border);
+    color: var(--admin-ink);
     padding: 0.62rem 0.8rem;
     border-radius: var(--radius-sm);
     font-size: 0.9rem;
@@ -2607,15 +2675,15 @@ body.theme-night .activity-icon {
 }
 
 .problems-table-content thead {
-    background: rgba(23, 33, 45, 0.03);
-    border-bottom: 1px solid var(--border);
+    background: rgba(15, 155, 184, 0.08);
+    border-bottom: 1px solid var(--admin-border);
 }
 
 .problems-table-content th {
     padding: 0.8rem 1rem;
     text-align: left;
     font-weight: 600;
-    color: var(--muted);
+    color: var(--admin-muted);
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -2623,7 +2691,7 @@ body.theme-night .activity-icon {
 
 .problems-table-content td {
     padding: 0.8rem 1rem;
-    color: var(--text);
+    color: var(--admin-ink);
     border-bottom: 1px solid rgba(0, 0, 0, 0.04);
     font-size: 0.9rem;
 }
@@ -2634,7 +2702,7 @@ body.theme-night .activity-icon {
 }
 
 .problems-table-content tbody tr:hover {
-    background: var(--accent-soft);
+    background: var(--admin-accent-soft);
 }
 
 .problem-name {
@@ -2647,9 +2715,9 @@ body.theme-night .activity-icon {
 }
 
 .btn-icon {
-    background: var(--surface-2);
-    border: 1px solid var(--border);
-    color: var(--text);
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid var(--admin-border);
+    color: var(--admin-ink);
     cursor: pointer;
     padding: 0.5rem;
     border-radius: var(--radius-sm);
@@ -2659,8 +2727,23 @@ body.theme-night .activity-icon {
 }
 
 .btn-icon:hover {
-    background: var(--accent-soft);
-    color: var(--accent);
+    background: var(--admin-accent-soft);
+    color: var(--admin-accent);
+}
+
+body.theme-night .problem-form input,
+body.theme-night .problem-form select,
+body.theme-night .problem-form textarea,
+body.theme-night .search-input,
+body.theme-night .filter-select,
+body.theme-night .btn-icon {
+    background: rgba(13, 24, 36, 0.7);
+    color: #eaf2ff;
+    border-color: var(--admin-border);
+}
+
+body.theme-night .list-controls {
+    background: linear-gradient(180deg, rgba(56, 199, 222, 0.14), rgba(8, 16, 27, 0.2));
 }
 
 /* ============================================

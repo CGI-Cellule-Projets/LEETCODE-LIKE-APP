@@ -22,10 +22,16 @@
     <main id="main-content">
         <div class="auth-container auth-login-layout">
             <section class="auth-card panel auth-login-card">
+                <a href="index.html" class="btn btn-ghost auth-back-link" aria-label="Retour a l'accueil" title="Accueil">
+                    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                        <path d="M4.75 10.25L12 4.5l7.25 5.75" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path d="M7 9.75V19.25h10V9.75" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path d="M10.2 19.25V14.7a1.8 1.8 0 0 1 1.8-1.8h0a1.8 1.8 0 0 1 1.8 1.8v4.55" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </a>
                 <div class="auth-header">
                     <p class="section-subtitle">Acces membre</p>
                     <h1><span>Algo</span>Forge</h1>
-                    <p>Connecte-toi pour retrouver tes exercices, tes preferences et ta progression.</p>
                 </div>
 
                 <div class="auth-switch" role="tablist" aria-label="Connexion ou inscription">
@@ -194,13 +200,17 @@
             setActiveMode("register");
         });
 
-        switchToRegisterBtn.addEventListener("click", function () {
-            setActiveMode("register");
-        });
+        if (switchToRegisterBtn) {
+            switchToRegisterBtn.addEventListener("click", function () {
+                setActiveMode("register");
+            });
+        }
 
-        switchToLoginBtn.addEventListener("click", function () {
-            setActiveMode("login");
-        });
+        if (switchToLoginBtn) {
+            switchToLoginBtn.addEventListener("click", function () {
+                setActiveMode("login");
+            });
+        }
 
         setActiveMode("login");
 
