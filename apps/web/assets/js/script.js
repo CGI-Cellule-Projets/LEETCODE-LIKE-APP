@@ -1,7 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     const body = document.body;
     const root = document.documentElement;
-    const PROGRESS_KEY = "algoforge-progress";
+    const LEGACY_PROGRESS_KEY = "algoforge-progress";
+    const PROGRESS_KEY_PREFIX = "algoforge-progress:";
     const USER_INFO_KEY = "user_info";
 
     document.querySelectorAll(".year").forEach((node) => {
@@ -146,9 +147,25 @@ document.addEventListener("DOMContentLoaded", () => {
         activityByDate: {}
     });
 
+    const resolveProgressStorageKey = () => {
+        const userInfo = readUserInfo();
+        const identity = userInfo.user_id || userInfo.id || userInfo.email || userInfo.username;
+        if (identity === undefined || identity === null) {
+            return `${PROGRESS_KEY_PREFIX}guest`;
+        }
+
+        const normalizedIdentity = String(identity).trim().toLowerCase();
+        return normalizedIdentity
+            ? `${PROGRESS_KEY_PREFIX}${normalizedIdentity}`
+            : `${PROGRESS_KEY_PREFIX}guest`;
+    };
+
     const readProgress = () => {
         try {
-            const parsed = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}");
+            const scopedKey = resolveProgressStorageKey();
+            const scopedRaw = localStorage.getItem(scopedKey);
+            const fallbackRaw = localStorage.getItem(LEGACY_PROGRESS_KEY);
+            const parsed = JSON.parse(scopedRaw || fallbackRaw || "{}");
             const defaults = createDefaultProgress();
             return {
                 ...defaults,
@@ -164,7 +181,8 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const writeProgress = (progress) => {
-        localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+        const scopedKey = resolveProgressStorageKey();
+        localStorage.setItem(scopedKey, JSON.stringify(progress));
     };
 
     const touchActivity = (progress, dateKey, amount = 1) => {
@@ -248,6 +266,29 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }, { passive: true });
     }
+
+    const hydrateProfileIdentity = () => {
+        const profileNameNode = document.getElementById("profileName");
+        if (!profileNameNode) return;
+
+        const avatarNode = document.getElementById("profileAvatar");
+        const userInfo = readUserInfo();
+        const isAdmin = Boolean(userInfo && (userInfo.is_admin === true || userInfo.role === "admin" || userInfo.level === "admin"));
+        const username = typeof userInfo.username === "string" ? userInfo.username.trim() : "";
+        const displayName = isAdmin ? "Admin" : (username || "Profil anonymise");
+
+        profileNameNode.textContent = displayName;
+
+        if (avatarNode) {
+            const initials = displayName
+                .split(/\s+/)
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0]?.toUpperCase() || "")
+                .join("");
+            avatarNode.textContent = initials || "AF";
+        }
+    };
 
     const hydrateProfileAnalytics = () => {
         const solvedNode = document.getElementById("statSolved");
@@ -335,6 +376,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (runtimeBadge) runtimeBadge.textContent = `${avgRuntime}% de percentile moyen sur les solutions executees.`;
     };
 
+    hydrateProfileIdentity();
     hydrateProfileAnalytics();
 
     /* 

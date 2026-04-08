@@ -320,7 +320,7 @@
 .problem-sample-card {
   border: 1px solid var(--border-color);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.82);
   padding: 14px;
   display: flex;
   flex-direction: column;
@@ -351,10 +351,10 @@
   white-space: pre-wrap;
   word-break: break-word;
   border-radius: 10px;
-  background: rgba(15, 23, 42, 0.72);
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: var(--code-surface);
+  border: 1px solid var(--code-border);
   padding: 10px 12px;
-  color: var(--text-secondary);
+  color: var(--code-text);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -487,6 +487,10 @@
   pointer-events: none;
   transition: opacity 0.22s ease;
   z-index: 20;
+}
+
+body:not(.theme-night) .problem-drawer-backdrop {
+  background: rgba(15, 23, 42, 0.32);
 }
 
 .problem-drawer-backdrop.open {
@@ -706,7 +710,7 @@
   padding: 16px;
   font-family: 'Fira Code', 'JetBrains Mono', monospace;
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
   overflow-y: auto;
   flex: 1;
   display: flex;
@@ -815,6 +819,21 @@
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
+.sample-result-meta {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.sample-result-meta.passed {
+  color: #34d399;
+}
+
+.sample-result-meta.failed {
+  color: #b42318;
+}
+
 .sample-result-block {
   display: flex;
   flex-direction: column;
@@ -833,10 +852,10 @@
   white-space: pre-wrap;
   word-break: break-word;
   border-radius: 10px;
-  background: rgba(15, 23, 42, 0.72);
-  border: 1px solid rgba(148, 163, 184, 0.16);
+  background: var(--code-surface);
+  border: 1px solid var(--code-border);
   padding: 10px 12px;
-  color: var(--text-secondary);
+  color: var(--code-text);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -975,7 +994,7 @@
 }
 
 .output-line.system {
-  color: var(--text-muted);
+  color: var(--text-secondary);
 }
 
 .output-line.stdout,
@@ -991,6 +1010,21 @@
 .output-line {
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+body:not(.theme-night) .window-control-button,
+body:not(.theme-night) .console-toggle-button {
+  background-color: rgba(23, 33, 45, 0.05);
+}
+
+body:not(.theme-night) .execution-input-panel,
+body:not(.theme-night) .sample-result-card,
+body:not(.theme-night) .output-box {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+body.theme-night .sample-result-meta.failed {
+  color: #fca5a5;
 }
 
 @media (max-width: 960px) {

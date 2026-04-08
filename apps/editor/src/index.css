@@ -3,12 +3,16 @@
 :root {
   /* Light Theme (default) */
   --bg-base: #f8f7f3;
-  --bg-panel: rgba(255, 255, 255, 0.78);
-  --bg-panel-hover: rgba(255, 255, 255, 0.96);
+  --bg-panel: rgba(255, 255, 255, 0.92);
+  --bg-panel-hover: rgba(255, 255, 255, 0.98);
 
   --text-primary: #17212d;
-  --text-secondary: #5e6978;
-  --text-muted: #8b96a8;
+  --text-secondary: #3f4d60;
+  --text-muted: #5f6f84;
+
+  --code-surface: #1f2937;
+  --code-border: rgba(148, 163, 184, 0.28);
+  --code-text: #e6edf7;
 
   --accent-primary: #ff6b3d;
   --accent-secondary: #ff9f1c;
@@ -44,6 +48,10 @@ body.theme-night {
 
   --border-color: rgba(173, 190, 216, 0.2);
   --border-light: rgba(173, 190, 216, 0.1);
+
+  --code-surface: rgba(15, 23, 42, 0.86);
+  --code-border: rgba(148, 163, 184, 0.3);
+  --code-text: #e6edf8;
 }
 
 body.theme-night {

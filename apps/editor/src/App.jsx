@@ -13,7 +13,9 @@ const accentPalette = {
   mint:   { primary: "#14b884", secondary: "#9ad84b", glow: "rgba(20, 184, 132, 0.2)" },
 };
 
-const PROGRESS_KEY = "algoforge-progress";
+const LEGACY_PROGRESS_KEY = "algoforge-progress";
+const PROGRESS_KEY_PREFIX = "algoforge-progress:";
+const USER_INFO_KEY = "user_info";
 
 const defaultProgress = {
   attempts: 0,
@@ -28,6 +30,31 @@ const defaultProgress = {
   solvedByDifficulty: { easy: 0, medium: 0, hard: 0 },
   solvedByTag: {},
   activityByDate: {}
+};
+
+const readUserInfo = () => {
+  try {
+    return JSON.parse(localStorage.getItem(USER_INFO_KEY) || "{}");
+  } catch {
+    return {};
+  }
+};
+
+const resolveProgressStorageKey = () => {
+  if (typeof window === "undefined") {
+    return `${PROGRESS_KEY_PREFIX}guest`;
+  }
+
+  const userInfo = readUserInfo();
+  const identity = userInfo.user_id || userInfo.id || userInfo.email || userInfo.username;
+  if (identity === undefined || identity === null) {
+    return `${PROGRESS_KEY_PREFIX}guest`;
+  }
+
+  const normalizedIdentity = String(identity).trim().toLowerCase();
+  return normalizedIdentity
+    ? `${PROGRESS_KEY_PREFIX}${normalizedIdentity}`
+    : `${PROGRESS_KEY_PREFIX}guest`;
 };
 
 const toDateKey = (date) => {
@@ -57,7 +84,10 @@ const computeStreakDays = (activityByDate) => {
 
 const readProgress = () => {
   try {
-    const parsed = JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}");
+    const scopedKey = resolveProgressStorageKey();
+    const scopedRaw = localStorage.getItem(scopedKey);
+    const fallbackRaw = localStorage.getItem(LEGACY_PROGRESS_KEY);
+    const parsed = JSON.parse(scopedRaw || fallbackRaw || "{}");
     return {
       ...defaultProgress,
       ...parsed,
@@ -72,7 +102,8 @@ const readProgress = () => {
 };
 
 const writeProgress = (progress) => {
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+  const scopedKey = resolveProgressStorageKey();
+  localStorage.setItem(scopedKey, JSON.stringify(progress));
 };
 
 const normalizeTags = (rawTags) => {
@@ -285,6 +316,684 @@ const createDefaultOutput = () => ([
 ]);
 
 const normalizeOutputValue = (value) => String(value ?? "").replace(/\r\n/g, "\n").trim();
+const collapseWhitespace = (value) => normalizeOutputValue(value).replace(/\s+/g, " ");
+const numericPattern = /^[-+]?(?:\d+\.?\d*|\.\d+)(?:e[-+]?\d+)?$/i;
+const LOGIC_DIRECTIVE_PREFIX = "@logic";
+
+const toScalarLiteral = (rawValue) => {
+  const normalized = normalizeOutputValue(rawValue);
+  if (!normalized) {
+    return null;
+  }
+
+  const lower = normalized.toLowerCase();
+  if (lower === "true" || lower === "false") {
+    return { type: "boolean", value: lower === "true" };
+  }
+
+  if (lower === "null") {
+    return { type: "null", value: null };
+  }
+
+  if (numericPattern.test(normalized)) {
+    return { type: "number", value: Number(normalized) };
+  }
+
+  if (
+    (normalized.startsWith('"') && normalized.endsWith('"')) ||
+    (normalized.startsWith("'") && normalized.endsWith("'"))
+  ) {
+    return { type: "string", value: normalized.slice(1, -1) };
+  }
+
+  return null;
+};
+
+const toJsonCompatibleLiteral = (value) => value
+  .replace(/\bTrue\b/g, "true")
+  .replace(/\bFalse\b/g, "false")
+  .replace(/\bNone\b/g, "null")
+  .replace(/([{,]\s*)([A-Za-z_$][\w$-]*)(\s*:)/g, '$1"$2"$3')
+  .replace(/'/g, '"');
+
+const parseStructuredLiteral = (rawValue) => {
+  const normalized = normalizeOutputValue(rawValue);
+  if (!normalized) {
+    return null;
+  }
+
+  const candidates = [normalized];
+  const jsonCompatible = toJsonCompatibleLiteral(normalized);
+  if (jsonCompatible !== normalized) {
+    candidates.push(jsonCompatible);
+  }
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch {
+      // Try the next normalization candidate.
+    }
+  }
+
+  return null;
+};
+
+const numbersAreEqual = (left, right) => (
+  Number.isFinite(left)
+  && Number.isFinite(right)
+  && Math.abs(left - right) <= 1e-9
+);
+
+const isPlainObject = (value) => Object.prototype.toString.call(value) === "[object Object]";
+
+const deepEqualValues = (left, right) => {
+  if (typeof left === "number" && typeof right === "number") {
+    return numbersAreEqual(left, right);
+  }
+
+  if (left === right) {
+    return true;
+  }
+
+  if (Array.isArray(left) && Array.isArray(right)) {
+    if (left.length !== right.length) {
+      return false;
+    }
+
+    return left.every((value, index) => deepEqualValues(value, right[index]));
+  }
+
+  if (isPlainObject(left) && isPlainObject(right)) {
+    const leftKeys = Object.keys(left).sort();
+    const rightKeys = Object.keys(right).sort();
+
+    if (leftKeys.length !== rightKeys.length) {
+      return false;
+    }
+
+    for (let index = 0; index < leftKeys.length; index += 1) {
+      if (leftKeys[index] !== rightKeys[index]) {
+        return false;
+      }
+
+      if (!deepEqualValues(left[leftKeys[index]], right[rightKeys[index]])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  return false;
+};
+
+const parseTokenSequence = (rawValue) => {
+  const normalized = normalizeOutputValue(rawValue);
+  if (!normalized) {
+    return [];
+  }
+
+  const rawTokens = normalized
+    .replaceAll("[", " ")
+    .replaceAll("]", " ")
+    .replaceAll("(", " ")
+    .replaceAll(")", " ")
+    .replaceAll("{", " ")
+    .replaceAll("}", " ")
+    .split(/[\s,;]+/)
+    .map((token) => token.trim())
+    .filter(Boolean);
+
+  return rawTokens.map((token) => {
+    const scalar = toScalarLiteral(token);
+    if (scalar) {
+      return scalar.value;
+    }
+
+    return token;
+  });
+};
+
+const tokenValuesEqual = (left, right) => {
+  if (typeof left === "number" && typeof right === "number") {
+    return numbersAreEqual(left, right);
+  }
+
+  return left === right;
+};
+
+const areOutputsEquivalent = (expectedOutput, actualOutput) => {
+  const normalizedExpected = normalizeOutputValue(expectedOutput);
+  const normalizedActual = normalizeOutputValue(actualOutput);
+
+  if (normalizedExpected === normalizedActual) {
+    return { passed: true, mode: "exact", reason: "Exact output match." };
+  }
+
+  if (collapseWhitespace(normalizedExpected) === collapseWhitespace(normalizedActual)) {
+    return { passed: true, mode: "whitespace", reason: "Matched after whitespace normalization." };
+  }
+
+  const expectedScalar = toScalarLiteral(normalizedExpected);
+  const actualScalar = toScalarLiteral(normalizedActual);
+  if (expectedScalar && actualScalar && deepEqualValues(expectedScalar.value, actualScalar.value)) {
+    return { passed: true, mode: "scalar", reason: "Matched logical scalar value." };
+  }
+
+  const expectedStructured = parseStructuredLiteral(normalizedExpected);
+  const actualStructured = parseStructuredLiteral(normalizedActual);
+  if (
+    expectedStructured !== null
+    && actualStructured !== null
+    && deepEqualValues(expectedStructured, actualStructured)
+  ) {
+    return { passed: true, mode: "structured", reason: "Matched structured output." };
+  }
+
+  const expectedTokens = parseTokenSequence(normalizedExpected);
+  const actualTokens = parseTokenSequence(normalizedActual);
+  if (
+    expectedTokens.length > 0
+    && expectedTokens.length === actualTokens.length
+    && expectedTokens.every((token, index) => tokenValuesEqual(token, actualTokens[index]))
+  ) {
+    return { passed: true, mode: "token", reason: "Matched tokenized output sequence." };
+  }
+
+  return { passed: false, mode: "mismatch", reason: "Output mismatch." };
+};
+
+const sortObjectKeys = (value) => {
+  if (Array.isArray(value)) {
+    return value.map(sortObjectKeys);
+  }
+
+  if (isPlainObject(value)) {
+    return Object.keys(value)
+      .sort()
+      .reduce((accumulator, key) => {
+        accumulator[key] = sortObjectKeys(value[key]);
+        return accumulator;
+      }, {});
+  }
+
+  return value;
+};
+
+const toStableValueKey = (value) => {
+  if (typeof value === "number") {
+    return `number:${value.toPrecision(15)}`;
+  }
+
+  if (typeof value === "string") {
+    return `string:${collapseWhitespace(value)}`;
+  }
+
+  return `${typeof value}:${JSON.stringify(sortObjectKeys(value))}`;
+};
+
+const compareUnorderedArrays = (expectedArray, actualArray) => {
+  if (!Array.isArray(expectedArray) || !Array.isArray(actualArray) || expectedArray.length !== actualArray.length) {
+    return false;
+  }
+
+  const expectedCounts = new Map();
+  const actualCounts = new Map();
+
+  for (const value of expectedArray) {
+    const key = toStableValueKey(value);
+    expectedCounts.set(key, (expectedCounts.get(key) || 0) + 1);
+  }
+
+  for (const value of actualArray) {
+    const key = toStableValueKey(value);
+    actualCounts.set(key, (actualCounts.get(key) || 0) + 1);
+  }
+
+  if (expectedCounts.size !== actualCounts.size) {
+    return false;
+  }
+
+  for (const [key, count] of expectedCounts.entries()) {
+    if (actualCounts.get(key) !== count) {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+const evaluateLogicDirective = (expectedOutput, actualOutput) => {
+  const normalizedExpected = normalizeOutputValue(expectedOutput);
+  if (!normalizedExpected.toLowerCase().startsWith(LOGIC_DIRECTIVE_PREFIX)) {
+    return { applied: false };
+  }
+
+  const ruleBody = normalizedExpected.slice(LOGIC_DIRECTIVE_PREFIX.length).trim();
+  if (!ruleBody) {
+    return { applied: true, passed: false, reason: "Empty @logic rule." };
+  }
+
+  const lowerRuleBody = ruleBody.toLowerCase();
+
+  if (lowerRuleBody.startsWith("anyof:")) {
+    const candidates = ruleBody.slice("anyof:".length)
+      .split("||")
+      .map((item) => normalizeOutputValue(item))
+      .filter(Boolean);
+
+    const hasMatch = candidates.some((candidate) => areOutputsEquivalent(candidate, actualOutput).passed);
+    return {
+      applied: true,
+      passed: hasMatch,
+      reason: hasMatch
+        ? "Matched one allowed result from @logic anyof."
+        : "No allowed value matched from @logic anyof.",
+    };
+  }
+
+  if (lowerRuleBody.startsWith("regex:")) {
+    const expression = ruleBody.slice("regex:".length).trim();
+    if (!expression) {
+      return { applied: true, passed: false, reason: "Invalid @logic regex rule." };
+    }
+
+    let regex;
+    const literalMatch = expression.match(/^\/(.+)\/([a-z]*)$/i);
+    try {
+      regex = literalMatch ? new RegExp(literalMatch[1], literalMatch[2]) : new RegExp(expression);
+    } catch {
+      return { applied: true, passed: false, reason: "Invalid regular expression in @logic regex rule." };
+    }
+
+    const passed = regex.test(actualOutput);
+    return {
+      applied: true,
+      passed,
+      reason: passed ? "Matched @logic regex rule." : "Did not match @logic regex rule.",
+    };
+  }
+
+  if (lowerRuleBody.startsWith("range:")) {
+    const expression = ruleBody.slice("range:".length).trim();
+    const match = expression.match(/^([-+]?(?:\d+\.?\d*|\.\d+))\.\.([-+]?(?:\d+\.?\d*|\.\d+))$/i);
+    if (!match) {
+      return { applied: true, passed: false, reason: "Invalid @logic range rule. Use: @logic range:min..max" };
+    }
+
+    const minimum = Number(match[1]);
+    const maximum = Number(match[2]);
+    const scalar = toScalarLiteral(actualOutput);
+    const numericActual = scalar?.type === "number" ? scalar.value : NaN;
+    const passed = Number.isFinite(numericActual) && numericActual >= minimum && numericActual <= maximum;
+
+    return {
+      applied: true,
+      passed,
+      reason: passed
+        ? "Matched @logic range rule."
+        : `Actual output is outside @logic range ${minimum}..${maximum}.`,
+    };
+  }
+
+  if (lowerRuleBody.startsWith("unordered:")) {
+    const expectedListRaw = ruleBody.slice("unordered:".length).trim();
+    const expectedList = parseStructuredLiteral(expectedListRaw);
+    const actualList = parseStructuredLiteral(actualOutput);
+    const passed = compareUnorderedArrays(expectedList, actualList);
+
+    return {
+      applied: true,
+      passed,
+      reason: passed ? "Matched @logic unordered rule." : "Output does not satisfy @logic unordered rule.",
+    };
+  }
+
+  return {
+    applied: true,
+    passed: false,
+    reason: "Unknown @logic rule. Supported: anyof, regex, range, unordered.",
+  };
+};
+
+const extractBracketPayload = (rawInput, key) => {
+  const normalized = normalizeOutputValue(rawInput);
+  if (!normalized) {
+    return null;
+  }
+
+  const assignmentPattern = new RegExp(`${key}\\s*=`, "i");
+  const assignmentMatch = assignmentPattern.exec(normalized);
+  if (!assignmentMatch) {
+    return null;
+  }
+
+  const startIndex = normalized.indexOf("[", assignmentMatch.index + assignmentMatch[0].length);
+  if (startIndex === -1) {
+    return null;
+  }
+
+  let depth = 0;
+  for (let index = startIndex; index < normalized.length; index += 1) {
+    const current = normalized[index];
+    if (current === "[") {
+      depth += 1;
+    } else if (current === "]") {
+      depth -= 1;
+      if (depth === 0) {
+        return normalized.slice(startIndex, index + 1);
+      }
+    }
+  }
+
+  return null;
+};
+
+const parseNumberList = (rawValue) => {
+  const structured = parseStructuredLiteral(rawValue);
+  if (Array.isArray(structured) && structured.every((value) => typeof value === "number" && Number.isFinite(value))) {
+    return structured;
+  }
+
+  const tokens = parseTokenSequence(rawValue);
+  if (tokens.length > 0 && tokens.every((value) => typeof value === "number" && Number.isFinite(value))) {
+    return tokens;
+  }
+
+  return null;
+};
+
+const parseNestedNumberLists = (rawValue) => {
+  const structured = parseStructuredLiteral(rawValue);
+  if (
+    Array.isArray(structured)
+    && structured.every(
+      (value) => Array.isArray(value) && value.every((item) => typeof item === "number" && Number.isFinite(item)),
+    )
+  ) {
+    return structured;
+  }
+
+  return null;
+};
+
+const parseTwoSumInput = (rawInput) => {
+  const numsPayload = extractBracketPayload(rawInput, "nums");
+  const targetMatch = normalizeOutputValue(rawInput).match(/target\s*=\s*([-+]?(?:\d+\.?\d*|\.\d+))/i);
+
+  if (numsPayload && targetMatch) {
+    const nums = parseNumberList(numsPayload);
+    const target = Number(targetMatch[1]);
+    if (nums && Number.isFinite(target)) {
+      return { nums, target };
+    }
+  }
+
+  const lines = normalizeOutputValue(rawInput)
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length < 2) {
+    return null;
+  }
+
+  const nums = parseNumberList(lines[0]);
+  const targetTokens = parseNumberList(lines[1]);
+  const target = targetTokens?.[0];
+  if (!nums || !Number.isFinite(target)) {
+    return null;
+  }
+
+  return { nums, target };
+};
+
+const parseIntegerPair = (rawOutput) => {
+  const structured = parseStructuredLiteral(rawOutput);
+  if (
+    Array.isArray(structured)
+    && structured.length >= 2
+    && Number.isInteger(structured[0])
+    && Number.isInteger(structured[1])
+  ) {
+    return [structured[0], structured[1]];
+  }
+
+  const list = parseNumberList(rawOutput);
+  if (list && list.length >= 2 && Number.isInteger(list[0]) && Number.isInteger(list[1])) {
+    return [list[0], list[1]];
+  }
+
+  return null;
+};
+
+const validateTwoSumLogic = (rawInput, rawOutput) => {
+  const parsedInput = parseTwoSumInput(rawInput);
+  const indexes = parseIntegerPair(rawOutput);
+  if (!parsedInput || !indexes) {
+    return false;
+  }
+
+  const [leftIndex, rightIndex] = indexes;
+  if (leftIndex === rightIndex) {
+    return false;
+  }
+
+  if (
+    leftIndex < 0
+    || rightIndex < 0
+    || leftIndex >= parsedInput.nums.length
+    || rightIndex >= parsedInput.nums.length
+  ) {
+    return false;
+  }
+
+  return parsedInput.nums[leftIndex] + parsedInput.nums[rightIndex] === parsedInput.target;
+};
+
+const parseMergeKInput = (rawInput) => {
+  const listsPayload = extractBracketPayload(rawInput, "lists");
+  if (listsPayload) {
+    return parseNestedNumberLists(listsPayload);
+  }
+
+  const normalized = normalizeOutputValue(rawInput);
+  if (!normalized) {
+    return [];
+  }
+
+  const lines = normalized
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+
+  const parsedLists = lines.map((line) => parseNumberList(line)).filter(Boolean);
+  return parsedLists.length > 0 ? parsedLists : null;
+};
+
+const validateMergeKSortedListsLogic = (rawInput, rawOutput) => {
+  const lists = parseMergeKInput(rawInput);
+  const actual = parseNumberList(rawOutput);
+  if (!lists || !actual) {
+    return false;
+  }
+
+  const merged = lists
+    .flat()
+    .slice()
+    .sort((left, right) => left - right);
+
+  if (merged.length !== actual.length) {
+    return false;
+  }
+
+  return merged.every((value, index) => numbersAreEqual(value, actual[index]));
+};
+
+const parseQuotedInputString = (rawInput, variableName = "s") => {
+  const normalized = normalizeOutputValue(rawInput);
+  if (!normalized) {
+    return "";
+  }
+
+  const quotedMatch = normalized.match(new RegExp(`${variableName}\\s*=\\s*(['"])([\\s\\S]*?)\\1`, "i"));
+  if (quotedMatch) {
+    return quotedMatch[2];
+  }
+
+  return normalized.split("\n")[0] || "";
+};
+
+const validateParenthesesString = (value) => {
+  const pairs = { ")": "(", "]": "[", "}": "{" };
+  const openings = new Set(["(", "[", "{"]);
+  const stack = [];
+
+  for (const character of value) {
+    if (openings.has(character)) {
+      stack.push(character);
+      continue;
+    }
+
+    if (pairs[character]) {
+      const top = stack.pop();
+      if (top !== pairs[character]) {
+        return false;
+      }
+    }
+  }
+
+  return stack.length === 0;
+};
+
+const validateValidParenthesesLogic = (rawInput, rawOutput) => {
+  const expression = parseQuotedInputString(rawInput, "s");
+  const scalar = toScalarLiteral(rawOutput);
+  if (!scalar || scalar.type !== "boolean") {
+    return false;
+  }
+
+  return scalar.value === validateParenthesesString(expression);
+};
+
+const lengthOfLongestSubstring = (value) => {
+  const seenIndexes = new Map();
+  let left = 0;
+  let best = 0;
+
+  for (let right = 0; right < value.length; right += 1) {
+    const char = value[right];
+    if (seenIndexes.has(char) && seenIndexes.get(char) >= left) {
+      left = seenIndexes.get(char) + 1;
+    }
+
+    seenIndexes.set(char, right);
+    best = Math.max(best, right - left + 1);
+  }
+
+  return best;
+};
+
+const validateLongestSubstringLogic = (rawInput, rawOutput) => {
+  const expression = parseQuotedInputString(rawInput, "s");
+  const scalar = toScalarLiteral(rawOutput);
+  if (!scalar || scalar.type !== "number") {
+    return false;
+  }
+
+  return numbersAreEqual(scalar.value, lengthOfLongestSubstring(expression));
+};
+
+const evaluateProblemLogic = (problemTitle, rawInput, rawOutput) => {
+  const title = String(problemTitle || "").toLowerCase();
+
+  if (title.includes("two sum")) {
+    return validateTwoSumLogic(rawInput, rawOutput);
+  }
+
+  if (title.includes("merge k sorted list")) {
+    return validateMergeKSortedListsLogic(rawInput, rawOutput);
+  }
+
+  if (title.includes("valid parentheses")) {
+    return validateValidParenthesesLogic(rawInput, rawOutput);
+  }
+
+  if (title.includes("longest substring without repeating")) {
+    return validateLongestSubstringLogic(rawInput, rawOutput);
+  }
+
+  return false;
+};
+
+const evaluateCaseAgainstExpected = ({ problemTitle, testCase, payload }) => {
+  const actualOutput = normalizeOutputValue(payload.stdout);
+  const expectedOutput = testCase.expectedOutput == null
+    ? null
+    : normalizeOutputValue(testCase.expectedOutput);
+
+  if (expectedOutput == null) {
+    return {
+      actualOutput,
+      expectedOutput,
+      passed: payload.status === "success",
+      comparisonMode: "execution-only",
+      comparisonHint: "No expected output configured. Validation is based on successful execution.",
+    };
+  }
+
+  if (payload.status !== "success") {
+    return {
+      actualOutput,
+      expectedOutput,
+      passed: false,
+      comparisonMode: "runtime",
+      comparisonHint: "Execution did not complete successfully.",
+    };
+  }
+
+  const directiveEvaluation = evaluateLogicDirective(expectedOutput, actualOutput);
+  if (directiveEvaluation.applied) {
+    return {
+      actualOutput,
+      expectedOutput,
+      passed: directiveEvaluation.passed,
+      comparisonMode: "logic-directive",
+      comparisonHint: directiveEvaluation.reason,
+    };
+  }
+
+  const semanticEvaluation = areOutputsEquivalent(expectedOutput, actualOutput);
+  if (semanticEvaluation.passed) {
+    return {
+      actualOutput,
+      expectedOutput,
+      passed: true,
+      comparisonMode: semanticEvaluation.mode,
+      comparisonHint: semanticEvaluation.reason,
+    };
+  }
+
+  const logicMatch = evaluateProblemLogic(problemTitle, testCase.input, actualOutput);
+  if (logicMatch) {
+    return {
+      actualOutput,
+      expectedOutput,
+      passed: true,
+      comparisonMode: "problem-logic",
+      comparisonHint: "Accepted by logical checker for this problem.",
+    };
+  }
+
+  return {
+    actualOutput,
+    expectedOutput,
+    passed: false,
+    comparisonMode: "mismatch",
+    comparisonHint: "Expected result and logical checks did not match.",
+  };
+};
 
 const estimateRuntimePercentile = (executionTime, timeLimit) => {
   if (!Number.isFinite(executionTime) || !Number.isFinite(timeLimit) || timeLimit <= 0) {
@@ -367,31 +1076,62 @@ const buildCaseResultsOutput = (results) => {
   return lines;
 };
 
-const buildLocalApiUrl = (pathname) => {
+const buildLocalApiUrls = (pathname) => {
   if (typeof window === "undefined") {
-    return pathname;
+    return [];
   }
 
+  const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`;
   const { protocol, hostname, port } = window.location;
-  const isLocalHost = hostname === "localhost" || hostname === "127.0.0.1";
+  const candidates = [];
+  const addCandidate = (value) => {
+    if (value && !candidates.includes(value)) {
+      candidates.push(value);
+    }
+  };
 
-  if (isLocalHost && port && port !== "3000") {
-    return `${protocol}//${hostname}:3000${pathname}`;
+  if (protocol === "file:") {
+    addCandidate(`http://localhost:3000${normalizedPath}`);
+    addCandidate(`http://127.0.0.1:3000${normalizedPath}`);
+    return candidates;
   }
 
-  return pathname;
+  const isLocalHost = hostname === "localhost" || hostname === "127.0.0.1";
+  if (isLocalHost && port && port !== "3000") {
+    addCandidate(`${protocol}//localhost:3000${normalizedPath}`);
+    addCandidate(`${protocol}//127.0.0.1:3000${normalizedPath}`);
+  }
+
+  return candidates;
 };
 
 const getApiCandidates = (pathname) => {
-  const primary = pathname;
-  const fallback = buildLocalApiUrl(pathname);
-  return fallback !== primary ? [primary, fallback] : [primary];
+  const normalizedPath = pathname.startsWith("/") ? pathname : `/${pathname}`;
+  const candidates = [];
+  const addCandidate = (value) => {
+    if (value && !candidates.includes(value)) {
+      candidates.push(value);
+    }
+  };
+
+  if (typeof window === "undefined" || window.location.protocol !== "file:") {
+    addCandidate(normalizedPath);
+  }
+
+  buildLocalApiUrls(normalizedPath).forEach(addCandidate);
+
+  if (candidates.length === 0) {
+    addCandidate(normalizedPath);
+  }
+
+  return candidates;
 };
 
 const fetchExecutionApi = async (pathname, options) => {
   let lastError = null;
+  const candidates = getApiCandidates(pathname);
 
-  for (const candidate of getApiCandidates(pathname)) {
+  for (const candidate of candidates) {
     try {
       const response = await fetch(candidate, options);
       const payload = await parseExecutionResponse(response);
@@ -401,7 +1141,11 @@ const fetchExecutionApi = async (pathname, options) => {
     }
   }
 
-  throw lastError || new Error('Execution API is unavailable.');
+  if (lastError) {
+    throw new Error(`Unable to reach the execution server. Start the app on http://localhost:3000 with "npm run serve", then retry. ${lastError.message}`);
+  }
+
+  throw new Error("Execution API is unavailable.");
 };
 
 const parseExecutionResponse = async (response) => {
@@ -410,11 +1154,11 @@ const parseExecutionResponse = async (response) => {
   const looksLikeJson = contentType.includes("application/json");
 
   if (!rawText.trim()) {
-    throw new Error('Execution API returned an empty response. Start the app with "npm run serve" from the project root.');
+    throw new Error('Execution API returned an empty response. Start the app on http://localhost:3000 with "npm run serve".');
   }
 
   if (!looksLikeJson) {
-    throw new Error('Execution API is unavailable on this server. Use "npm run serve" from the project root instead of a static server.');
+    throw new Error('Execution API is unavailable on this server. Open the editor through http://localhost:3000 or start the app with "npm run serve".');
   }
 
   try {
@@ -678,22 +1422,22 @@ function App() {
           throw new Error(payload.error || "Execution request failed.");
         }
 
-        const actualOutput = normalizeOutputValue(payload.stdout);
-        const expectedOutput = testCase.expectedOutput == null
-          ? null
-          : normalizeOutputValue(testCase.expectedOutput);
-        const passed = expectedOutput == null
-          ? payload.status === "success"
-          : payload.status === "success" && actualOutput === expectedOutput;
+        const evaluation = evaluateCaseAgainstExpected({
+          problemTitle: problem?.title,
+          testCase,
+          payload,
+        });
 
         nextCaseResults.push({
           name: testCase.name,
           input: testCase.input,
-          expectedOutput,
-          actualOutput,
+          expectedOutput: evaluation.expectedOutput,
+          actualOutput: evaluation.actualOutput,
           stderr: payload.stderr,
           status: payload.status,
-          passed,
+          passed: evaluation.passed,
+          comparisonMode: evaluation.comparisonMode,
+          comparisonHint: evaluation.comparisonHint,
           isCustom: testCase.isCustom,
           executionTime: payload.executionTime,
         });
@@ -949,6 +1693,11 @@ function App() {
                             {result.passed ? 'Passed' : 'Failed'}
                           </span>
                         </div>
+                        {result.comparisonHint && (
+                          <p className={`sample-result-meta ${result.passed ? 'passed' : 'failed'}`}>
+                            {result.comparisonHint}
+                          </p>
+                        )}
                         <div className="sample-result-block">
                           <span>Input</span>
                           <pre>{result.input || "Empty input"}</pre>

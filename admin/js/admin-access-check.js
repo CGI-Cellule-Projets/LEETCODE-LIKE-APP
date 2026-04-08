@@ -5,6 +5,8 @@
  */
 
 async function checkAdminAccess() {
+  const USER_SPACE_HREF = '../apps/web/problems.html';
+  const USER_SPACE_LABEL = 'Espace Utilisateur';
   const isLocalFile = window.location.protocol === 'file:';
   const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
@@ -45,13 +47,26 @@ async function checkAdminAccess() {
   });
 
   const adminActions = document.querySelector('.admin-actions');
-  if (adminActions && !document.getElementById('userSpaceBtn')) {
+  const logoutBtn = adminActions ? adminActions.querySelector('#logoutBtn') : null;
+  const existingUserSpaceBtn = document.getElementById('userSpaceBtn');
+  if (existingUserSpaceBtn) {
+    existingUserSpaceBtn.className = 'btn btn-ghost';
+    existingUserSpaceBtn.href = USER_SPACE_HREF;
+    existingUserSpaceBtn.textContent = USER_SPACE_LABEL;
+    if (logoutBtn && existingUserSpaceBtn.previousElementSibling !== logoutBtn) {
+      logoutBtn.insertAdjacentElement('afterend', existingUserSpaceBtn);
+    }
+  } else if (adminActions) {
     const userSpaceBtn = document.createElement('a');
     userSpaceBtn.id = 'userSpaceBtn';
     userSpaceBtn.className = 'btn btn-ghost';
-    userSpaceBtn.href = '../apps/web/parameters.html';
-    userSpaceBtn.textContent = 'Parametres';
-    adminActions.prepend(userSpaceBtn);
+    userSpaceBtn.href = USER_SPACE_HREF;
+    userSpaceBtn.textContent = USER_SPACE_LABEL;
+    if (logoutBtn) {
+      logoutBtn.insertAdjacentElement('afterend', userSpaceBtn);
+    } else {
+      adminActions.append(userSpaceBtn);
+    }
   }
 
   // Setup logout button

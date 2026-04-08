@@ -443,14 +443,17 @@ async function loadProblems() {
       allProblems = result.data;
       renderProblemsList(allProblems);
     } else {
-      const demoProblems = readDemoProblems();
-      if (demoProblems.length > 0) {
-        allProblems = demoProblems;
-        renderProblemsList(allProblems);
-        return;
+      if (isNetworkFailure(result)) {
+        const demoProblems = readDemoProblems();
+        if (demoProblems.length > 0) {
+          allProblems = demoProblems;
+          renderProblemsList(allProblems);
+          return;
+        }
       }
 
-      document.getElementById('problemsTable').innerHTML = '<p class="error-message">Erreur de chargement</p>';
+      const errorText = String(result.message || result.errors || 'Erreur de chargement');
+      document.getElementById('problemsTable').innerHTML = `<p class="error-message">${escapeHtml(errorText)}</p>`;
     }
   } catch (error) {
     console.error('Error loading problems:', error);

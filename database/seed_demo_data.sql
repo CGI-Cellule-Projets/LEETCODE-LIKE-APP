@@ -24,7 +24,7 @@ VALUES
   ('00000000-0000-0000-0000-000000000108', 'younes', '$2a$10$NnpdNmaii2ukttH7WLmJx.8djQAM9wPxCTkFCYl.s98fmy4e6Kwoi', 'user8@demo.local', 'advanced', FALSE),
   ('00000000-0000-0000-0000-000000000109', 'lina', '$2a$10$NnpdNmaii2ukttH7WLmJx.8djQAM9wPxCTkFCYl.s98fmy4e6Kwoi', 'user9@demo.local', 'beginner', FALSE),
   ('00000000-0000-0000-0000-000000000110', 'mehdi', '$2a$10$NnpdNmaii2ukttH7WLmJx.8djQAM9wPxCTkFCYl.s98fmy4e6Kwoi', 'user10@demo.local', 'intermediate', FALSE)
-ON CONFLICT (user_id) DO UPDATE
+ON CONFLICT (email) DO UPDATE
 SET
   username = EXCLUDED.username,
   password = EXCLUDED.password,
@@ -294,8 +294,15 @@ SET
 -- Announcement
 -- -----------------------------------------------------
 INSERT INTO announcements (announcement_id, title, content, posted_by, created_at)
-VALUES
-  (4001, 'Bienvenue sur AlgoForge Demo', 'Les donnees de demo sont chargees. Vous pouvez tester les concours et le dashboard admin.', '00000000-0000-0000-0000-000000000001', NOW())
+SELECT
+  4001,
+  'Bienvenue sur AlgoForge Demo',
+  'Les donnees de demo sont chargees. Vous pouvez tester les concours et le dashboard admin.',
+  user_id,
+  NOW()
+FROM users
+WHERE email = 'admin@dev.local'
+LIMIT 1
 ON CONFLICT (announcement_id) DO UPDATE
 SET
   title = EXCLUDED.title,
