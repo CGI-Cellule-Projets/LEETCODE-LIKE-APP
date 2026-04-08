@@ -7,8 +7,11 @@ let allContests = [];
 const TEMP_CONTESTS = (window.CONTEST_MOCK_DATA && Array.isArray(window.CONTEST_MOCK_DATA.list))
     ? window.CONTEST_MOCK_DATA.list
     : [];
+let allowDevFallback = false;
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const flags = await apiGetRuntimeFlags();
+    allowDevFallback = Boolean(flags && flags.success && flags.dev_demo_mode);
     await loadContests();
     setupEventListeners();
 });
@@ -47,18 +50,26 @@ async function loadContests() {
                 ...response.data.past.map(c => ({...c, listing_type: 'past'}))
             ];
 
-            if (allContests.length === 0) {
+            if (allContests.length === 0 && allowDevFallback) {
                 allContests = TEMP_CONTESTS;
             }
 
             applyFilters(); // Initial render
         } else {
-            allContests = TEMP_CONTESTS;
-            applyFilters();
+            if (allowDevFallback) {
+                allContests = TEMP_CONTESTS;
+                applyFilters();
+            } else {
+                showError('Impossible de charger les concours depuis l API.');
+            }
         }
     } catch (err) {
-        allContests = TEMP_CONTESTS;
-        applyFilters();
+        if (allowDevFallback) {
+            allContests = TEMP_CONTESTS;
+            applyFilters();
+        } else {
+            showError('Impossible de charger les concours depuis l API.');
+        }
     }
 }
 

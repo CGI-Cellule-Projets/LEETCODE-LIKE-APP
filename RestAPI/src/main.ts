@@ -102,10 +102,18 @@ app.use('/api/contests', contestRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
+  const devDemoMode = process.env.DEV_DEMO_MODE === 'true';
+  const allowLocalAdminBypass = process.env.NODE_ENV !== 'production'
+    && process.env.ALLOW_LOCAL_ADMIN_BYPASS === 'true';
+
   res.status(200).json({
     success: true,
     message: 'Server is healthy',
     timestamp: new Date().toISOString(),
+    data: {
+      dev_demo_mode: devDemoMode,
+      allow_local_admin_bypass: allowLocalAdminBypass,
+    },
   });
 });
 
@@ -135,10 +143,13 @@ async function startServer() {
       console.log(`\n LeetCode API Server running on http://localhost:${PORT}`);
       console.log(` Environment: ${NODE_ENV}`);
       console.log(` Available endpoints:`);
+      console.log(`  - POST   /api/auth/register`);
+      console.log(`  - POST   /api/auth/login`);
       console.log(`  - GET    /api/problems`);
       console.log(`  - GET    /api/problems/:id`);
       console.log(`  - POST   /api/submissions`);
       console.log(`  - GET    /api/submissions/:submissionId`);
+      console.log(`  - GET    /api/admin/stats`);
       console.log(`  - GET    /api/admin/problems`);
       console.log(`  - POST   /api/admin/problems`);
       console.log(`  - PUT    /api/admin/problems/:id`);

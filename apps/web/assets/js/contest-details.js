@@ -5,16 +5,24 @@
 
 let currentContestId = null;
 let isTemporaryContest = false;
+let allowDevFallback = false;
 const TEMP_CONTEST_DETAILS = (window.CONTEST_MOCK_DATA && Array.isArray(window.CONTEST_MOCK_DATA.details))
     ? window.CONTEST_MOCK_DATA.details
     : [];
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const flags = await apiGetRuntimeFlags();
+    allowDevFallback = Boolean(flags && flags.success && flags.dev_demo_mode);
+
     const urlParams = new URLSearchParams(window.location.search);
     const idParam = urlParams.get('id');
 
     if (!idParam) {
-        renderContestUI(TEMP_CONTEST_DETAILS[0], true);
+        if (allowDevFallback && TEMP_CONTEST_DETAILS[0]) {
+            renderContestUI(TEMP_CONTEST_DETAILS[0], true);
+            return;
+        }
+        showErrorView();
         return;
     }
 
@@ -27,8 +35,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchAndRenderContest(currentContestId);
 
     const registerBtn = document.getElementById('registerBtn');
+    const leaderboardBtn = document.getElementById('leaderboardBtn');
     if (registerBtn) {
         registerBtn.addEventListener('click', handleRegistration);
+    }
+    if (leaderboardBtn && currentContestId) {
+        leaderboardBtn.href = `leaderboard.html?id=${currentContestId}`;
     }
 });
 
@@ -45,20 +57,24 @@ async function fetchAndRenderContest(id) {
         if (response.success && response.data) {
             renderContestUI(response.data, false);
         } else {
+            if (allowDevFallback) {
+                const tempContest = TEMP_CONTEST_DETAILS.find((contest) => contest.contest_id === id);
+                if (tempContest) {
+                    renderContestUI(tempContest, true);
+                    return;
+                }
+            }
+            showErrorView();
+        }
+    } catch (error) {
+        if (allowDevFallback) {
             const tempContest = TEMP_CONTEST_DETAILS.find((contest) => contest.contest_id === id);
             if (tempContest) {
                 renderContestUI(tempContest, true);
-            } else {
-                showErrorView();
+                return;
             }
         }
-    } catch (error) {
-        const tempContest = TEMP_CONTEST_DETAILS.find((contest) => contest.contest_id === id);
-        if (tempContest) {
-            renderContestUI(tempContest, true);
-        } else {
-            showErrorView();
-        }
+        showErrorView();
         console.error(error);
     }
 }
@@ -114,7 +130,7 @@ async function handleRegistration() {
     msg.hidden = true;
 
     try {
-        const token = localStorage.getItem('auth_token') || localStorage.getItem('token');
+        const token = localStorage.getItem('auth_token');
         if (!token) {
             msg.textContent = 'Vous devez etre connecte pour participer.';
             msg.style.color = '#d32f2f';

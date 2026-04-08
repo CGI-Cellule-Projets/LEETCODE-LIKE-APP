@@ -5,31 +5,8 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDB } from '../config/database';
-import { CreateSubmissionRequest, SubmissionResponse, SubmissionStatus } from '../types';
+import { CreateSubmissionRequest, SubmissionResponse } from '../types';
 import { AppError } from '../middleware/errorHandler';
-
-async function getOrCreateGuestUserId(): Promise<string> {
-  const db = getDB();
-  const guestUserId = '00000000-0000-0000-0000-000000000099';
-
-  const existingUser = await db.query(
-    'SELECT user_id FROM users WHERE username = $1',
-    ['guest']
-  );
-
-  if (existingUser.rows && existingUser.rows.length > 0) {
-    return existingUser.rows[0].user_id as string;
-  }
-
-  await db.query(
-    `INSERT INTO users (user_id, username, password, email, user_level, is_admin)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     ON CONFLICT (username) DO NOTHING`,
-    [guestUserId, 'guest', 'no-auth-mode', 'guest@local.dev', 'beginner', false]
-  );
-
-  return guestUserId;
-}
 
 /**
  * POST /api/submissions
@@ -88,6 +65,11 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
       throw new AppError(400, 'Invalid code body', 'Code body cannot be empty');
     }
 
+    const userId = req.user?.user_id;
+    if (!userId) {
+      throw new AppError(401, 'Authentication required', 'User not authenticated');
+    }
+
     const db = getDB();
 
     // Verify problem exists
@@ -113,7 +95,6 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
     // Create submission with initial status "Pending"
     const submissionId = uuidv4();
     const now = new Date().toISOString();
-    const userId = await getOrCreateGuestUserId();
 
     await db.query(`
       INSERT INTO submissions (submission_id, user_id, problem_id, language_id, code_body, status, submitted_at)
@@ -174,6 +155,12 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
 export async function getSubmission(req: Request, res: Response): Promise<void> {
   try {
     const { submissionId } = req.params;
+    const userId = req.user?.user_id;
+    const isAdmin = Boolean(req.user?.is_admin);
+
+    if (!userId) {
+      throw new AppError(401, 'Authentication required', 'User not authenticated');
+    }
 
     const db = getDB();
 
@@ -188,6 +175,10 @@ export async function getSubmission(req: Request, res: Response): Promise<void> 
     }
 
     const submission = result.rows[0] as any;
+
+    if (!isAdmin && submission.user_id !== userId) {
+      throw new AppError(403, 'Forbidden', 'You can only access your own submissions');
+    }
 
     res.status(200).json({
       success: true,

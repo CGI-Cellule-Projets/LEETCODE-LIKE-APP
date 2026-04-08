@@ -13,37 +13,26 @@ function escapeHtml(value) {
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    // Load all problems
-    const problemsResult = await apiAdminGetProblems();
-    
-    if (problemsResult.success && problemsResult.data) {
-      const totalProblems = problemsResult.data.length;
-      document.getElementById('totalProblems').textContent = totalProblems;
-      
-      // Calculate difficulty breakdown
-      const easyCount = problemsResult.data.filter(p => p.difficulty_level === 'easy').length;
-      const mediumCount = problemsResult.data.filter(p => p.difficulty_level === 'med').length;
-      const hardCount = problemsResult.data.filter(p => p.difficulty_level === 'hard').length;
-      
-      console.log(`Problems - Easy: ${easyCount}, Medium: ${mediumCount}, Hard: ${hardCount}`);
+    const statsResult = await apiAdminGetStats();
+    if (statsResult.success && statsResult.data) {
+      document.getElementById('totalProblems').textContent = String(statsResult.data.totalProblems ?? 0);
+      document.getElementById('totalUsers').textContent = String(statsResult.data.totalUsers ?? 0);
+      document.getElementById('totalSubmissions').textContent = String(statsResult.data.totalSubmissions ?? 0);
+      document.getElementById('systemStatus').textContent = String(statsResult.data.systemStatus ?? 'ONLINE');
     }
-    
-    // Simulate user count (you might want to add a dedicated endpoint for this)
-    document.getElementById('totalUsers').textContent = 'N/A';
-    
-    // Simulate submissions count (you might want to add a dedicated endpoint for this)
-    document.getElementById('totalSubmissions').textContent = 'N/A';
-    
-    // System status
-    const healthCheck = await apiHealthCheck();
-    const systemStatus = healthCheck.success ? 'ONLINE' : 'OFFLINE';
-    document.getElementById('systemStatus').textContent = systemStatus;
-    
+
     // Load recent activity
     loadRecentActivity();
-    
   } catch (error) {
     console.error('Error loading dashboard:', error);
+    document.getElementById('totalProblems').textContent = '-';
+    document.getElementById('totalUsers').textContent = '-';
+    document.getElementById('totalSubmissions').textContent = '-';
+    document.getElementById('systemStatus').textContent = 'OFFLINE';
+    const activityNode = document.getElementById('activityList');
+    if (activityNode) {
+      activityNode.innerHTML = '<p class="error-message">Acces admin refuse ou API indisponible.</p>';
+    }
   }
 });
 

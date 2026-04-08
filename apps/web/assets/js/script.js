@@ -23,9 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
 
     const hasAuthSession = () => {
-        const token = localStorage.getItem("auth_token")
-            || localStorage.getItem("token")
-            || localStorage.getItem("adminToken");
+        const token = localStorage.getItem("auth_token");
         const userInfo = readUserInfo();
         const hasUserInfo = Boolean(userInfo && (userInfo.email || userInfo.username || userInfo.role || userInfo.is_admin));
         return Boolean(token || hasUserInfo);
@@ -115,8 +113,6 @@ document.addEventListener("DOMContentLoaded", () => {
             button.addEventListener("click", (event) => {
                 event.preventDefault();
                 localStorage.removeItem("auth_token");
-                localStorage.removeItem("token");
-                localStorage.removeItem("adminToken");
                 localStorage.removeItem("user_info");
                 syncHomeAuthButtons();
                 syncAuthVisibility();
@@ -829,7 +825,6 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Save token and user details optionally
                     if (result.data && result.data.token) {
                         localStorage.setItem('auth_token', result.data.token);
-                        localStorage.setItem('token', result.data.token);
                         localStorage.setItem('user_info', JSON.stringify(result.data.user));
                     }
                     

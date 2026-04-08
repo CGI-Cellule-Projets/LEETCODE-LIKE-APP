@@ -109,6 +109,39 @@ export async function getAllProblemsAdmin(req: Request, res: Response): Promise<
 }
 
 /**
+ * GET /api/admin/stats
+ * Returns dashboard counters for admin monitoring.
+ */
+export async function getAdminStats(req: Request, res: Response): Promise<void> {
+  try {
+    const db = getDB();
+
+    const [problemsResult, usersResult, submissionsResult] = await Promise.all([
+      db.query('SELECT COUNT(*)::int AS total FROM problems'),
+      db.query('SELECT COUNT(*)::int AS total FROM users'),
+      db.query('SELECT COUNT(*)::int AS total FROM submissions'),
+    ]);
+
+    res.status(200).json({
+      success: true,
+      message: 'Admin stats retrieved successfully',
+      data: {
+        totalProblems: Number(problemsResult.rows?.[0]?.total || 0),
+        totalUsers: Number(usersResult.rows?.[0]?.total || 0),
+        totalSubmissions: Number(submissionsResult.rows?.[0]?.total || 0),
+        systemStatus: 'ONLINE',
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve admin stats',
+      errors: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+}
+
+/**
  * GET /api/admin/problems/:id
  * Returns a problem with all of its test cases for admin editing
  */

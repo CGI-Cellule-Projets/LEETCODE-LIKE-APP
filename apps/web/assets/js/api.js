@@ -40,7 +40,7 @@ function resolveApiBaseUrl() {
 const API_BASE_URL = resolveApiBaseUrl();
 
 function getStoredAuthToken() {
-  return localStorage.getItem('auth_token') || localStorage.getItem('token');
+  return localStorage.getItem('auth_token');
 }
 
 // ============== Auth Endpoints ==============
@@ -64,6 +64,27 @@ async function apiRegister(username, email, password) {
     return data;
   } catch (error) {
     return { success: false, message: 'Registration failed', errors: error.message };
+  }
+}
+
+/**
+ * Login an existing user
+ * @param {string} email
+ * @param {string} password
+ */
+async function apiLogin(email, password) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return { success: false, message: 'Login failed', errors: error.message };
   }
 }
 
@@ -109,9 +130,7 @@ async function apiCreateSubmission(problemId, languageId, codeBody) {
   try {
     const response = await fetch(`${API_BASE_URL}/submissions`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
       body: JSON.stringify({ problem_id: problemId, language_id: languageId, code_body: codeBody }),
     });
     const data = await response.json();
@@ -128,9 +147,7 @@ async function apiGetSubmission(submissionId) {
   try {
     const response = await fetch(`${API_BASE_URL}/submissions/${submissionId}`, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: getAuthHeaders(),
     });
     const data = await response.json();
     return data;
@@ -306,11 +323,23 @@ async function apiAdminAddTestCase(problemId, inputData, expectedOutput, isHidde
 // ============== Admin Contest Endpoints ==============
 
 function getAdminAuthHeaders() {
-  const token = localStorage.getItem('adminToken');
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-  };
+  return getAuthHeaders();
+}
+
+/**
+ * Get admin dashboard stats
+ */
+async function apiAdminGetStats() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/stats`, {
+      method: 'GET',
+      headers: getAdminAuthHeaders(),
+    });
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    return { success: false, message: 'Failed to fetch admin stats', errors: error.message };
+  }
 }
 
 /**
@@ -428,4 +457,20 @@ async function apiHealthCheck() {
   } catch (error) {
     return { success: false, message: 'API is not running', errors: error.message };
   }
+}
+
+/**
+ * Runtime flags helper for frontend gating (dev-demo fallbacks, etc.)
+ */
+async function apiGetRuntimeFlags() {
+  const health = await apiHealthCheck();
+  if (!health.success) {
+    return { success: false, dev_demo_mode: false, allow_local_admin_bypass: false };
+  }
+
+  return {
+    success: true,
+    dev_demo_mode: Boolean(health.data && health.data.dev_demo_mode),
+    allow_local_admin_bypass: Boolean(health.data && health.data.allow_local_admin_bypass),
+  };
 }

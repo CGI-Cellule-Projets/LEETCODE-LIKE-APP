@@ -4,10 +4,11 @@
  */
 import { Router } from 'express';
 import { createSubmission, getSubmission } from '../controllers/submissionController';
+import { requireAuth } from '../middleware/authMiddleware';
 
 const router = Router();
 
-router.post('/', createSubmission);
-router.get('/:submissionId', getSubmission);
+router.post('/', requireAuth, createSubmission);
+router.get('/:submissionId', requireAuth, getSubmission);
 
 export default router;

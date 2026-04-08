@@ -50,8 +50,8 @@
                     <div class="form-group">
                         <label for="password">Mot de passe</label>
                         <input type="password" id="password" name="password" placeholder="Entrez votre mot de passe" autocomplete="current-password" required>
-                        <p class="auth-helper">Admin temp: <code>admin.temp@algoforge.dev</code> / <code>AdminTemp#2026</code></p>
-                        <p class="auth-helper">User temp: <code>user.temp@algoforge.dev</code> / <code>UserTemp#2026</code></p>
+                        <p class="auth-helper" id="devDemoAdminHint" hidden>Admin temp: <code>admin.temp@algoforge.dev</code> / <code>AdminTemp#2026</code></p>
+                        <p class="auth-helper" id="devDemoUserHint" hidden>User temp: <code>user.temp@algoforge.dev</code> / <code>UserTemp#2026</code></p>
                     </div>
 
                     <button type="submit" id="loginButton" class="btn btn-primary auth-btn">Se connecter</button>
@@ -148,10 +148,14 @@
         const registerEmailInput = document.getElementById("registerEmail");
         const registerPasswordInput = document.getElementById("registerPassword");
         const registerConfirmPasswordInput = document.getElementById("registerConfirmPassword");
+        const devDemoAdminHint = document.getElementById("devDemoAdminHint");
+        const devDemoUserHint = document.getElementById("devDemoUserHint");
+
         const TEMP_ADMIN_EMAIL = "admin.temp@algoforge.dev";
         const TEMP_ADMIN_PASSWORD = "AdminTemp#2026";
         const TEMP_USER_EMAIL = "user.temp@algoforge.dev";
         const TEMP_USER_PASSWORD = "UserTemp#2026";
+        let devDemoModeEnabled = false;
 
         function setActiveMode(mode) {
             const isLoginMode = mode === "login";
@@ -178,18 +182,70 @@
             node.classList.remove("error-message");
         }
 
-        function createUserSession(username, email) {
-            const userSession = {
-                username,
-                email,
-                level: "beginner",
-                is_admin: false,
-                role: "user"
+        function writeSession(token, user) {
+            const normalizedUser = {
+                id: user.id || user.user_id || null,
+                user_id: user.user_id || user.id || null,
+                username: user.username || "",
+                email: user.email || "",
+                level: user.level || "beginner",
+                role: user.role || (user.is_admin ? "admin" : "user"),
+                is_admin: Boolean(user.is_admin)
             };
-            localStorage.removeItem("adminToken");
-            localStorage.setItem("auth_token", "demo-user-token");
-            localStorage.setItem("token", "demo-user-token");
-            localStorage.setItem("user_info", JSON.stringify(userSession));
+
+            if (typeof token === "string" && token.trim()) {
+                localStorage.setItem("auth_token", token);
+            } else {
+                localStorage.removeItem("auth_token");
+            }
+
+            localStorage.setItem("user_info", JSON.stringify(normalizedUser));
+        }
+
+        function tryDevDemoLogin(email, password) {
+            if (!devDemoModeEnabled) {
+                return { success: false, message: "Mode demo local desactive." };
+            }
+
+            const normalizedEmail = String(email || "").trim().toLowerCase();
+            const isAdminLogin = normalizedEmail === TEMP_ADMIN_EMAIL && password === TEMP_ADMIN_PASSWORD;
+            const isUserLogin = normalizedEmail === TEMP_USER_EMAIL && password === TEMP_USER_PASSWORD;
+
+            if (!isAdminLogin && !isUserLogin) {
+                return { success: false, message: "Identifiants invalides." };
+            }
+
+            if (isAdminLogin) {
+                writeSession(null, {
+                    username: "Temporary Admin",
+                    email: TEMP_ADMIN_EMAIL,
+                    level: "admin",
+                    role: "admin",
+                    is_admin: true
+                });
+                return { success: true, redirect: "../../admin/dashboard.html" };
+            }
+
+            writeSession("dev-demo-token", {
+                username: "Temporary User",
+                email: TEMP_USER_EMAIL,
+                level: "beginner",
+                role: "user",
+                is_admin: false
+            });
+            return { success: true, redirect: "problems.html" };
+        }
+
+        async function hydrateRuntimeFlags() {
+            if (typeof apiGetRuntimeFlags !== "function") {
+                devDemoModeEnabled = false;
+            } else {
+                const flags = await apiGetRuntimeFlags();
+                devDemoModeEnabled = Boolean(flags && flags.success && flags.dev_demo_mode);
+            }
+
+            if (devDemoAdminHint) devDemoAdminHint.hidden = !devDemoModeEnabled;
+            if (devDemoUserHint) devDemoUserHint.hidden = !devDemoModeEnabled;
         }
 
         loginTabBtn.addEventListener("click", function () {
@@ -214,7 +270,7 @@
 
         setActiveMode("login");
 
-        loginForm.addEventListener("submit", function (event) {
+        loginForm.addEventListener("submit", async function (event) {
             event.preventDefault();
             clearMessage(loginMessage);
 
@@ -226,45 +282,40 @@
                 return;
             }
 
-            const isAdminLogin = email.toLowerCase() === TEMP_ADMIN_EMAIL && password === TEMP_ADMIN_PASSWORD;
-            const isUserLogin = email.toLowerCase() === TEMP_USER_EMAIL && password === TEMP_USER_PASSWORD;
-
-            if (!isAdminLogin && !isUserLogin) {
-                showMessage(loginMessage, "Identifiants invalides. Utilisez un compte temporaire affiche sous le mot de passe.");
-                passwordInput.value = "";
-                passwordInput.focus();
-                return;
-            }
-
             loginButton.disabled = true;
             loginButton.textContent = "Connexion...";
 
-            if (isAdminLogin) {
-                const adminSession = {
-                    username: "Temporary Admin",
-                    email: TEMP_ADMIN_EMAIL,
-                    level: "admin",
-                    is_admin: true,
-                    role: "admin"
-                };
+            try {
+                const apiResult = await apiLogin(email, password);
+                if (apiResult && apiResult.success && apiResult.data) {
+                    writeSession(apiResult.data.token, apiResult.data.user || {});
+                    const user = apiResult.data.user || {};
+                    const isAdmin = user.is_admin === true || user.role === "admin" || user.level === "admin";
+                    window.location.href = isAdmin ? "../../admin/dashboard.html" : "problems.html";
+                    return;
+                }
 
-                // Keep admin endpoints using local bypass: do not persist fake auth tokens.
-                localStorage.removeItem("adminToken");
-                localStorage.removeItem("auth_token");
-                localStorage.removeItem("token");
-                localStorage.setItem("user_info", JSON.stringify(adminSession));
+                const fallback = tryDevDemoLogin(email, password);
+                if (fallback.success) {
+                    window.location.href = fallback.redirect;
+                    return;
+                }
 
-                window.setTimeout(function () {
-                    window.location.href = "../../admin/dashboard.html";
-                }, 220);
-                return;
+                const apiError = apiResult && (apiResult.message || apiResult.errors);
+                showMessage(loginMessage, String(apiError || "Identifiants invalides."));
+                passwordInput.value = "";
+                passwordInput.focus();
+            } catch (error) {
+                const fallback = tryDevDemoLogin(email, password);
+                if (fallback.success) {
+                    window.location.href = fallback.redirect;
+                    return;
+                }
+                showMessage(loginMessage, "Impossible de contacter le serveur de connexion.");
+            } finally {
+                loginButton.disabled = false;
+                loginButton.textContent = "Se connecter";
             }
-
-            createUserSession("Temporary User", TEMP_USER_EMAIL);
-
-            window.setTimeout(function () {
-                window.location.href = "problems.html";
-            }, 220);
         });
 
         registerForm.addEventListener("submit", async function (event) {
@@ -295,34 +346,55 @@
             registerButton.textContent = "Creation...";
 
             try {
-                if (typeof apiRegister === "function") {
-                    const result = await apiRegister(username, email, password);
-                    if (result && result.success) {
-                        const apiUser = (result.data && result.data.user) || {};
-                        const resolvedUsername = apiUser.username || username;
-                        const resolvedEmail = apiUser.email || email;
-                        createUserSession(resolvedUsername, resolvedEmail);
-                        showMessage(registerMessage, "Compte cree. Redirection...", "success");
-                        window.setTimeout(function () {
-                            window.location.href = "problems.html";
-                        }, 320);
-                        return;
-                    }
+                const result = await apiRegister(username, email, password);
+                if (result && result.success && result.data) {
+                    writeSession(result.data.token, result.data.user || { username, email });
+                    showMessage(registerMessage, "Compte cree. Redirection...", "success");
+                    window.setTimeout(function () {
+                        window.location.href = "problems.html";
+                    }, 320);
+                    return;
                 }
 
-                // Fallback local mode when API registration is unavailable.
-                createUserSession(username, email);
-                showMessage(registerMessage, "Compte cree en mode local. Redirection...", "success");
-                window.setTimeout(function () {
-                    window.location.href = "problems.html";
-                }, 320);
+                if (devDemoModeEnabled) {
+                    writeSession("dev-demo-token", {
+                        username,
+                        email,
+                        level: "beginner",
+                        role: "user",
+                        is_admin: false
+                    });
+                    showMessage(registerMessage, "Compte cree en mode demo local. Redirection...", "success");
+                    window.setTimeout(function () {
+                        window.location.href = "problems.html";
+                    }, 320);
+                    return;
+                }
+
+                showMessage(registerMessage, String((result && (result.message || result.errors)) || "Impossible de creer le compte."));
             } catch (error) {
+                if (devDemoModeEnabled) {
+                    writeSession("dev-demo-token", {
+                        username,
+                        email,
+                        level: "beginner",
+                        role: "user",
+                        is_admin: false
+                    });
+                    showMessage(registerMessage, "Compte cree en mode demo local. Redirection...", "success");
+                    window.setTimeout(function () {
+                        window.location.href = "problems.html";
+                    }, 320);
+                    return;
+                }
                 showMessage(registerMessage, "Impossible de creer le compte pour le moment.");
             } finally {
                 registerButton.disabled = false;
                 registerButton.textContent = "Creer un compte";
             }
         });
+
+        hydrateRuntimeFlags();
     </script>
 </body>
 

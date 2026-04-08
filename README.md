@@ -96,6 +96,11 @@ cp .env.example .env
 # Éditez .env avec vos identifiants PostgreSQL
 ```
 
+Variables importantes dans `.env` :
+- `DEV_DEMO_MODE=false` (par défaut) : désactive les fallbacks front (mock contests / login local temporaire).
+- `ALLOW_LOCAL_ADMIN_BYPASS=false` (par défaut) : exige un vrai token admin même en local.
+- `DISABLE_DEFAULT_ADMIN=false` (par défaut) : crée `admin@dev.local / admin123` au premier démarrage.
+
 **Étape 4** — Importer le schéma BDD :
 ```bash
 psql -U postgres -d coding_platform -f ../database/coding_platform_db.sql
@@ -121,9 +126,21 @@ Lors du premier démarrage de l'API en mode développement, un utilisateur admin
 
 **Accès :**
 1. Aller à `http://localhost:3000/admin/dashboard.html`
-2. Le mode local fonctionne actuellement sans authentification
+2. Se connecter avec `admin@dev.local / admin123` (ou un admin créé manuellement)
 
 >  Ces identifiants ne sont que pour le développement. En production, créer des utilisateurs avec des mots de passe forts.
+
+### Modes de démo
+
+#### 1) `demo-real` (recommandé)
+- `DEV_DEMO_MODE=false`
+- `ALLOW_LOCAL_ADMIN_BYPASS=false`
+- Tout passe par la vraie API (auth, concours, soumissions, admin stats).
+
+#### 2) `dev-demo` (fallback local)
+- `DEV_DEMO_MODE=true`
+- Optionnel : `ALLOW_LOCAL_ADMIN_BYPASS=true` pour tests admin locaux.
+- Active les fallbacks UI temporaires uniquement pour développement local.
 
 ### Architecture REST API
 
@@ -138,10 +155,13 @@ Lors du premier démarrage de l'API en mode développement, un utilisateur admin
 │              REST API (Node.js + Express)                   │
 ├─────────────────────────────────────────────────────────────┤
 │  Routes:                                                     │
+│  • POST   /api/auth/register      (Créer utilisateur)       │
+│  • POST   /api/auth/login         (Connexion utilisateur)    │
 │  • GET    /api/problems            (Liste des problèmes)    │
 │  • GET    /api/problems/:id        (Détails du problème)    │
-│  • POST   /api/submissions         (Soumettre du code)      │
+│  • POST   /api/submissions         (Soumettre du code, auth)│
 │  • GET    /api/submissions/:id     (Récupérer soumission)   │
+│  • GET    /api/admin/stats         (Stats dashboard admin)  │
 │  • POST   /api/admin/problems      (Créer problème - admin) │
 │  • PUT    /api/admin/problems/:id  (Modifier problème)      │
 │  • DELETE /api/admin/problems/:id  (Supprimer problème)     │
@@ -166,6 +186,13 @@ Lors du premier démarrage de l'API en mode développement, un utilisateur admin
 | **Soumissions** | Tracker le code soumis par les utilisateurs |
 | **Autorisation** | Contrôles d'accès désactivés temporairement en local |
 | **Sécurité** | Validation et prévention SQL injection |
+
+### Checklist démo (acceptance)
+1. Register -> login -> accès à `problems.html` avec session persistée.
+2. Login admin -> dashboard avec compteurs réels (`Problems`, `Users`, `Submissions`).
+3. Contest list/details chargés depuis API (sans mock si `DEV_DEMO_MODE=false`).
+4. Inscription concours refusée sans token, acceptée avec utilisateur connecté.
+5. Soumission code refusée sans token, acceptée avec token valide.
 
 ---
 

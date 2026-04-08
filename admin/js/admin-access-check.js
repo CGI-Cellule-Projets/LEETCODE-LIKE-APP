@@ -4,7 +4,7 @@
  * Redirects unauthorized users to centralized login page
  */
 
-function checkAdminAccess() {
+async function checkAdminAccess() {
   const isLocalFile = window.location.protocol === 'file:';
   const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
@@ -14,8 +14,19 @@ function checkAdminAccess() {
     return false;
   }
 
+  const runtimeFlags = typeof apiGetRuntimeFlags === 'function'
+    ? await apiGetRuntimeFlags()
+    : { success: false, allow_local_admin_bypass: false };
+  const allowLocalBypass = Boolean(runtimeFlags.success && runtimeFlags.allow_local_admin_bypass);
+
   console.log('Admin access limited to the local machine in development mode.');
-  const token = localStorage.getItem('adminToken') || localStorage.getItem('token') || localStorage.getItem('auth_token');
+  const token = localStorage.getItem('auth_token');
+  if (!token && !allowLocalBypass) {
+    alert('Admin token required. Please sign in with an admin account.');
+    window.location.href = '../apps/web/login.html';
+    return false;
+  }
+
   let adminLabel = token ? 'Authenticated Admin' : 'Local Admin';
 
   try {
@@ -48,9 +59,7 @@ function checkAdminAccess() {
   logoutBtns.forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
-      localStorage.removeItem('adminToken');
       localStorage.removeItem('auth_token');
-      localStorage.removeItem('token');
       localStorage.removeItem('user_info');
       window.location.replace('../apps/web/index.html');
     });

@@ -67,7 +67,7 @@ export const requireAdminAccess = (req: Request, res: Response, next: NextFuncti
   }
 
   const localBypassEnabled = process.env.NODE_ENV !== 'production'
-    && process.env.ALLOW_LOCAL_ADMIN_BYPASS !== 'false';
+    && process.env.ALLOW_LOCAL_ADMIN_BYPASS === 'true';
 
   if (localBypassEnabled && isLocalRequest(req)) {
     req.user = {

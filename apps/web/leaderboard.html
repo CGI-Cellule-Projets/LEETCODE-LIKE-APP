@@ -4,11 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AlgoForge | Details du Concours (BETA)</title>
-    <meta name="description" content="Apercu des defis algorithmiques du concours.">
+    <title>AlgoForge | Leaderboard</title>
+    <meta name="description" content="Classement en direct du concours avec timer de fin de session.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="assets/css/styles.css">
 </head>
 
@@ -17,7 +19,6 @@
     <div class="site-glow glow-a"></div>
     <div class="site-glow glow-b"></div>
 
-    <!-- ================= NAVBAR ================= -->
     <header class="topbar">
         <div class="container topbar-inner">
             <a class="brand" href="index.html"><span>Algo</span>Forge</a>
@@ -51,53 +52,46 @@
     <main id="main-content">
         <section class="section contest-header">
             <div class="container">
-                <a href="contest.html" class="contest-back-link">
-                    &larr; Retour aux concours
-                </a>
+                <a id="backToContestLink" href="contest.html" class="contest-back-link">&larr; Retour au concours</a>
 
-                <div id="loadingView" class="contest-loading">
-                    <div class="loading-placeholder">Chargement des details du concours...</div>
+                <div id="leaderboardLoading" class="contest-loading">
+                    <div class="loading-placeholder">Chargement du classement...</div>
                 </div>
 
-                <div id="contestDataView" hidden>
-                    <div class="panel contest-details-card">
-                        <h1 id="cTitle">Titre du Concours</h1>
-                        <p id="cDesc" class="lead">Description lorem ipsum dolor</p>
-
+                <div id="leaderboardView" hidden>
+                    <article class="panel contest-details-card">
+                        <h1 id="leaderboardTitle">Leaderboard du concours</h1>
+                        <p id="leaderboardSubtitle" class="lead">Classement actualise automatiquement.</p>
                         <div class="contest-details-meta">
                             <p>
-                                <strong>Debut:</strong> <span id="cStart"></span><br>
-                                <strong>Fin:</strong> <span id="cEnd"></span>
+                                <strong>Debut:</strong> <span id="lbStart"></span><br>
+                                <strong>Fin:</strong> <span id="lbEnd"></span>
                             </p>
                         </div>
-
                         <div class="contest-register">
-                            <button id="registerBtn" class="btn btn-primary">S'inscrire au Concours</button>
-                            <a id="leaderboardBtn" class="btn btn-ghost" href="#">Voir Leaderboard</a>
-                            <p id="registerMsg" class="contest-register-msg"></p>
+                            <div class="btn btn-ghost" id="timerBadge" aria-live="polite">Timer: --:--:--</div>
                         </div>
-                    </div>
+                    </article>
 
-                    <h2 class="mb-4">Defis Associes</h2>
+                    <h2 class="mb-4">Classement</h2>
                     <div class="panel contest-table-shell">
                         <table class="contest-problems-table">
                             <thead>
                                 <tr>
-                                    <th>ID</th>
-                                    <th>Nom du Probleme</th>
-                                    <th>Points</th>
-                                    <th>Difficulte</th>
+                                    <th>Rank</th>
+                                    <th>Utilisateur</th>
+                                    <th>Score total</th>
+                                    <th>Temps de resolution</th>
                                 </tr>
                             </thead>
-                            <tbody id="problemsTbody">
-                            </tbody>
+                            <tbody id="leaderboardTbody"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <div id="errorView" class="contest-error" hidden>
-                    <h2>Concours Introuvable</h2>
-                    <p>L'ID fourni est invalide ou le concours n'existe pas.</p>
+                <div id="leaderboardError" class="contest-error" hidden>
+                    <h2>Classement indisponible</h2>
+                    <p>Impossible de charger ce leaderboard pour le moment.</p>
                 </div>
             </div>
         </section>
@@ -113,7 +107,7 @@
     <script src="assets/js/api.js"></script>
     <script src="assets/js/contest-mock-data.js"></script>
     <script src="assets/js/script.js"></script>
-    <script src="assets/js/contest-details.js"></script>
+    <script src="assets/js/leaderboard.js"></script>
 </body>
 
 </html>
