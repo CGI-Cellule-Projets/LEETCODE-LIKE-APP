@@ -22,13 +22,13 @@
         <div class="container admin-topbar-inner">
             <a class="brand" href="dashboard.html"><span>Algo</span>Forge <span class="badge">Admin</span></a>
             <nav class="admin-nav">
-                <a class="admin-nav-link" href="problems.html">Problèmes</a>
+                <a class="admin-nav-link" href="problems.html">Problemes</a>
                 <a class="admin-nav-link" href="contests.html">Concours</a>
                 <a class="admin-nav-link active" href="users.html">Utilisateurs</a>
             </nav>
             <div class="admin-actions">
                 <a id="userSpaceBtn" class="btn btn-ghost" href="../apps/web/parameters.html">Parametres</a>
-                <button id="logoutBtn" class="btn btn-ghost btn-sm">Déconnexion</button>
+                <button id="logoutBtn" class="btn btn-ghost btn-sm">Deconnexion</button>
             </div>
         </div>
     </header>
@@ -39,7 +39,7 @@
                 <div>
                     <p class="eyebrow">User Management</p>
                     <h1>Gestion des Utilisateurs</h1>
-                    <p>Liste de démonstration des comptes utilisateurs de la plateforme.</p>
+                    <p>Liste des comptes disponibles dans la base de donnees.</p>
                 </div>
             </div>
 
@@ -48,7 +48,7 @@
                     <div class="stat-icon">ALL</div>
                     <div class="stat-content">
                         <h3>Total utilisateurs</h3>
-                        <p class="stat-number">8</p>
+                        <p class="stat-number" id="usersTotal">0</p>
                         <p class="stat-note">Comptes inscrits</p>
                     </div>
                 </div>
@@ -57,8 +57,8 @@
                     <div class="stat-icon">ADM</div>
                     <div class="stat-content">
                         <h3>Admins</h3>
-                        <p class="stat-number">2</p>
-                        <p class="stat-note">Accès d'administration</p>
+                        <p class="stat-number" id="usersAdmins">0</p>
+                        <p class="stat-note">Acces d'administration</p>
                     </div>
                 </div>
 
@@ -66,8 +66,8 @@
                     <div class="stat-icon">ON</div>
                     <div class="stat-content">
                         <h3>Actifs 24h</h3>
-                        <p class="stat-number">5</p>
-                        <p class="stat-note">Connectés récemment</p>
+                        <p class="stat-number" id="usersActive24h">0</p>
+                        <p class="stat-note">Actifs recents</p>
                     </div>
                 </div>
 
@@ -75,17 +75,19 @@
                     <div class="stat-icon">OFF</div>
                     <div class="stat-content">
                         <h3>Suspendus</h3>
-                        <p class="stat-number">1</p>
-                        <p class="stat-note">Accès bloqué</p>
+                        <p class="stat-number" id="usersSuspended">0</p>
+                        <p class="stat-note">Comptes bloques</p>
                     </div>
                 </div>
             </div>
 
             <div class="problems-list-section">
                 <div class="list-controls panel">
-                    <input type="text" class="search-input" value="Demo users" readonly>
-                    <select class="filter-select" disabled>
-                        <option>Tous les rôles</option>
+                    <input type="text" id="userSearch" class="search-input" placeholder="Rechercher un utilisateur...">
+                    <select id="roleFilter" class="filter-select">
+                        <option value="">Tous les roles</option>
+                        <option value="admin">Admins</option>
+                        <option value="user">Users</option>
                     </select>
                 </div>
 
@@ -95,76 +97,15 @@
                             <tr>
                                 <th>Utilisateur</th>
                                 <th>Email</th>
-                                <th>Rôle</th>
+                                <th>Role</th>
+                                <th>Niveau</th>
                                 <th>Soumissions</th>
-                                <th>Statut</th>
-                                <th>Dernière activité</th>
+                                <th>Derniere activite</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="usersTableBody">
                             <tr>
-                                <td class="problem-name">Yasmine Belaid</td>
-                                <td>yasmine@algoforge.dev</td>
-                                <td>Admin</td>
-                                <td>412</td>
-                                <td><span class="status-pill active">Actif</span></td>
-                                <td class="contest-date">2026-04-05 09:13</td>
-                            </tr>
-                            <tr>
-                                <td class="problem-name">Nassim Zerrouki</td>
-                                <td>nassim@algoforge.dev</td>
-                                <td>Admin</td>
-                                <td>387</td>
-                                <td><span class="status-pill active">Actif</span></td>
-                                <td class="contest-date">2026-04-05 08:48</td>
-                            </tr>
-                            <tr>
-                                <td class="problem-name">Lina Chraibi</td>
-                                <td>lina.c@algoforge.dev</td>
-                                <td>User</td>
-                                <td>221</td>
-                                <td><span class="status-pill active">Actif</span></td>
-                                <td class="contest-date">2026-04-04 22:02</td>
-                            </tr>
-                            <tr>
-                                <td class="problem-name">Omar Haddad</td>
-                                <td>omar.h@algoforge.dev</td>
-                                <td>User</td>
-                                <td>176</td>
-                                <td><span class="status-pill upcoming">Inactif</span></td>
-                                <td class="contest-date">2026-04-03 17:40</td>
-                            </tr>
-                            <tr>
-                                <td class="problem-name">Meriem Zahra</td>
-                                <td>meriem.z@algoforge.dev</td>
-                                <td>User</td>
-                                <td>94</td>
-                                <td><span class="status-pill active">Actif</span></td>
-                                <td class="contest-date">2026-04-05 07:56</td>
-                            </tr>
-                            <tr>
-                                <td class="problem-name">Amine Salah</td>
-                                <td>amine.s@algoforge.dev</td>
-                                <td>User</td>
-                                <td>68</td>
-                                <td><span class="status-pill past">Suspendu</span></td>
-                                <td class="contest-date">2026-03-28 11:19</td>
-                            </tr>
-                            <tr>
-                                <td class="problem-name">Sofia Rahmani</td>
-                                <td>sofia.r@algoforge.dev</td>
-                                <td>User</td>
-                                <td>243</td>
-                                <td><span class="status-pill active">Actif</span></td>
-                                <td class="contest-date">2026-04-05 10:01</td>
-                            </tr>
-                            <tr>
-                                <td class="problem-name">Riad Bouchareb</td>
-                                <td>riad.b@algoforge.dev</td>
-                                <td>User</td>
-                                <td>35</td>
-                                <td><span class="status-pill upcoming">Inactif</span></td>
-                                <td class="contest-date">2026-04-01 14:27</td>
+                                <td colspan="6" class="loading-placeholder">Chargement des utilisateurs...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -175,7 +116,7 @@
 
     <script src="../apps/web/assets/js/api.js"></script>
     <script src="js/admin-access-check.js"></script>
+    <script src="js/admin-users.js"></script>
 </body>
 
 </html>
-

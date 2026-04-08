@@ -193,3 +193,126 @@ export async function registerForContest(req: Request, res: Response): Promise<v
     }
   }
 }
+
+function formatSecondsToMMSS(totalSeconds: number | null): string {
+  if (!Number.isFinite(totalSeconds as number) || totalSeconds === null) {
+    return '--';
+  }
+
+  const safe = Math.max(0, Math.floor(totalSeconds));
+  const minutes = String(Math.floor(safe / 60)).padStart(2, '0');
+  const seconds = String(safe % 60).padStart(2, '0');
+  return `${minutes}:${seconds}`;
+}
+
+/**
+ * GET /api/contests/:id/leaderboard
+ * Returns database-backed leaderboard entries for a contest.
+ */
+export async function getContestLeaderboard(req: Request, res: Response): Promise<void> {
+  try {
+    const { id } = req.params;
+    const contestId = parseInt(id, 10);
+
+    if (isNaN(contestId)) {
+      throw new AppError(400, 'Invalid contest ID', 'Contest ID must be a valid number');
+    }
+
+    const db = getDB();
+
+    const contestResult = await db.query(
+      'SELECT contest_id, start_time, end_time FROM contests WHERE contest_id = $1',
+      [contestId]
+    );
+
+    if (!contestResult.rows || contestResult.rows.length === 0) {
+      throw new AppError(404, 'Contest not found', `Contest with ID ${contestId} does not exist`);
+    }
+
+    const rawEntries = await db.query(`
+      WITH contest_window AS (
+        SELECT contest_id, start_time, end_time
+        FROM contests
+        WHERE contest_id = $1
+      ),
+      contest_problem_set AS (
+        SELECT cp.problem_id, cp.points
+        FROM contest_problems cp
+        WHERE cp.contest_id = $1
+      ),
+      accepted AS (
+        SELECT
+          s.user_id,
+          s.problem_id,
+          MIN(s.submitted_at) AS first_accepted_at
+        FROM submissions s
+        JOIN contest_problem_set cps ON cps.problem_id = s.problem_id
+        JOIN contest_window cw ON s.submitted_at BETWEEN cw.start_time AND cw.end_time
+        WHERE s.status = 'Accepted'
+        GROUP BY s.user_id, s.problem_id
+      ),
+      scored AS (
+        SELECT
+          a.user_id,
+          SUM(cps.points)::int AS score_total,
+          MAX(a.first_accepted_at) AS last_solve_at
+        FROM accepted a
+        JOIN contest_problem_set cps ON cps.problem_id = a.problem_id
+        GROUP BY a.user_id
+      ),
+      participants AS (
+        SELECT DISTINCT cr.user_id
+        FROM contest_registrations cr
+        WHERE cr.contest_id = $1
+        UNION
+        SELECT DISTINCT a.user_id
+        FROM accepted a
+      )
+      SELECT
+        u.user_id,
+        u.username,
+        COALESCE(sc.score_total, 0)::int AS score_total,
+        CASE
+          WHEN sc.last_solve_at IS NULL THEN NULL
+          ELSE EXTRACT(EPOCH FROM (sc.last_solve_at - cw.start_time))::int
+        END AS solve_seconds
+      FROM participants p
+      JOIN users u ON u.user_id = p.user_id
+      JOIN contest_window cw ON TRUE
+      LEFT JOIN scored sc ON sc.user_id = p.user_id
+      ORDER BY score_total DESC, solve_seconds ASC NULLS LAST, u.username ASC
+    `, [contestId]);
+
+    const entries = (rawEntries.rows || []).map((row: any, index: number) => ({
+      user_id: row.user_id,
+      username: row.username,
+      rank: index + 1,
+      score_total: Number(row.score_total || 0),
+      solve_seconds: row.solve_seconds === null ? null : Number(row.solve_seconds),
+      temps_de_resolution: formatSecondsToMMSS(
+        row.solve_seconds === null ? null : Number(row.solve_seconds),
+      ),
+    }));
+
+    res.status(200).json({
+      success: true,
+      message: 'Contest leaderboard retrieved successfully',
+      data: entries,
+    });
+  } catch (error) {
+    if (error instanceof AppError) {
+      res.status(error.statusCode).json({
+        success: false,
+        message: error.message,
+        errors: error.details,
+      });
+      return;
+    }
+
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve contest leaderboard',
+      errors: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+}

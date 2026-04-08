@@ -327,6 +327,20 @@ function getAdminAuthHeaders() {
 }
 
 /**
+ * Get contest leaderboard entries
+ */
+async function apiGetContestLeaderboard(contestId) {
+  try {
+    const response = await fetch(`${API_BASE_URL}/contests/${contestId}/leaderboard`, {
+      method: 'GET',
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Failed to fetch leaderboard', errors: error.message };
+  }
+}
+
+/**
  * Get admin dashboard stats
  */
 async function apiAdminGetStats() {
@@ -339,6 +353,21 @@ async function apiAdminGetStats() {
     return data;
   } catch (error) {
     return { success: false, message: 'Failed to fetch admin stats', errors: error.message };
+  }
+}
+
+/**
+ * Get admin users list and metrics
+ */
+async function apiAdminGetUsers() {
+  try {
+    const response = await fetch(`${API_BASE_URL}/admin/users`, {
+      method: 'GET',
+      headers: getAdminAuthHeaders(),
+    });
+    return await response.json();
+  } catch (error) {
+    return { success: false, message: 'Failed to fetch users', errors: error.message };
   }
 }
 

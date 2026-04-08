@@ -6,6 +6,7 @@ import { Router } from 'express';
 import {
   getAllProblemsAdmin,
   getAdminStats,
+  getAdminUsers,
   getProblemByIdAdmin,
   createProblem,
   updateProblem,
@@ -23,6 +24,7 @@ router.use(requireAdminAccess);
 
 // Problem Management
 router.get('/stats', getAdminStats);
+router.get('/users', getAdminUsers);
 router.get('/problems', getAllProblemsAdmin);
 router.get('/problems/:id', getProblemByIdAdmin);
 router.post('/problems', createProblem);

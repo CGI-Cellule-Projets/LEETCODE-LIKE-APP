@@ -6,8 +6,6 @@ const TEMP_CONTEST_DETAILS = (window.CONTEST_MOCK_DATA && Array.isArray(window.C
   ? window.CONTEST_MOCK_DATA.details
   : [];
 
-const FALLBACK_USERS = ['nina', 'omar', 'yasmine', 'karim', 'sara', 'ilyas', 'amal', 'younes'];
-
 function toDateLabel(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
@@ -25,29 +23,6 @@ function formatTimer(totalSeconds) {
   const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
   const seconds = String(totalSeconds % 60).padStart(2, '0');
   return `${hours}:${minutes}:${seconds}`;
-}
-
-function scoreSeed(baseId, rank) {
-  return (baseId * 41 + rank * 113) % 170;
-}
-
-function buildFallbackEntries(contest) {
-  const baseId = Number(contest.contest_id || 1000);
-  const generated = FALLBACK_USERS.map((username, idx) => {
-    const rank = idx + 1;
-    const score = 920 - idx * 55 + scoreSeed(baseId, rank);
-    const minutes = 18 + idx * 2;
-    const seconds = (scoreSeed(baseId + rank, idx + 3) % 60);
-
-    return {
-      username,
-      rank,
-      score_total: Math.max(60, score),
-      temps_de_resolution: `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
-    };
-  });
-
-  return generated.sort((a, b) => Number(b.score_total) - Number(a.score_total));
 }
 
 function stopTimer() {
@@ -177,6 +152,14 @@ async function fetchContestWithFallback(contestId) {
   return null;
 }
 
+async function fetchLeaderboardEntries(contestId) {
+  const response = await apiGetContestLeaderboard(contestId);
+  if (response && response.success && Array.isArray(response.data)) {
+    return response.data;
+  }
+  return [];
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const idParam = urlParams.get('id');
@@ -199,7 +182,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    const entries = buildFallbackEntries(payload.contest);
+    const entries = await fetchLeaderboardEntries(contestId);
     showLoaded(payload.contest, entries, payload.temporaryMode);
   } catch (error) {
     console.error(error);

@@ -142,6 +142,62 @@ export async function getAdminStats(req: Request, res: Response): Promise<void> 
 }
 
 /**
+ * GET /api/admin/users
+ * Returns users with activity metrics for admin listing.
+ */
+export async function getAdminUsers(req: Request, res: Response): Promise<void> {
+  try {
+    const db = getDB();
+
+    const result = await db.query(`
+      SELECT
+        u.user_id,
+        u.username,
+        u.email,
+        u.user_level,
+        u.is_admin,
+        COALESCE(COUNT(s.submission_id), 0)::int AS submissions_count,
+        MAX(s.submitted_at) AS last_activity
+      FROM users u
+      LEFT JOIN submissions s ON s.user_id = u.user_id
+      GROUP BY u.user_id, u.username, u.email, u.user_level, u.is_admin
+      ORDER BY u.is_admin DESC, submissions_count DESC, u.username ASC
+    `);
+
+    const users = result.rows || [];
+    const now = Date.now();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+
+    const totalUsers = users.length;
+    const totalAdmins = users.filter((user: any) => Boolean(user.is_admin)).length;
+    const active24h = users.filter((user: any) => {
+      if (!user.last_activity) return false;
+      return now - new Date(user.last_activity).getTime() <= oneDayMs;
+    }).length;
+
+    res.status(200).json({
+      success: true,
+      message: 'Users retrieved successfully',
+      data: {
+        users,
+        stats: {
+          totalUsers,
+          totalAdmins,
+          active24h,
+          suspended: 0,
+        },
+      },
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve users',
+      errors: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+}
+
+/**
  * GET /api/admin/problems/:id
  * Returns a problem with all of its test cases for admin editing
  */
@@ -707,6 +763,12 @@ export async function assignContestProblems(req: Request, res: Response): Promis
         INSERT INTO contest_problems (contest_id, problem_id, points)
         VALUES ($1, $2, $3)
       `, [contestId, prob.problem_id, pts]);
+
+      await db.query(`
+        UPDATE problems
+        SET visibility = 'CONTEST_ONLY'
+        WHERE problem_id = $1
+      `, [prob.problem_id]);
     }
 
     await db.query('COMMIT');
