@@ -138,6 +138,79 @@ const resolveApiBaseUrl = () => {
 };
 
 const API_BASE_URL = resolveApiBaseUrl();
+const LANGUAGE_IDS = {
+  javascript: 1,
+  python: 2,
+};
+
+const getStoredAuthToken = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return localStorage.getItem("auth_token");
+};
+
+const getAuthHeaders = () => {
+  const token = getStoredAuthToken();
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
+
+const mapRunStatusToSubmissionStatus = (runStatus) => {
+  switch (runStatus) {
+    case "success":
+      return "Accepted";
+    case "failed":
+      return "Wrong Answer";
+    case "timeout":
+      return "Time Limit Exceeded";
+    case "runtime_error":
+      return "Runtime Error";
+    default:
+      return "Pending";
+  }
+};
+
+const persistSubmission = async ({
+  problemId,
+  language,
+  codeBody,
+  runStatus,
+  executionTime,
+  memory,
+}) => {
+  if (!getStoredAuthToken() || !problemId) {
+    return null;
+  }
+
+  const languageId = LANGUAGE_IDS[language];
+  if (!languageId) {
+    throw new Error(`Unsupported language for submission persistence: ${language}`);
+  }
+
+  const response = await fetch(`${API_BASE_URL}/submissions`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      problem_id: problemId,
+      language_id: languageId,
+      code_body: codeBody,
+      status: mapRunStatusToSubmissionStatus(runStatus),
+      runtime_ms: Number.isFinite(executionTime) ? Math.round(executionTime) : null,
+      memory_kb: Number.isFinite(memory) ? Math.round(memory) : null,
+    }),
+  });
+
+  const payload = await response.json();
+  if (!response.ok || !payload.success) {
+    throw new Error(payload.message || "Failed to persist submission.");
+  }
+
+  return payload.data;
+};
 
 const readProblemFromSearch = () => {
   if (typeof window === "undefined") {
@@ -1440,6 +1513,7 @@ function App() {
           comparisonHint: evaluation.comparisonHint,
           isCustom: testCase.isCustom,
           executionTime: payload.executionTime,
+          memory: payload.memory,
         });
       }
 
@@ -1462,6 +1536,27 @@ function App() {
       if (!hasRuntimeError && !hasTimeout) {
         const maxExecutionTime = nextCaseResults.reduce((max, result) => Math.max(max, result.executionTime || 0), 0);
         updateProgressFromRun(problem, { status: nextStatus === "success" ? "success" : "failed", executionTime: maxExecutionTime }, requestedTimeLimit, isSubmit);
+      }
+
+      if (isSubmit && problem?.problem_id) {
+        const maxExecutionTime = nextCaseResults.reduce((max, result) => Math.max(max, result.executionTime || 0), 0);
+        const maxMemory = nextCaseResults.reduce((max, result) => Math.max(max, result.memory || 0), 0);
+
+        try {
+          const submission = await persistSubmission({
+            problemId: problem.problem_id,
+            language,
+            codeBody: code,
+            runStatus: nextStatus,
+            executionTime: maxExecutionTime,
+            memory: maxMemory,
+          });
+          console.log("Submission persisted successfully:", submission);
+        } catch (persistError) {
+          console.error("Unable to persist submission:", persistError);
+        }
+
+        window.location.href = new URL("../problems.html", window.location.href).toString();
       }
     } catch (error) {
       const failureResult = {
@@ -1825,4 +1920,3 @@ function App() {
 }
 
 export default App;
-

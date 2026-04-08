@@ -59,7 +59,7 @@ def update_user_levels(conn):
     with conn.cursor() as cur:
         query = """
         SELECT user_id, COUNT(problem_id) as solved_count
-        FROM account_problem
+        FROM user_problem
         WHERE status = 'solved'
         GROUP BY user_id;
         """

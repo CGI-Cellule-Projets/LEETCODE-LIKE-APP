@@ -108,6 +108,9 @@ export interface CreateSubmissionRequest {
   problem_id: number;
   language_id: number;
   code_body: string;
+  status?: SubmissionStatus;
+  runtime_ms?: number | null;
+  memory_kb?: number | null;
 }
 
 export interface Submission {

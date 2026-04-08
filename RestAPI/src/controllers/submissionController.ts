@@ -5,7 +5,7 @@
 import { Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { getDB } from '../config/database';
-import { CreateSubmissionRequest, SubmissionResponse } from '../types';
+import { CreateSubmissionRequest, SubmissionResponse, SubmissionStatus } from '../types';
 import { AppError } from '../middleware/errorHandler';
 
 /**
@@ -50,7 +50,14 @@ import { AppError } from '../middleware/errorHandler';
  */
 export async function createSubmission(req: Request, res: Response): Promise<void> {
   try {
-    const { problem_id, language_id, code_body } = req.body as CreateSubmissionRequest;
+    const {
+      problem_id,
+      language_id,
+      code_body,
+      status: requestedStatus,
+      runtime_ms,
+      memory_kb,
+    } = req.body as CreateSubmissionRequest;
 
     // Validation
     if (!problem_id || !language_id || !code_body) {
@@ -63,6 +70,19 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
 
     if (typeof code_body !== 'string' || code_body.trim().length === 0) {
       throw new AppError(400, 'Invalid code body', 'Code body cannot be empty');
+    }
+
+    if (runtime_ms != null && (!Number.isFinite(runtime_ms) || Number(runtime_ms) < 0)) {
+      throw new AppError(400, 'Invalid runtime', 'runtime_ms must be a positive number');
+    }
+
+    if (memory_kb != null && (!Number.isFinite(memory_kb) || Number(memory_kb) < 0)) {
+      throw new AppError(400, 'Invalid memory usage', 'memory_kb must be a positive number');
+    }
+
+    const allowedStatuses = new Set(Object.values(SubmissionStatus));
+    if (requestedStatus && !allowedStatuses.has(requestedStatus)) {
+      throw new AppError(400, 'Invalid submission status', `status must be one of: ${Array.from(allowedStatuses).join(', ')}`);
     }
 
     const userId = req.user?.user_id;
@@ -95,11 +115,64 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
     // Create submission with initial status "Pending"
     const submissionId = uuidv4();
     const now = new Date().toISOString();
+    const submissionStatus = requestedStatus || SubmissionStatus.Pending;
+    const normalizedRuntimeMs = runtime_ms == null ? null : Math.round(Number(runtime_ms));
+    const normalizedMemoryKb = memory_kb == null ? null : Math.round(Number(memory_kb));
 
-    await db.query(`
-      INSERT INTO submissions (submission_id, user_id, problem_id, language_id, code_body, status, submitted_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
-    `, [submissionId, userId, problem_id, language_id, code_body, 'Pending', now]);
+    await db.query('BEGIN');
+
+    try {
+      await db.query(`
+        INSERT INTO submissions (
+          submission_id,
+          user_id,
+          problem_id,
+          language_id,
+          code_body,
+          status,
+          runtime_ms,
+          memory_kb,
+          submitted_at
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `, [
+        submissionId,
+        userId,
+        problem_id,
+        language_id,
+        code_body,
+        submissionStatus,
+        normalizedRuntimeMs,
+        normalizedMemoryKb,
+        now,
+      ]);
+
+      if (submissionStatus !== SubmissionStatus.Pending) {
+        const userProblemStatus = submissionStatus === SubmissionStatus.Accepted ? 'solved' : 'attempted';
+        const solveTimestamp = userProblemStatus === 'solved' ? now : null;
+
+        await db.query(`
+          INSERT INTO user_problem (user_id, problem_id, status, solve_timestamp)
+          VALUES ($1, $2, $3, $4)
+          ON CONFLICT (user_id, problem_id) DO UPDATE
+          SET
+            status = CASE
+              WHEN user_problem.status = 'solved' OR EXCLUDED.status = 'solved' THEN 'solved'
+              ELSE 'attempted'
+            END,
+            solve_timestamp = CASE
+              WHEN user_problem.status = 'solved' THEN user_problem.solve_timestamp
+              WHEN EXCLUDED.status = 'solved' THEN EXCLUDED.solve_timestamp
+              ELSE user_problem.solve_timestamp
+            END
+        `, [userId, problem_id, userProblemStatus, solveTimestamp]);
+      }
+
+      await db.query('COMMIT');
+    } catch (error) {
+      await db.query('ROLLBACK');
+      throw error;
+    }
 
     res.status(201).json({
       success: true,
@@ -110,7 +183,9 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
         problem_id,
         language_id,
         code_body,
-        status: 'Pending',
+        status: submissionStatus,
+        runtime_ms: normalizedRuntimeMs ?? undefined,
+        memory_kb: normalizedMemoryKb ?? undefined,
         submitted_at: now,
       },
     } as SubmissionResponse);

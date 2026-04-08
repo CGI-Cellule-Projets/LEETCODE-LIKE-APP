@@ -185,6 +185,99 @@ document.addEventListener("DOMContentLoaded", () => {
         localStorage.setItem(scopedKey, JSON.stringify(progress));
     };
 
+    const computeStreakDays = (activityByDate) => {
+        let streak = 0;
+        const today = new Date();
+
+        for (let i = 0; i < 365; i += 1) {
+            const date = new Date(today);
+            date.setDate(today.getDate() - i);
+            const key = toDateKey(date);
+            if (Number(activityByDate[key] || 0) > 0) {
+                streak += 1;
+                continue;
+            }
+            break;
+        }
+
+        return streak;
+    };
+
+    const resolveApiBaseUrl = () => {
+        const queryApiUrl = new URLSearchParams(window.location.search).get("api");
+        if (queryApiUrl && queryApiUrl.trim()) {
+            return queryApiUrl.trim().replace(/\/$/, "");
+        }
+
+        if (window.location.protocol === "file:") {
+            return "http://localhost:3001/api";
+        }
+
+        if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+            return "http://localhost:3001/api";
+        }
+
+        return `${window.location.origin.replace(/\/$/, "")}/api`;
+    };
+
+    const getAuthHeaders = () => {
+        const token = localStorage.getItem("auth_token");
+        return {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+        };
+    };
+
+    const mergeProfileStatsIntoProgress = (serverProfile) => {
+        const progress = readProgress();
+        const stats = serverProfile?.stats || {};
+        const mergedActivityByDate = {
+            ...(progress.activityByDate || {}),
+            ...((stats.activityByDate && typeof stats.activityByDate === "object") ? stats.activityByDate : {})
+        };
+
+        const mergedProgress = {
+            ...progress,
+            attempts: Math.max(Number(progress.attempts || 0), Number(stats.submissionCount || 0)),
+            solvedCount: Number(stats.solvedCount || 0),
+            contestsCompleted: Math.max(Number(progress.contestsCompleted || 0), Math.floor(Number(stats.solvedCount || 0) / 4)),
+            solvedByDifficulty: {
+                easy: Number(stats?.solvedByDifficulty?.easy || 0),
+                medium: Number(stats?.solvedByDifficulty?.medium || 0),
+                hard: Number(stats?.solvedByDifficulty?.hard || 0)
+            },
+            solvedByTag: {
+                ...((stats.solvedByTag && typeof stats.solvedByTag === "object") ? stats.solvedByTag : {})
+            },
+            activityByDate: mergedActivityByDate,
+            activeStreakDays: computeStreakDays(mergedActivityByDate)
+        };
+
+        writeProgress(mergedProgress);
+        return mergedProgress;
+    };
+
+    const fetchCurrentUserProfile = async () => {
+        if (!hasAuthSession()) {
+            return null;
+        }
+
+        try {
+            const response = await fetch(`${resolveApiBaseUrl()}/auth/me`, {
+                method: "GET",
+                headers: getAuthHeaders()
+            });
+            const payload = await response.json();
+            if (!response.ok || !payload.success) {
+                throw new Error(payload.message || "Unable to load profile summary.");
+            }
+            return payload.data || null;
+        } catch (error) {
+            console.warn("Unable to synchronize profile from API:", error);
+            return null;
+        }
+    };
+
     const touchActivity = (progress, dateKey, amount = 1) => {
         const current = Number(progress.activityByDate[dateKey] || 0);
         progress.activityByDate[dateKey] = current + amount;
@@ -290,11 +383,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
-    const hydrateProfileAnalytics = () => {
+    const hydrateProfileAnalytics = (inputProgress = readProgress()) => {
         const solvedNode = document.getElementById("statSolved");
         if (!solvedNode) return;
 
-        const progress = readProgress();
+        const progress = inputProgress;
         const solved = Number(progress.solvedCount || 0);
         const contests = Number(progress.contestsCompleted || 0);
         const avgRuntime = progress.runtimeSamples > 0
@@ -307,10 +400,17 @@ document.addEventListener("DOMContentLoaded", () => {
         const topPercent = Math.max(1, Math.round(100 - Math.min(95, solved * 2 + contests * 3)));
 
         solvedNode.dataset.counter = String(solved);
+        solvedNode.textContent = String(solved);
         const contestsNode = document.getElementById("statContests");
-        if (contestsNode) contestsNode.dataset.counter = String(contests);
+        if (contestsNode) {
+            contestsNode.dataset.counter = String(contests);
+            contestsNode.textContent = String(contests);
+        }
         const runtimeNode = document.getElementById("statRuntime");
-        if (runtimeNode) runtimeNode.dataset.counter = String(avgRuntime);
+        if (runtimeNode) {
+            runtimeNode.dataset.counter = String(avgRuntime);
+            runtimeNode.textContent = String(avgRuntime);
+        }
         const hoursNode = document.getElementById("statHours");
         if (hoursNode) {
             hoursNode.dataset.counter = String(Math.floor(hours));
@@ -574,10 +674,13 @@ document.addEventListener("DOMContentLoaded", () => {
      * 🟩 --- GITHUB-STYLE HEATMAP (PROFILE PAGE) ---
      * Génère une grille d'activité factice pour la page de profil.
      */
-    const streakGrid = document.getElementById("streakGrid");
-    if (streakGrid) {
-        const progress = readProgress();
+    const renderStreakGrid = (inputProgress = readProgress()) => {
+        const streakGrid = document.getElementById("streakGrid");
+        if (!streakGrid) return;
+
+        const progress = inputProgress;
         const today = new Date();
+        streakGrid.innerHTML = "";
 
         for (let i = 139; i >= 0; i -= 1) {
             const date = new Date(today);
@@ -597,7 +700,27 @@ document.addEventListener("DOMContentLoaded", () => {
             cell.classList.add(`level-${level}`);
             streakGrid.appendChild(cell);
         }
-    }
+    };
+
+    renderStreakGrid();
+
+    const syncProfileFromApi = async () => {
+        if (!document.getElementById("statSolved")) {
+            return;
+        }
+
+        const serverProfile = await fetchCurrentUserProfile();
+        if (!serverProfile) {
+            return;
+        }
+
+        const mergedProgress = mergeProfileStatsIntoProgress(serverProfile);
+        hydrateProfileIdentity();
+        hydrateProfileAnalytics(mergedProgress);
+        renderStreakGrid(mergedProgress);
+    };
+
+    void syncProfileFromApi();
 
     /* 
      * ⚙️ --- APP THEME & SETTINGS (PARAMETERS PAGE) ---
