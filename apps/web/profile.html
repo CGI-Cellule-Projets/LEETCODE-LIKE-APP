@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AlgoForge | Profil</title>
     <meta name="description" content="Vue de profil avec statistiques, serie d'activite et progression par categorie.">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#ff6b3d">
+    <meta property="og:type" content="profile">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:title" content="AlgoForge | Profil utilisateur">
+    <meta property="og:description" content="Visualise la progression, la serie d activite et les objectifs techniques de ton compte.">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -23,7 +30,7 @@
     <header class="topbar">
         <div class="container topbar-inner">
             <a class="brand" href="index.html"><span>Algo</span>Forge</a>
-            <nav class="main-nav">
+            <nav class="main-nav" aria-label="Navigation principale">
                 <a class="nav-link" href="index.html">Accueil</a>
                 <a class="nav-link" href="problems.html">Problemes</a>
                 <a class="nav-link" href="contest.html">Concours (BETA)</a>
@@ -39,14 +46,14 @@
                 <span aria-hidden="true"></span>
             </button>
         </div>
-        <div id="mobileMenu" class="mobile-menu">
+        <nav id="mobileMenu" class="mobile-menu" aria-label="Navigation mobile">
             <a class="mobile-link" href="index.html">Accueil</a>
             <a class="mobile-link" href="problems.html">Problemes</a>
             <a class="mobile-link" href="contest.html">Concours (BETA)</a>
             <a class="mobile-link" href="parameters.html">Parametres</a>
             <a class="mobile-link" href="profile.html" aria-current="page">Profil</a>
             <a class="btn btn-primary wide guest-only" href="login.html">Connexion</a>
-        </div>
+        </nav>
     </header>
     <div id="menuBackdrop" class="menu-backdrop"></div>
 

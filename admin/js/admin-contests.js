@@ -14,17 +14,6 @@ function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
-const TEMP_ADMIN_CONTESTS = (window.CONTEST_MOCK_DATA && Array.isArray(window.CONTEST_MOCK_DATA.list))
-    ? window.CONTEST_MOCK_DATA.list.map((contest) => ({
-        ...contest,
-        status: contest.listing_type === 'active'
-            ? 'Actif'
-            : contest.listing_type === 'upcoming'
-                ? 'À venir'
-                : 'Terminé'
-    }))
-    : [];
-
 document.addEventListener('DOMContentLoaded', async () => {
     // Load contests
     await loadContests();
@@ -198,20 +187,23 @@ async function loadContests() {
                 ...result.data.past.map(c => ({...c, status: 'Terminé'}))
             ];
 
-            if (allContests.length === 0) {
-                allContests = TEMP_ADMIN_CONTESTS;
-            }
-
             renderContestsList(allContests);
         } else {
-            allContests = TEMP_ADMIN_CONTESTS;
-            renderContestsList(allContests);
+            renderContestsError(result.message || 'Impossible de charger les concours.');
         }
     } catch (error) {
         console.error(error);
-        allContests = TEMP_ADMIN_CONTESTS;
-        renderContestsList(allContests);
+        renderContestsError('Impossible de charger les concours.');
     }
+}
+
+function renderContestsError(message) {
+    const container = document.getElementById('contestsTable');
+    if (!container) {
+        return;
+    }
+
+    container.innerHTML = `<p class="error-message">${escapeHtml(message)}</p>`;
 }
 
 function renderContestsList(contests) {

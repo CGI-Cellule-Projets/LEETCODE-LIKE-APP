@@ -6,42 +6,15 @@ import { Request, Response } from 'express';
 import { getDB } from '../config/database';
 import { CreateProblemRequest, UpdateProblemRequest, CreateTestCaseRequest, ApiResponse } from '../types';
 import { AppError } from '../middleware/errorHandler';
+import {
+  sanitizeBoolean,
+  sanitizeInteger,
+  sanitizeIsoDate,
+  sanitizeOptionalText,
+  sanitizeRequiredText,
+} from '../utils/sanitize';
 
 const allowedVisibilities = ['HIDDEN', 'CONTEST_ONLY', 'PUBLIC'] as const;
-
-function normalizeRequiredText(value: unknown, fieldName: string, maxLength: number): string {
-  const normalized = typeof value === 'string' ? value.trim() : '';
-  if (!normalized) {
-    throw new AppError(400, 'Missing required fields', `${fieldName} is required`);
-  }
-
-  if (normalized.length > maxLength) {
-    throw new AppError(400, 'Input too long', `${fieldName} must be ${maxLength} characters or fewer`);
-  }
-
-  return normalized;
-}
-
-function normalizeOptionalText(value: unknown, fieldName: string, maxLength: number): string | null | undefined {
-  if (value === undefined) {
-    return undefined;
-  }
-
-  if (value === null) {
-    return null;
-  }
-
-  if (typeof value !== 'string') {
-    throw new AppError(400, 'Invalid payload', `${fieldName} must be a string`);
-  }
-
-  const normalized = value.trim();
-  if (normalized.length > maxLength) {
-    throw new AppError(400, 'Input too long', `${fieldName} must be ${maxLength} characters or fewer`);
-  }
-
-  return normalized.length > 0 ? normalized : null;
-}
 
 function resolveProblemVisibility(
   visibility: CreateProblemRequest['visibility'] | UpdateProblemRequest['visibility'] | undefined,
@@ -204,11 +177,7 @@ export async function getAdminUsers(req: Request, res: Response): Promise<void> 
 export async function getProblemByIdAdmin(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const problemId = parseInt(id);
-
-    if (isNaN(problemId)) {
-      throw new AppError(400, 'Invalid problem ID', 'Problem ID must be a valid number');
-    }
+    const problemId = sanitizeInteger(id, 'problem ID', { min: 1 });
 
     const db = getDB();
 
@@ -284,15 +253,29 @@ export async function getProblemByIdAdmin(req: Request, res: Response): Promise<
 export async function createProblem(req: Request, res: Response): Promise<void> {
   try {
     const { name, difficulty_level, description, is_published, constraints, visibility } = req.body as CreateProblemRequest;
-    const safeName = normalizeRequiredText(name, 'name', 255);
-    const safeDescription = normalizeOptionalText(description, 'description', 10000);
-    const safeConstraints = normalizeOptionalText(constraints, 'constraints', 5000);
+    const safeName = sanitizeRequiredText(name, {
+      fieldName: 'name',
+      maxLength: 255,
+    });
+    const safeDescription = sanitizeOptionalText(description, {
+      fieldName: 'description',
+      maxLength: 10000,
+      preserveNewlines: true,
+    });
+    const safeConstraints = sanitizeOptionalText(constraints, {
+      fieldName: 'constraints',
+      maxLength: 5000,
+      preserveNewlines: true,
+    });
 
     if (!['easy', 'med', 'hard'].includes(difficulty_level)) {
       throw new AppError(400, 'Invalid difficulty level', 'difficulty_level must be "easy", "med", or "hard"');
     }
 
-    const safeVisibility = resolveProblemVisibility(visibility, is_published) || 'HIDDEN';
+    const safePublished = is_published === undefined
+      ? false
+      : sanitizeBoolean(is_published, 'is_published');
+    const safeVisibility = resolveProblemVisibility(visibility, safePublished) || 'HIDDEN';
 
     const db = getDB();
 
@@ -301,7 +284,7 @@ export async function createProblem(req: Request, res: Response): Promise<void> 
       INSERT INTO problems (name, difficulty_level, description, is_published, constraints, solve_rate, visibility)
       VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING problem_id, name, difficulty_level, solve_rate, description, is_published, constraints, visibility
-    `, [safeName, difficulty_level, safeDescription ?? null, Boolean(is_published), safeConstraints ?? null, 0.0, safeVisibility]);
+    `, [safeName, difficulty_level, safeDescription ?? null, safePublished, safeConstraints ?? null, 0.0, safeVisibility]);
 
     if (!result.rows || result.rows.length === 0) {
       throw new AppError(500, 'Failed to create problem', 'Database insertion failed');
@@ -357,18 +340,17 @@ export async function createProblem(req: Request, res: Response): Promise<void> 
 export async function updateProblem(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const problemId = parseInt(id);
+    const problemId = sanitizeInteger(id, 'problem ID', { min: 1 });
     const { name, difficulty_level, description, is_published, constraints, visibility } = req.body as UpdateProblemRequest;
-
-    if (isNaN(problemId)) {
-      throw new AppError(400, 'Invalid problem ID', 'Problem ID must be a valid number');
-    }
 
     if (difficulty_level && !['easy', 'med', 'hard'].includes(difficulty_level)) {
       throw new AppError(400, 'Invalid difficulty level', 'difficulty_level must be "easy", "med", or "hard"');
     }
 
-    const safeVisibility = resolveProblemVisibility(visibility, is_published);
+    const safePublished = is_published === undefined
+      ? undefined
+      : sanitizeBoolean(is_published, 'is_published');
+    const safeVisibility = resolveProblemVisibility(visibility, safePublished);
 
     const db = getDB();
 
@@ -388,7 +370,10 @@ export async function updateProblem(req: Request, res: Response): Promise<void> 
     let paramIndex = 1;
 
     if (name !== undefined) {
-      const safeName = normalizeRequiredText(name, 'name', 255);
+      const safeName = sanitizeRequiredText(name, {
+        fieldName: 'name',
+        maxLength: 255,
+      });
       updates.push(`name = $${paramIndex++}`);
       values.push(safeName);
     }
@@ -397,16 +382,24 @@ export async function updateProblem(req: Request, res: Response): Promise<void> 
       values.push(difficulty_level);
     }
     if (description !== undefined) {
-      const safeDescription = normalizeOptionalText(description, 'description', 10000);
+      const safeDescription = sanitizeOptionalText(description, {
+        fieldName: 'description',
+        maxLength: 10000,
+        preserveNewlines: true,
+      });
       updates.push(`description = $${paramIndex++}`);
       values.push(safeDescription);
     }
-    if (is_published !== undefined) {
+    if (safePublished !== undefined) {
       updates.push(`is_published = $${paramIndex++}`);
-      values.push(Boolean(is_published));
+      values.push(safePublished);
     }
     if (constraints !== undefined) {
-      const safeConstraints = normalizeOptionalText(constraints, 'constraints', 5000);
+      const safeConstraints = sanitizeOptionalText(constraints, {
+        fieldName: 'constraints',
+        maxLength: 5000,
+        preserveNewlines: true,
+      });
       updates.push(`constraints = $${paramIndex++}`);
       values.push(safeConstraints);
     }
@@ -469,11 +462,7 @@ export async function updateProblem(req: Request, res: Response): Promise<void> 
 export async function deleteProblem(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const problemId = parseInt(id);
-
-    if (isNaN(problemId)) {
-      throw new AppError(400, 'Invalid problem ID', 'Problem ID must be a valid number');
-    }
+    const problemId = sanitizeInteger(id, 'problem ID', { min: 1 });
 
     const db = getDB();
 
@@ -538,12 +527,8 @@ export async function deleteProblem(req: Request, res: Response): Promise<void> 
 export async function addTestCase(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const problemId = parseInt(id);
+    const problemId = sanitizeInteger(id, 'problem ID', { min: 1 });
     const { input_data, expected_output, is_hidden } = req.body as CreateTestCaseRequest;
-
-    if (isNaN(problemId)) {
-      throw new AppError(400, 'Invalid problem ID', 'Problem ID must be a valid number');
-    }
 
     // Validation
     if (input_data === undefined || expected_output === undefined || is_hidden === undefined) {
@@ -554,20 +539,17 @@ export async function addTestCase(req: Request, res: Response): Promise<void> {
       );
     }
 
-    if (typeof input_data !== 'string' || typeof expected_output !== 'string') {
-      throw new AppError(400, 'Invalid payload', 'input_data and expected_output must be strings');
-    }
-
-    const safeInput = input_data.trim();
-    const safeExpectedOutput = expected_output.trim();
-
-    if (safeInput.length > 20000 || safeExpectedOutput.length > 20000) {
-      throw new AppError(400, 'Input too long', 'Test case input and output must be 20000 characters or fewer');
-    }
-
-    if (typeof is_hidden !== 'boolean') {
-      throw new AppError(400, 'Invalid payload', 'is_hidden must be a boolean');
-    }
+    const safeInput = sanitizeRequiredText(input_data, {
+      fieldName: 'input_data',
+      maxLength: 20000,
+      preserveNewlines: true,
+    });
+    const safeExpectedOutput = sanitizeRequiredText(expected_output, {
+      fieldName: 'expected_output',
+      maxLength: 20000,
+      preserveNewlines: true,
+    });
+    const safeHiddenFlag = sanitizeBoolean(is_hidden, 'is_hidden');
 
     const db = getDB();
 
@@ -586,7 +568,7 @@ export async function addTestCase(req: Request, res: Response): Promise<void> {
       INSERT INTO test_cases (problem_id, input_data, expected_output, is_hidden)
       VALUES ($1, $2, $3, $4)
       RETURNING test_case_id, problem_id, input_data, expected_output, is_hidden
-    `, [problemId, safeInput, safeExpectedOutput, is_hidden]);
+    `, [problemId, safeInput, safeExpectedOutput, safeHiddenFlag]);
 
     if (!result.rows || result.rows.length === 0) {
       throw new AppError(500, 'Failed to add test case', 'Database insertion failed');
@@ -621,9 +603,20 @@ export async function addTestCase(req: Request, res: Response): Promise<void> {
 export async function createContestAdmin(req: Request, res: Response): Promise<void> {
   try {
     const { title, description, start_time, end_time } = req.body;
+    const safeTitle = sanitizeRequiredText(title, {
+      fieldName: 'title',
+      maxLength: 160,
+    });
+    const safeDescription = sanitizeOptionalText(description, {
+      fieldName: 'description',
+      maxLength: 4000,
+      preserveNewlines: true,
+    });
+    const safeStartTime = sanitizeIsoDate(start_time, 'start_time');
+    const safeEndTime = sanitizeIsoDate(end_time, 'end_time');
 
-    if (!title || !start_time || !end_time) {
-      throw new AppError(400, 'Missing required fields', 'title, start_time, and end_time are required');
+    if (new Date(safeEndTime).getTime() <= new Date(safeStartTime).getTime()) {
+      throw new AppError(400, 'Invalid contest schedule', 'end_time must be later than start_time');
     }
 
     const db = getDB();
@@ -632,7 +625,7 @@ export async function createContestAdmin(req: Request, res: Response): Promise<v
       INSERT INTO contests (title, description, start_time, end_time)
       VALUES ($1, $2, $3, $4)
       RETURNING contest_id, title, start_time, end_time, description
-    `, [title, description || null, start_time, end_time]);
+    `, [safeTitle, safeDescription ?? null, safeStartTime, safeEndTime]);
 
     if (!result.rows || result.rows.length === 0) {
       throw new AppError(500, 'Failed to create contest', 'Database insertion failed');
@@ -659,35 +652,60 @@ export async function createContestAdmin(req: Request, res: Response): Promise<v
 export async function updateContestAdmin(req: Request, res: Response): Promise<void> {
   try {
     const { id } = req.params;
-    const contestId = parseInt(id);
+    const contestId = sanitizeInteger(id, 'contest ID', { min: 1 });
     const { title, description, start_time, end_time } = req.body;
 
-    if (isNaN(contestId)) {
-      throw new AppError(400, 'Invalid contest ID', 'Contest ID must be a valid number');
+    const db = getDB();
+    const existingContestResult = await db.query(
+      'SELECT contest_id, start_time, end_time FROM contests WHERE contest_id = $1',
+      [contestId],
+    );
+
+    if (!existingContestResult.rows || existingContestResult.rows.length === 0) {
+      throw new AppError(404, 'Contest not found', `Contest ${contestId} does not exist`);
     }
 
-    const db = getDB();
+    const existingContest = existingContestResult.rows[0] as { start_time: string; end_time: string };
 
     // Build dynamic update query
     const updates: string[] = [];
     const values: any[] = [];
     let paramIndex = 1;
+    let nextStartTime: string | undefined;
+    let nextEndTime: string | undefined;
 
     if (title !== undefined) {
+      const safeTitle = sanitizeRequiredText(title, {
+        fieldName: 'title',
+        maxLength: 160,
+      });
       updates.push(`title = $${paramIndex++}`);
-      values.push(title);
+      values.push(safeTitle);
     }
     if (description !== undefined) {
+      const safeDescription = sanitizeOptionalText(description, {
+        fieldName: 'description',
+        maxLength: 4000,
+        preserveNewlines: true,
+      });
       updates.push(`description = $${paramIndex++}`);
-      values.push(description);
+      values.push(safeDescription);
     }
     if (start_time !== undefined) {
+      nextStartTime = sanitizeIsoDate(start_time, 'start_time');
       updates.push(`start_time = $${paramIndex++}`);
-      values.push(start_time);
+      values.push(nextStartTime);
     }
     if (end_time !== undefined) {
+      nextEndTime = sanitizeIsoDate(end_time, 'end_time');
       updates.push(`end_time = $${paramIndex++}`);
-      values.push(end_time);
+      values.push(nextEndTime);
+    }
+
+    const effectiveStartTime = nextStartTime || existingContest.start_time;
+    const effectiveEndTime = nextEndTime || existingContest.end_time;
+    if (new Date(effectiveEndTime).getTime() <= new Date(effectiveStartTime).getTime()) {
+      throw new AppError(400, 'Invalid contest schedule', 'end_time must be later than start_time');
     }
 
     if (updates.length === 0) {
@@ -727,16 +745,16 @@ export async function updateContestAdmin(req: Request, res: Response): Promise<v
  * Expects: { problems: [ { problem_id: 1, points: 100 }, ... ] }
  */
 export async function assignContestProblems(req: Request, res: Response): Promise<void> {
+  let didBeginTransaction = false;
   try {
     const { id } = req.params;
-    const contestId = parseInt(id);
+    const contestId = sanitizeInteger(id, 'contest ID', { min: 1 });
     const { problems } = req.body;
-
-    if (isNaN(contestId)) {
-      throw new AppError(400, 'Invalid contest ID', 'Contest ID must be a valid number');
-    }
     if (!Array.isArray(problems)) {
       throw new AppError(400, 'Invalid payload', 'problems must be an array of objects');
+    }
+    if (problems.length === 0) {
+      throw new AppError(400, 'Invalid payload', 'problems must contain at least one problem mapping');
     }
 
     const db = getDB();
@@ -749,37 +767,45 @@ export async function assignContestProblems(req: Request, res: Response): Promis
 
     // Begin mapping manipulation
     await db.query('BEGIN');
+    didBeginTransaction = true;
     
     await db.query('DELETE FROM contest_problems WHERE contest_id = $1', [contestId]);
 
     for (const prob of problems) {
-      if (!prob.problem_id || isNaN(parseInt(prob.problem_id))) {
-        throw new AppError(400, 'Invalid problem payload', 'Object must contain a valid problem_id');
-      }
-      
-      const pts = parseInt(prob.points) || 100;
-      
+      const safeProblemId = sanitizeInteger(prob?.problem_id, 'problem_id', { min: 1 });
+      const pts = prob?.points === undefined
+        ? 100
+        : sanitizeInteger(prob.points, 'points', { min: 1, max: 10000 });
+
+      // Keep contest problem writes inside one transaction so partial remaps cannot leak through.
       await db.query(`
         INSERT INTO contest_problems (contest_id, problem_id, points)
         VALUES ($1, $2, $3)
-      `, [contestId, prob.problem_id, pts]);
+      `, [contestId, safeProblemId, pts]);
 
       await db.query(`
         UPDATE problems
         SET visibility = 'CONTEST_ONLY'
         WHERE problem_id = $1
-      `, [prob.problem_id]);
+      `, [safeProblemId]);
     }
 
     await db.query('COMMIT');
+    didBeginTransaction = false;
 
     res.status(201).json({
       success: true,
       message: 'Problems successfully assigned to the contest',
     });
   } catch (error) {
-    const db = getDB();
-    await db.query('ROLLBACK');
+    if (didBeginTransaction) {
+      const db = getDB();
+      try {
+        await db.query('ROLLBACK');
+      } catch (rollbackError) {
+        console.error('Failed to rollback contest assignment transaction:', rollbackError);
+      }
+    }
     if (error instanceof AppError) {
       res.status(error.statusCode).json({ success: false, message: error.message, errors: error.details });
     } else {

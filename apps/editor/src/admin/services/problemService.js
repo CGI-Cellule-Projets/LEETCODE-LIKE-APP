@@ -1,85 +1,50 @@
+import { getAuthHeaders, requestJson } from './apiClient';
+
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const deriveVisibility = (isPublished) => (isPublished ? 'PUBLIC' : 'HIDDEN');
 
-function resolveApiBaseUrl() {
-  if (typeof window === 'undefined') {
-    return 'http://localhost:3001/api';
-  }
-
-  const queryApiUrl = new URLSearchParams(window.location.search).get('api');
-  if (queryApiUrl && queryApiUrl.trim()) {
-    return queryApiUrl.trim().replace(/\/$/, '');
-  }
-
-  if (window.location.protocol === 'file:') {
-    return 'http://localhost:3001/api';
-  }
-
-  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    return 'http://localhost:3001/api';
-  }
-
-  return `${window.location.origin.replace(/\/$/, '')}/api`;
-}
-
-const API_BASE_URL = resolveApiBaseUrl();
-
-async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {})
-    },
-    ...options
-  });
-
-  const data = await response.json();
-  if (!response.ok || !data.success) {
-    const errorMessage = data.errors || data.message || 'Request failed';
-    throw new Error(typeof errorMessage === 'string' ? errorMessage : JSON.stringify(errorMessage));
-  }
-
-  return data;
-}
-
 export async function getProblems() {
   await wait(150);
-  const payload = await request('/admin/problems', { method: 'GET' });
+  const payload = await requestJson('/admin/problems', { method: 'GET', headers: getAuthHeaders() });
   return payload.data || [];
 }
 
 export async function getProblemDetails(problemId) {
   await wait(100);
-  const payload = await request(`/admin/problems/${problemId}`, { method: 'GET' });
+  const payload = await requestJson(`/admin/problems/${problemId}`, { method: 'GET', headers: getAuthHeaders() });
   return payload.data;
 }
 
 export async function createProblem(problemInput) {
-  const payload = await request('/admin/problems', {
+  const payload = await requestJson('/admin/problems', {
     method: 'POST',
+    headers: getAuthHeaders(),
     body: JSON.stringify(problemInput)
   });
   return payload.data;
 }
 
 export async function updateProblem(problemId, updates) {
-  const payload = await request(`/admin/problems/${problemId}`, {
+  const payload = await requestJson(`/admin/problems/${problemId}`, {
     method: 'PUT',
+    headers: getAuthHeaders(),
     body: JSON.stringify(updates)
   });
   return payload.data;
 }
 
 export async function deleteProblem(problemId) {
-  await request(`/admin/problems/${problemId}`, {
-    method: 'DELETE'
+  await requestJson(`/admin/problems/${problemId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
   });
 }
 
 export async function addTestCase(problemId, testCase) {
-  const payload = await request(`/admin/problems/${problemId}/testcases`, {
+  const payload = await requestJson(`/admin/problems/${problemId}/testcases`, {
     method: 'POST',
+    headers: getAuthHeaders(),
     body: JSON.stringify(testCase)
   });
   return payload.data;

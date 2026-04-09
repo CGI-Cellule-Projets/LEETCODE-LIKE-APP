@@ -4,24 +4,21 @@
  */
 
 let currentContestId = null;
-let isTemporaryContest = false;
-let allowDevFallback = false;
-const TEMP_CONTEST_DETAILS = (window.CONTEST_MOCK_DATA && Array.isArray(window.CONTEST_MOCK_DATA.details))
-    ? window.CONTEST_MOCK_DATA.details
-    : [];
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const flags = await apiGetRuntimeFlags();
-    allowDevFallback = Boolean(flags && flags.success && flags.dev_demo_mode);
-
     const urlParams = new URLSearchParams(window.location.search);
     const idParam = urlParams.get('id');
 
     if (!idParam) {
-        if (allowDevFallback && TEMP_CONTEST_DETAILS[0]) {
-            renderContestUI(TEMP_CONTEST_DETAILS[0], true);
-            return;
-        }
         showErrorView();
         return;
     }
@@ -55,40 +52,23 @@ async function fetchAndRenderContest(id) {
         const response = await apiGetContestById(id);
 
         if (response.success && response.data) {
-            renderContestUI(response.data, false);
+            renderContestUI(response.data);
         } else {
-            if (allowDevFallback) {
-                const tempContest = TEMP_CONTEST_DETAILS.find((contest) => contest.contest_id === id);
-                if (tempContest) {
-                    renderContestUI(tempContest, true);
-                    return;
-                }
-            }
             showErrorView();
         }
     } catch (error) {
-        if (allowDevFallback) {
-            const tempContest = TEMP_CONTEST_DETAILS.find((contest) => contest.contest_id === id);
-            if (tempContest) {
-                renderContestUI(tempContest, true);
-                return;
-            }
-        }
         showErrorView();
         console.error(error);
     }
 }
 
-function renderContestUI(contest, isTemporary = false) {
-    isTemporaryContest = isTemporary;
+function renderContestUI(contest) {
     document.getElementById('loadingView').hidden = true;
     document.getElementById('contestDataView').hidden = false;
     document.getElementById('errorView').hidden = true;
 
     document.getElementById('cTitle').textContent = contest.title;
-    document.getElementById('cDesc').textContent = isTemporary
-        ? `${contest.description} (donnees temporaires)`
-        : contest.description;
+    document.getElementById('cDesc').textContent = contest.description;
 
     document.getElementById('cStart').textContent = new Date(contest.start_time).toLocaleString('fr-FR');
     document.getElementById('cEnd').textContent = new Date(contest.end_time).toLocaleString('fr-FR');
@@ -100,16 +80,22 @@ function renderContestUI(contest, isTemporary = false) {
         return;
     }
 
-    const rows = contest.problems.map((problem) => `
+    const rows = contest.problems.map((problem) => {
+        const difficultyKey = ['easy', 'med', 'hard'].includes(problem.difficulty_level)
+            ? problem.difficulty_level
+            : 'easy';
+
+        return `
       <tr>
-          <td class="contest-problem-id">#${problem.problem_id}</td>
-          <td class="contest-problem-name">${problem.name}</td>
-          <td class="contest-problem-points">${problem.points} XP</td>
+          <td class="contest-problem-id">#${escapeHtml(problem.problem_id)}</td>
+          <td class="contest-problem-name">${escapeHtml(problem.name)}</td>
+          <td class="contest-problem-points">${escapeHtml(problem.points)} XP</td>
           <td>
-              <span class="difficulty ${problem.difficulty_level}">${problem.difficulty_level}</span>
+              <span class="difficulty ${difficultyKey}">${escapeHtml(problem.difficulty_level)}</span>
           </td>
       </tr>
-    `);
+    `;
+    });
 
     tbody.innerHTML = rows.join('');
 }
@@ -117,13 +103,6 @@ function renderContestUI(contest, isTemporary = false) {
 async function handleRegistration() {
     const btn = document.getElementById('registerBtn');
     const msg = document.getElementById('registerMsg');
-
-    if (isTemporaryContest) {
-        msg.textContent = 'Mode demo: inscription non disponible sur les concours temporaires.';
-        msg.style.color = '#854d0e';
-        msg.hidden = false;
-        return;
-    }
 
     btn.disabled = true;
     btn.textContent = 'Enregistrement...';

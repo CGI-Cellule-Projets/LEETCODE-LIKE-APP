@@ -5,6 +5,11 @@ import { AppError } from '../middleware/errorHandler';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
+import {
+  sanitizeEmail,
+  sanitizePassword,
+  sanitizeRequiredText,
+} from '../utils/sanitize';
 
 function toDateKey(date: Date): string {
   const year = date.getFullYear();
@@ -41,24 +46,14 @@ function computeStreakDays(activityByDate: Record<string, number>): number {
 export async function registerUser(req: Request, res: Response): Promise<void> {
   try {
     const { username, email, password } = req.body;
-    const normalizedUsername = String(username || '').trim();
-    const normalizedEmail = String(email || '').trim().toLowerCase();
+    const normalizedUsername = sanitizeRequiredText(username, {
+      fieldName: 'username',
+      maxLength: 64,
+    });
+    const normalizedEmail = sanitizeEmail(email);
+    const safePassword = sanitizePassword(password);
 
     // 1. Validation
-    if (!normalizedUsername || !normalizedEmail || !password) {
-      throw new AppError(400, 'All fields are required', 'Missing username, email, or password in the request body');
-    }
-
-    // Basic email format check
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(normalizedEmail)) {
-      throw new AppError(400, 'Invalid email format', 'The provided email is not a valid email address');
-    }
-
-    if (password.length < 6) {
-      throw new AppError(400, 'Password too short', 'Password must be at least 6 characters long');
-    }
-
     const db = getDB();
 
     // 2. Duplication Check
@@ -76,7 +71,7 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
 
     // 3. Security (Password Hashing)
     const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
+    const hashedPassword = await bcrypt.hash(safePassword, saltRounds);
 
     // 4. Creation
     const newUserId = uuidv4();
@@ -136,11 +131,8 @@ export async function registerUser(req: Request, res: Response): Promise<void> {
 export async function loginUser(req: Request, res: Response): Promise<void> {
   try {
     const { email, password } = req.body;
-    const normalizedEmail = String(email || '').trim().toLowerCase();
-
-    if (!normalizedEmail || !password) {
-      throw new AppError(400, 'All fields are required', 'Missing email or password in the request body');
-    }
+    const normalizedEmail = sanitizeEmail(email);
+    const safePassword = sanitizePassword(password);
 
     const db = getDB();
 
@@ -164,7 +156,7 @@ export async function loginUser(req: Request, res: Response): Promise<void> {
       is_admin: boolean;
     };
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    const isValidPassword = await bcrypt.compare(safePassword, user.password);
     if (!isValidPassword) {
       throw new AppError(401, 'Invalid credentials', 'Email or password is incorrect');
     }

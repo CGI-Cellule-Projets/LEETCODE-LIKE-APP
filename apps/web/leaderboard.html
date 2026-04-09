@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AlgoForge | Leaderboard</title>
     <meta name="description" content="Classement en direct du concours avec timer de fin de session.">
+    <meta name="theme-color" content="#ff6b3d">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:title" content="AlgoForge | Leaderboard de concours">
+    <meta property="og:description" content="Classement en direct, timer et details de resolution pour chaque concours.">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -22,7 +28,7 @@
     <header class="topbar">
         <div class="container topbar-inner">
             <a class="brand" href="index.html"><span>Algo</span>Forge</a>
-            <nav class="main-nav">
+            <nav class="main-nav" aria-label="Navigation principale">
                 <a class="nav-link" href="index.html">Accueil</a>
                 <a class="nav-link" href="problems.html">Problemes</a>
                 <a class="nav-link active" href="contest.html" aria-current="page">Concours (BETA)</a>
@@ -38,14 +44,14 @@
                 <span aria-hidden="true"></span>
             </button>
         </div>
-        <div id="mobileMenu" class="mobile-menu">
+        <nav id="mobileMenu" class="mobile-menu" aria-label="Navigation mobile">
             <a class="mobile-link" href="index.html">Accueil</a>
             <a class="mobile-link" href="problems.html">Problemes</a>
             <a class="mobile-link" href="contest.html" aria-current="page">Concours (BETA)</a>
             <a class="mobile-link" href="parameters.html">Parametres</a>
             <a class="mobile-link" href="profile.html">Profil</a>
             <a class="btn btn-primary wide guest-only" href="login.html">Connexion</a>
-        </div>
+        </nav>
     </header>
     <div id="menuBackdrop" class="menu-backdrop"></div>
 
@@ -54,7 +60,7 @@
             <div class="container">
                 <a id="backToContestLink" href="contest.html" class="contest-back-link">&larr; Retour au concours</a>
 
-                <div id="leaderboardLoading" class="contest-loading">
+                <div id="leaderboardLoading" class="contest-loading" role="status" aria-live="polite">
                     <div class="loading-placeholder">Chargement du classement...</div>
                 </div>
 
@@ -89,7 +95,7 @@
                     </div>
                 </div>
 
-                <div id="leaderboardError" class="contest-error" hidden>
+                <div id="leaderboardError" class="contest-error" role="alert" hidden>
                     <h2>Classement indisponible</h2>
                     <p>Impossible de charger ce leaderboard pour le moment.</p>
                 </div>
@@ -105,7 +111,6 @@
     </footer>
 
     <script src="assets/js/api.js"></script>
-    <script src="assets/js/contest-mock-data.js"></script>
     <script src="assets/js/script.js"></script>
     <script src="assets/js/leaderboard.js"></script>
 </body>

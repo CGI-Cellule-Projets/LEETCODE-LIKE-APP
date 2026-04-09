@@ -622,7 +622,7 @@ curl -X POST http://localhost:3000/api/admin/problems \
 | `DB_USER` | `postgres` | Database user |
 | `DB_PASSWORD` | - | Database password (required) |
 | `DB_NAME` | `coding_platform` | Database name |
-| `JWT_SECRET` | `dev-secret-key-change-in-production` | JWT signing secret |
+| `JWT_SECRET` | auto-generated per process in development, required in production | JWT signing secret |
 | `JWT_EXPIRY` | `24h` | Token expiration time |
 | `PORT` | `3001` | Server port |
 | `NODE_ENV` | `development` | Environment (development/production) |

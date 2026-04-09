@@ -102,18 +102,10 @@ app.use('/api/contests', contestRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req: Request, res: Response) => {
-  const devDemoMode = process.env.DEV_DEMO_MODE === 'true';
-  const allowLocalAdminBypass = process.env.NODE_ENV !== 'production'
-    && process.env.ALLOW_LOCAL_ADMIN_BYPASS === 'true';
-
   res.status(200).json({
     success: true,
     message: 'Server is healthy',
     timestamp: new Date().toISOString(),
-    data: {
-      dev_demo_mode: devDemoMode,
-      allow_local_admin_bypass: allowLocalAdminBypass,
-    },
   });
 });
 

@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { getDB } from '../config/database';
 import { CreateSubmissionRequest, SubmissionResponse, SubmissionStatus } from '../types';
 import { AppError } from '../middleware/errorHandler';
+import { sanitizeInteger, sanitizeRequiredText } from '../utils/sanitize';
 
 /**
  * POST /api/submissions
@@ -58,20 +59,16 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
       runtime_ms,
       memory_kb,
     } = req.body as CreateSubmissionRequest;
+    const safeProblemId = sanitizeInteger(problem_id, 'problem_id', { min: 1 });
+    const safeLanguageId = sanitizeInteger(language_id, 'language_id', { min: 1 });
+    const safeCodeBody = sanitizeRequiredText(code_body, {
+      fieldName: 'code_body',
+      maxLength: 200000,
+      preserveNewlines: true,
+      trim: false,
+    });
 
     // Validation
-    if (!problem_id || !language_id || !code_body) {
-      throw new AppError(
-        400,
-        'Invalid submission data',
-        'problem_id, language_id, and code_body are required'
-      );
-    }
-
-    if (typeof code_body !== 'string' || code_body.trim().length === 0) {
-      throw new AppError(400, 'Invalid code body', 'Code body cannot be empty');
-    }
-
     if (runtime_ms != null && (!Number.isFinite(runtime_ms) || Number(runtime_ms) < 0)) {
       throw new AppError(400, 'Invalid runtime', 'runtime_ms must be a positive number');
     }
@@ -95,21 +92,21 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
     // Verify problem exists
     const problemResult = await db.query(
       'SELECT problem_id FROM problems WHERE problem_id = $1',
-      [problem_id]
+      [safeProblemId]
     );
 
     if (!problemResult.rows || problemResult.rows.length === 0) {
-      throw new AppError(404, 'Problem not found', `Problem with ID ${problem_id} does not exist`);
+      throw new AppError(404, 'Problem not found', `Problem with ID ${safeProblemId} does not exist`);
     }
 
     // Verify language exists
     const languageResult = await db.query(
       'SELECT language_id FROM languages WHERE language_id = $1',
-      [language_id]
+      [safeLanguageId]
     );
 
     if (!languageResult.rows || languageResult.rows.length === 0) {
-      throw new AppError(404, 'Language not found', `Language with ID ${language_id} does not exist`);
+      throw new AppError(404, 'Language not found', `Language with ID ${safeLanguageId} does not exist`);
     }
 
     // Create submission with initial status "Pending"
@@ -138,9 +135,9 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
       `, [
         submissionId,
         userId,
-        problem_id,
-        language_id,
-        code_body,
+        safeProblemId,
+        safeLanguageId,
+        safeCodeBody,
         submissionStatus,
         normalizedRuntimeMs,
         normalizedMemoryKb,
@@ -165,7 +162,7 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
               WHEN EXCLUDED.status = 'solved' THEN EXCLUDED.solve_timestamp
               ELSE user_problem.solve_timestamp
             END
-        `, [userId, problem_id, userProblemStatus, solveTimestamp]);
+        `, [userId, safeProblemId, userProblemStatus, solveTimestamp]);
       }
 
       await db.query('COMMIT');
@@ -180,9 +177,9 @@ export async function createSubmission(req: Request, res: Response): Promise<voi
       data: {
         submission_id: submissionId,
         user_id: userId,
-        problem_id,
-        language_id,
-        code_body,
+        problem_id: safeProblemId,
+        language_id: safeLanguageId,
+        code_body: safeCodeBody,
         status: submissionStatus,
         runtime_ms: normalizedRuntimeMs ?? undefined,
         memory_kb: normalizedMemoryKb ?? undefined,

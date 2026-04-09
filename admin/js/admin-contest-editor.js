@@ -4,20 +4,14 @@
  */
 
 let currentContestId = null;
-let currentContestIsTemporary = false;
 let problemIndex = 0;
-
-const TEMP_ADMIN_CONTEST_DETAILS = (window.CONTEST_MOCK_DATA && Array.isArray(window.CONTEST_MOCK_DATA.details))
-  ? window.CONTEST_MOCK_DATA.details
-  : [];
 
 document.addEventListener('DOMContentLoaded', async () => {
   setupEventListeners();
 
   const idParam = new URLSearchParams(window.location.search).get('id');
   if (!idParam || Number.isNaN(Number.parseInt(idParam, 10))) {
-    showInfo('Aucun identifiant valide fourni. Chargement d\'un concours temporaire.', true);
-    populateEditor(TEMP_ADMIN_CONTEST_DETAILS[0], true);
+    showInfo('Aucun identifiant valide fourni.', true);
     return;
   }
 
@@ -43,30 +37,18 @@ async function loadContest(contestId) {
     const result = await apiAdminGetContestById(contestId);
 
     if (result.success && result.data) {
-      populateEditor(result.data, false);
+      populateEditor(result.data);
       return;
     }
 
-    const fallback = TEMP_ADMIN_CONTEST_DETAILS.find(c => c.contest_id === contestId);
-    if (fallback) {
-      populateEditor(fallback, true);
-      showInfo('Mode démo: données temporaires chargées (API indisponible ou accès refusé).', true);
-    } else {
-      showInfo('Concours introuvable.', true);
-    }
+    showInfo('Concours introuvable.', true);
   } catch (error) {
-    const fallback = TEMP_ADMIN_CONTEST_DETAILS.find(c => c.contest_id === contestId);
-    if (fallback) {
-      populateEditor(fallback, true);
-      showInfo('Mode démo: données temporaires chargées après erreur réseau.', true);
-    } else {
-      showInfo('Erreur de chargement du concours.', true);
-    }
+    console.error(error);
+    showInfo('Erreur de chargement du concours.', true);
   }
 }
 
-function populateEditor(contest, isTemporary) {
-  currentContestIsTemporary = isTemporary;
+function populateEditor(contest) {
   currentContestId = contest.contest_id;
 
   document.getElementById('editorPageTitle').textContent = `${contest.title}`;
@@ -85,9 +67,7 @@ function populateEditor(contest, isTemporary) {
 
   rows.forEach(row => addProblemRow(row.problem_id, row.points));
 
-  if (!isTemporary) {
-    showInfo(`Concours #${contest.contest_id} chargé depuis l'API.`);
-  }
+  showInfo(`Concours #${contest.contest_id} chargé depuis l'API.`);
 }
 
 function addProblemRow(problemId = '', points = 100) {
@@ -162,12 +142,6 @@ async function handleFormSubmit(e) {
       problem_id: Number.parseInt(pId, 10),
       points: Number.parseInt(pPts, 10)
     });
-  }
-
-  if (currentContestIsTemporary) {
-    formSuccess.textContent = ' Mode démo: modifications locales validées (aucune écriture API).';
-    formSuccess.hidden = false;
-    return;
   }
 
   const payloadHeader = { title, description, start_time, end_time };

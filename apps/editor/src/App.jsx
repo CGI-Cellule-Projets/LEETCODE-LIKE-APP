@@ -1,6 +1,7 @@
-import { startTransition, useEffect, useEffectEvent, useRef, useState } from 'react';
-import Editor from "@monaco-editor/react";
+import { Suspense, lazy, startTransition, useEffect, useEffectEvent, useRef, useState } from 'react';
 import './App.css';
+
+const LazyMonacoEditor = lazy(() => import('@monaco-editor/react'));
 
 const starterCode = {
   javascript: '// Read the stdin text from the input argument.\nfunction solution(input) {\n  return input\n    .split(/\\s+/)\n    .filter(Boolean)\n    .reverse()\n    .join(" ");\n}\n',
@@ -141,6 +142,18 @@ const API_BASE_URL = resolveApiBaseUrl();
 const LANGUAGE_IDS = {
   javascript: 1,
   python: 2,
+};
+
+const EDITOR_OPTIONS = {
+  fontFamily: "'Fira Code', 'JetBrains Mono', monospace",
+  fontLigatures: true,
+  fontSize: 14,
+  minimap: { enabled: false },
+  automaticLayout: true,
+  padding: { top: 16 },
+  scrollBeyondLastLine: false,
+  smoothScrolling: true,
+  cursorBlinking: 'smooth',
 };
 
 const getStoredAuthToken = () => {
@@ -1275,6 +1288,8 @@ const updateProgressFromRun = (problem, result, requestedTimeLimit, isSubmit = f
 
 function App() {
   const [problem, setProblem] = useState(null);
+  const [isProblemLoading, setIsProblemLoading] = useState(true);
+  const [problemLoadError, setProblemLoadError] = useState('');
   const [language, setLanguage] = useState("python");
   const [code, setCode] = useState(starterCode.python);
   const [stdin, setStdin] = useState("");
@@ -1298,7 +1313,15 @@ function App() {
     const currentProblemId = readProblemIdFromSearch();
     let isCancelled = false;
 
+    const applyProblem = (nextProblem) => {
+      const enrichedProblem = enrichProblem(nextProblem);
+      setProblem(enrichedProblem);
+      localStorage.setItem("algoforge-current-problem", JSON.stringify(enrichedProblem));
+      setProblemLoadError("");
+    };
+
     const hydrateProblem = async () => {
+      setIsProblemLoading(true);
       if (currentProblemId) {
         try {
           const apiProblem = await fetchProblemById(currentProblemId);
@@ -1306,28 +1329,32 @@ function App() {
             return;
           }
 
-          const enrichedProblem = enrichProblem(buildProblemFromApi(apiProblem, currentSearchProblem));
-          setProblem(enrichedProblem);
-          localStorage.setItem("algoforge-current-problem", JSON.stringify(enrichedProblem));
+          applyProblem(buildProblemFromApi(apiProblem, currentSearchProblem));
           return;
         } catch (error) {
-          console.warn(error);
+          console.warn('Unable to load problem details from the API. Falling back to cached metadata.', error);
+          setProblemLoadError("Les details du probleme n'ont pas pu etre recuperes depuis l API.");
         }
       }
 
       try {
         if (currentSearchProblem) {
-          const enrichedProblem = enrichProblem(currentSearchProblem);
-          setProblem(enrichedProblem);
-          localStorage.setItem("algoforge-current-problem", JSON.stringify(enrichedProblem));
+          applyProblem(currentSearchProblem);
         } else {
           const stored = localStorage.getItem("algoforge-current-problem");
           if (stored) {
-            setProblem(enrichProblem(JSON.parse(stored)));
+            applyProblem(JSON.parse(stored));
+          } else {
+            setProblem(null);
           }
         }
       } catch (e) {
-        // ignore parse errors
+        setProblem(null);
+        setProblemLoadError("Les donnees du probleme sont invalides. Recharge la page depuis la bibliotheque.");
+      } finally {
+        if (!isCancelled) {
+          setIsProblemLoading(false);
+        }
       }
     };
 
@@ -1440,6 +1467,7 @@ function App() {
     const sampleTests = Array.isArray(problem?.sampleTests) ? problem.sampleTests : [];
     const officialTests = Array.isArray(problem?.officialTests) ? problem.officialTests : [];
     
+    // Resolve one execution plan per action so the UI and persistence layers observe one stable result set.
     let testsToRun;
     if (isSubmit) {
       testsToRun = officialTests.length > 0
@@ -1585,6 +1613,14 @@ function App() {
   const currentStatus = statusConfig[runStatus] || statusConfig.idle;
   const editorFlex = `${splitRatio} 1 0%`;
   const consoleFlex = `${1 - splitRatio} 1 0%`;
+  const problemPlaceholderTitle = isProblemLoading
+    ? 'Loading Problem'
+    : problemLoadError
+      ? 'Problem Unavailable'
+      : 'No Problem Selected';
+  const problemPlaceholderMessage = isProblemLoading
+    ? 'Preparing the statement, examples, and official tests...'
+    : problemLoadError || 'Select a problem from the problems library';
 
   return (
     <div className="app-container">
@@ -1688,24 +1724,23 @@ function App() {
                 </div>
               </div>
               <div className="window-body" style={{ backgroundColor: 'var(--bg-panel)' }}>
-                <Editor
-                  height="100%"
-                  theme={editorTheme}
-                  language={language}
-                  value={code}
-                  onChange={(value) => setCode(value ?? '')}
-                  options={{
-                    fontFamily: "'Fira Code', 'JetBrains Mono', monospace",
-                    fontLigatures: true,
-                    fontSize: 14,
-                    minimap: { enabled: false },
-                    automaticLayout: true,
-                    padding: { top: 16 },
-                    scrollBeyondLastLine: false,
-                    smoothScrolling: true,
-                    cursorBlinking: "smooth",
-                  }}
-                />
+                <Suspense
+                  fallback={(
+                    <div className="editor-loading-state" role="status">
+                      <div className="editor-loading-pulse" aria-hidden="true"></div>
+                      <p>Chargement du moteur Monaco...</p>
+                    </div>
+                  )}
+                >
+                  <LazyMonacoEditor
+                    height="100%"
+                    theme={editorTheme}
+                    language={language}
+                    value={code}
+                    onChange={(value) => setCode(value ?? '')}
+                    options={EDITOR_OPTIONS}
+                  />
+                </Suspense>
               </div>
             </div>
 
@@ -1726,6 +1761,7 @@ function App() {
             <div
               className={`console-wrapper window-shell ${windowMode === "editor" ? 'window-hidden' : ''}`}
               style={windowMode === "split" ? { flex: consoleFlex } : undefined}
+              aria-busy={isRunning}
             >
               <div className="panel-header window-header">
                 <div className="window-title">
@@ -1811,7 +1847,7 @@ function App() {
                     ))}
                   </div>
                 )}
-                <div className="output-box">
+                <div className="output-box" aria-live="polite">
                   {output.map((line, idx) => (
                     <div key={idx} className={`output-line ${line.type}`}>{line.text}</div>
                   ))}
@@ -1848,6 +1884,8 @@ function App() {
       <aside
         id="problemDrawer"
         className={`problem-drawer ${isProblemOpen ? 'open' : ''}`}
+        role="dialog"
+        aria-modal={isProblemOpen}
         aria-hidden={!isProblemOpen}
       >
         <div className="problem-drawer-shell">
@@ -1909,8 +1947,15 @@ function App() {
           ) : (
             <div className="problem-placeholder">
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="placeholder-icon"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"></path><line x1="9" y1="13" x2="15" y2="13"></line><line x1="9" y1="17" x2="15" y2="17"></line></svg>
-              <h3>No Problem Selected</h3>
-              <p>Select a problem from the <a href="../problems.html" className="link-back">problems library</a></p>
+              <h3>{problemPlaceholderTitle}</h3>
+              <p>
+                {problemPlaceholderMessage}
+                {!isProblemLoading ? (
+                  <>
+                    {' '}<a href="../problems.html" className="link-back">Browse the problems library</a>
+                  </>
+                ) : null}
+              </p>
             </div>
           )}
         </div>

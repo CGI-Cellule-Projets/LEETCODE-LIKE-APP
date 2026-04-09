@@ -16,29 +16,52 @@ async function checkAdminAccess() {
     return false;
   }
 
-  const runtimeFlags = typeof apiGetRuntimeFlags === 'function'
-    ? await apiGetRuntimeFlags()
-    : { success: false, allow_local_admin_bypass: false };
-  const allowLocalBypass = Boolean(runtimeFlags.success && runtimeFlags.allow_local_admin_bypass);
-
   console.log('Admin access limited to the local machine in development mode.');
   const token = localStorage.getItem('auth_token');
-  if (!token && !allowLocalBypass) {
+  if (!token) {
     alert('Admin token required. Please sign in with an admin account.');
     window.location.href = '../apps/web/login.html';
     return false;
   }
 
-  let adminLabel = token ? 'Authenticated Admin' : 'Local Admin';
+  let sessionUser = null;
+  let adminLabel = 'Authenticated Admin';
 
   try {
-    const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
-    if (userInfo && (userInfo.is_admin === true || userInfo.role === 'admin' || userInfo.level === 'admin')) {
-      adminLabel = userInfo.username || userInfo.email || 'Admin';
+    const response = await fetch(`${resolveApiBaseUrl()}/auth/me`, {
+      method: 'GET',
+      headers: getAuthHeaders(),
+    });
+    const payload = await response.json();
+    if (response.ok && payload.success && payload.data) {
+      sessionUser = payload.data;
+      localStorage.setItem('user_info', JSON.stringify(payload.data));
+    }
+  } catch (error) {
+    console.warn('Unable to verify admin session against API.', error);
+  }
+
+  try {
+    const storedUser = JSON.parse(localStorage.getItem('user_info') || '{}');
+    if (!sessionUser && storedUser && typeof storedUser === 'object') {
+      sessionUser = storedUser;
     }
   } catch (error) {
     // Ignore invalid local user payloads
   }
+
+  const isAdminUser = Boolean(
+    sessionUser
+      && (sessionUser.is_admin === true || sessionUser.role === 'admin' || sessionUser.level === 'admin')
+  );
+
+  if (!isAdminUser) {
+    alert('Admin privileges required. Please sign in with an admin account.');
+    window.location.href = '../apps/web/login.html';
+    return false;
+  }
+
+  adminLabel = sessionUser.username || sessionUser.email || 'Admin';
   
   // Display admin username in navbar
   const adminUsernameElements = document.querySelectorAll('#adminUsername');

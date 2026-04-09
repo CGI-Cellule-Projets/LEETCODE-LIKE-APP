@@ -1,5 +1,3 @@
-import React from 'react';
-
 export default function ContestTable({ contests, isLoading, onCreate }) {
   if (isLoading) {
     return (

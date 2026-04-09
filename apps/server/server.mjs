@@ -17,6 +17,7 @@ const REST_API_BASE_URL = process.env.REST_API_BASE_URL || `http://127.0.0.1:${R
 const WEB_ROOT = path.join(__dirname, '..', 'web');
 const ADMIN_ROOT = path.join(__dirname, '..', '..', 'admin');
 const EDITOR_ENTRY = path.join(WEB_ROOT, 'editor', 'indexcodeeditor.html');
+const NOT_FOUND_ENTRY = path.join(WEB_ROOT, '404.html');
 const RUNTIME_ROOT = path.join(__dirname, 'runtime');
 
 const MAX_BODY_BYTES = 256 * 1024;
@@ -62,6 +63,30 @@ const languageConfigs = {
 };
 
 let cachedPythonRuntime = null;
+
+function getCacheControl(filePath) {
+  const extension = path.extname(filePath).toLowerCase();
+  const normalizedPath = filePath.replace(/\\/g, '/');
+  const isHashedEditorAsset = /\/editor\/assets\/.+-[A-Za-z0-9]{6,}\.(css|js)$/.test(normalizedPath);
+
+  if (extension === '.html') {
+    return 'no-cache';
+  }
+
+  if (isHashedEditorAsset) {
+    return 'public, max-age=31536000, immutable';
+  }
+
+  if (extension === '.css' || extension === '.js') {
+    return 'public, max-age=300, must-revalidate';
+  }
+
+  if (['.png', '.jpg', '.jpeg', '.svg', '.webp', '.ico'].includes(extension)) {
+    return 'public, max-age=86400';
+  }
+
+  return 'no-cache';
+}
 
 function resolvePythonRuntime() {
   if (cachedPythonRuntime) {
@@ -551,9 +576,7 @@ async function serveStatic(request, response) {
   const filePath = resolveStaticPath(decodedPathname);
 
   if (!filePath) {
-    applySecurityHeaders(response);
-    response.writeHead(404);
-    response.end('Not found');
+    await serveNotFoundPage(response);
     return;
   }
 
@@ -568,8 +591,7 @@ async function serveStatic(request, response) {
   try {
     const stat = await fs.stat(filePath);
     if (!stat.isFile()) {
-      response.writeHead(404);
-      response.end('Not found');
+      await serveNotFoundPage(response);
       return;
     }
 
@@ -577,15 +599,39 @@ async function serveStatic(request, response) {
     applySecurityHeaders(response);
     response.writeHead(200, {
       'Content-Type': mimeTypes[extension] || 'application/octet-stream',
-      'Cache-Control': 'no-cache',
+      'Cache-Control': getCacheControl(filePath),
       'X-Content-Type-Options': 'nosniff',
     });
     createReadStream(filePath).pipe(response);
   } catch {
-    applySecurityHeaders(response);
-    response.writeHead(404);
-    response.end('Not found');
+    await serveNotFoundPage(response);
   }
+}
+
+async function serveNotFoundPage(response) {
+  try {
+    const stat = await fs.stat(NOT_FOUND_ENTRY);
+    if (stat.isFile()) {
+      applySecurityHeaders(response);
+      response.writeHead(404, {
+        'Content-Type': mimeTypes['.html'],
+        'Cache-Control': 'no-cache',
+        'X-Content-Type-Options': 'nosniff',
+      });
+      createReadStream(NOT_FOUND_ENTRY).pipe(response);
+      return;
+    }
+  } catch {
+    // Fall back to plain-text 404 below.
+  }
+
+  applySecurityHeaders(response);
+  response.writeHead(404, {
+    'Content-Type': 'text/plain; charset=utf-8',
+    'Cache-Control': 'no-cache',
+    'X-Content-Type-Options': 'nosniff',
+  });
+  response.end('Not found');
 }
 
 const server = createServer(async (request, response) => {
@@ -616,7 +662,6 @@ server.on('error', (error) => {
 server.listen(PORT, HOST, () => {
   console.log(`AlgoForge server listening on http://${HOST}:${PORT}`);
 });
-
 
 
 

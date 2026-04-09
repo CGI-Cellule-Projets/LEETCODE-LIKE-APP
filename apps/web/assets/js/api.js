@@ -473,33 +473,3 @@ async function apiAdminUpdateContest(contestId, contestPayload, problemMappingsP
   }
 }
 
-/**
- * Health check
- */
-async function apiHealthCheck() {
-  try {
-    const response = await fetch(`${API_BASE_URL}/health`, {
-      method: 'GET',
-    });
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    return { success: false, message: 'API is not running', errors: error.message };
-  }
-}
-
-/**
- * Runtime flags helper for frontend gating (dev-demo fallbacks, etc.)
- */
-async function apiGetRuntimeFlags() {
-  const health = await apiHealthCheck();
-  if (!health.success) {
-    return { success: false, dev_demo_mode: false, allow_local_admin_bypass: false };
-  }
-
-  return {
-    success: true,
-    dev_demo_mode: Boolean(health.data && health.data.dev_demo_mode),
-    allow_local_admin_bypass: Boolean(health.data && health.data.allow_local_admin_bypass),
-  };
-}

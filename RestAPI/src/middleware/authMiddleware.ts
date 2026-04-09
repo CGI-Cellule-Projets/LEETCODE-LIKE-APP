@@ -3,15 +3,6 @@ import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from '../config/jwt';
 import { AppError } from './errorHandler';
 
-function isLocalRequest(req: Request): boolean {
-  const remoteAddress = req.socket.remoteAddress || '';
-  return [
-    '127.0.0.1',
-    '::1',
-    '::ffff:127.0.0.1',
-  ].includes(remoteAddress);
-}
-
 export const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
   try {
     const authHeader = req.headers.authorization;
@@ -54,31 +45,17 @@ export const requireAdmin = (req: Request, res: Response, next: NextFunction): v
 export const requireAdminAccess = (req: Request, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
 
-  if (authHeader) {
-    requireAuth(req, res, (error?: unknown) => {
-      if (error) {
-        next(error);
-        return;
-      }
-
-      requireAdmin(req, res, next);
-    });
+  if (!authHeader) {
+    next(new AppError(401, 'Authentication required', 'Admin access requires a valid admin token.'));
     return;
   }
 
-  const localBypassEnabled = process.env.NODE_ENV !== 'production'
-    && process.env.ALLOW_LOCAL_ADMIN_BYPASS === 'true';
+  requireAuth(req, res, (error?: unknown) => {
+    if (error) {
+      next(error);
+      return;
+    }
 
-  if (localBypassEnabled && isLocalRequest(req)) {
-    req.user = {
-      user_id: 'local-admin-bypass',
-      username: 'local-admin',
-      is_admin: true,
-      role: 'admin',
-    };
-    next();
-    return;
-  }
-
-  next(new AppError(401, 'Authentication required', 'Admin access requires a valid admin token.'));
+    requireAdmin(req, res, next);
+  });
 };

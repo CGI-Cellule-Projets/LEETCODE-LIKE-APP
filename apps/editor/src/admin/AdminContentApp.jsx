@@ -1,27 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
-import ProblemTable from './components/ProblemTable';
-import ProblemForm from './components/ProblemForm';
-import ContestTable from './components/ContestTable';
-import AdminContestForm from './components/AdminContestForm';
+import { Suspense, lazy, useEffect, useMemo, useState } from 'react';
 import {
   deleteProblem,
   getProblemDetails,
   getProblems,
-  upsertProblemWithTestCases
+  upsertProblemWithTestCases,
 } from './services/problemService';
 import { getContestsAdmin } from './services/contestAdminService';
+import AppStatusScreen from '../components/AppStatusScreen.jsx';
+
+const ProblemTable = lazy(() => import('./components/ProblemTable'));
+const ProblemForm = lazy(() => import('./components/ProblemForm'));
+const ContestTable = lazy(() => import('./components/ContestTable'));
+const AdminContestForm = lazy(() => import('./components/AdminContestForm'));
 
 export default function AdminContentApp() {
-  const [section, setSection] = useState('problems'); // 'problems' | 'contests'
-  const [view, setView] = useState('table'); // 'table' | 'form'
-
-  // Problems State
+  const [section, setSection] = useState('problems');
+  const [view, setView] = useState('table');
   const [problems, setProblems] = useState([]);
   const [activeProblem, setActiveProblem] = useState(null);
-  
-  // Contests State
   const [contests, setContests] = useState([]);
-
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [banner, setBanner] = useState(null);
@@ -30,7 +27,12 @@ export default function AdminContentApp() {
     if (section === 'contests') {
       return view === 'table' ? 'Contest Management' : 'Create Custom Tournament';
     }
-    return view === 'table' ? 'Problem Content Management' : activeProblem ? 'Edit Algorithmic Problem' : 'Create Algorithmic Problem';
+
+    return view === 'table'
+      ? 'Problem Content Management'
+      : activeProblem
+        ? 'Edit Algorithmic Problem'
+        : 'Create Algorithmic Problem';
   }, [section, view, activeProblem]);
 
   async function refreshData() {
@@ -39,10 +41,11 @@ export default function AdminContentApp() {
       if (section === 'problems') {
         const rows = await getProblems();
         setProblems(rows);
-      } else {
-        const rows = await getContestsAdmin();
-        setContests(rows);
+        return;
       }
+
+      const rows = await getContestsAdmin();
+      setContests(rows);
     } catch (error) {
       setBanner({ kind: 'error', message: error.message });
     } finally {
@@ -52,7 +55,6 @@ export default function AdminContentApp() {
 
   useEffect(() => {
     refreshData();
-    // Clear banner whenever we explicitly switch sections
     setBanner(null);
   }, [section]);
 
@@ -69,7 +71,7 @@ export default function AdminContentApp() {
         ...problem,
         ...details,
         description: details?.description || problem.description || '',
-        testCases: details?.test_cases || []
+        testCases: details?.test_cases || [],
       });
       setView('form');
     } catch {
@@ -80,7 +82,10 @@ export default function AdminContentApp() {
 
   const handleDeleteProblem = async (problem) => {
     const confirmed = window.confirm(`Delete ${problem.name}? This action cannot be undone.`);
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
+
     try {
       await deleteProblem(problem.problem_id);
       setBanner({ kind: 'success', message: 'Problem deleted successfully.' });
@@ -93,6 +98,7 @@ export default function AdminContentApp() {
   const handleSubmitProblem = async (formValues) => {
     setIsSaving(true);
     setBanner(null);
+
     try {
       const mode = formValues.problem_id ? 'update' : 'create';
       await upsertProblemWithTestCases(mode, formValues);
@@ -110,12 +116,14 @@ export default function AdminContentApp() {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_20%_-10%,#fff8eb,transparent_42%),radial-gradient(circle_at_90%_20%,#ebf8ff,transparent_45%),#f8f7f3] px-4 py-10 text-slate-900 md:px-8">
       <div className="mx-auto max-w-7xl space-y-6">
-        
-        {/* Universal Top Bar */}
-        <div className="flex border-b border-slate-200 mb-6 justify-center">
+        <div className="mb-6 flex justify-center border-b border-slate-200">
           <button
-            onClick={() => { setSection('problems'); setView('table'); }}
-            className={`px-6 py-3 font-medium text-sm transition-colors ${
+            type="button"
+            onClick={() => {
+              setSection('problems');
+              setView('table');
+            }}
+            className={`px-6 py-3 text-sm font-medium transition-colors ${
               section === 'problems'
                 ? 'border-b-2 border-indigo-600 text-indigo-700'
                 : 'text-slate-500 hover:text-slate-700'
@@ -124,8 +132,12 @@ export default function AdminContentApp() {
             Algorithms Engine
           </button>
           <button
-            onClick={() => { setSection('contests'); setView('table'); }}
-            className={`px-6 py-3 font-medium text-sm transition-colors ${
+            type="button"
+            onClick={() => {
+              setSection('contests');
+              setView('table');
+            }}
+            className={`px-6 py-3 text-sm font-medium transition-colors ${
               section === 'contests'
                 ? 'border-b-2 border-indigo-600 text-indigo-700'
                 : 'text-slate-500 hover:text-slate-700'
@@ -145,55 +157,72 @@ export default function AdminContentApp() {
           </div>
         </header>
 
-        {banner && (
-          <div className={`rounded-xl border px-4 py-3 text-sm ${
-              banner.kind === 'error' ? 'border-rose-200 bg-rose-50 text-rose-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'
-            }`}>
+        {banner ? (
+          <div
+            role={banner.kind === 'error' ? 'alert' : 'status'}
+            className={`rounded-xl border px-4 py-3 text-sm ${
+              banner.kind === 'error'
+                ? 'border-rose-200 bg-rose-50 text-rose-700'
+                : 'border-emerald-200 bg-emerald-50 text-emerald-700'
+            }`}
+          >
             {banner.message}
           </div>
-        )}
+        ) : null}
 
-        {/* Dynamic Routing Renderer */}
-        {section === 'problems' && (
-           view === 'table' ? (
-            <ProblemTable
-              problems={problems}
-              isLoading={isLoading}
-              onCreate={openCreate}
-              onEdit={openEditProblem}
-              onDelete={handleDeleteProblem}
+        <Suspense
+          fallback={(
+            <AppStatusScreen
+              title="Chargement du module"
+              message="Preparation des tableaux et formulaires de gestion."
+              actionHref="../index.html"
+              actionLabel="Retour a l accueil"
             />
+          )}
+        >
+          {section === 'problems' ? (
+            view === 'table' ? (
+              <ProblemTable
+                problems={problems}
+                isLoading={isLoading}
+                onCreate={openCreate}
+                onEdit={openEditProblem}
+                onDelete={handleDeleteProblem}
+              />
+            ) : (
+              <ProblemForm
+                problem={activeProblem}
+                onSubmit={handleSubmitProblem}
+                onCancel={() => {
+                  setView('table');
+                  setActiveProblem(null);
+                }}
+                isSaving={isSaving}
+              />
+            )
           ) : (
-            <ProblemForm
-              problem={activeProblem}
-              onSubmit={handleSubmitProblem}
-              onCancel={() => { setView('table'); setActiveProblem(null); }}
-              isSaving={isSaving}
-            />
-          )
-        )}
-
-        {section === 'contests' && (
-           view === 'table' ? (
-            <ContestTable
-              contests={contests}
-              isLoading={isLoading}
-              onCreate={openCreate}
-            />
-          ) : (
-            // Instead of pure ProblemForm we render the robust standalone AdminContestForm 
-            // In a real prod environment we could wrap it with identical onCancel callbacks but we are letting it act independently here
-            <div>
-              <div className="mb-4">
-                 <button onClick={() => setView('table')} className="text-sm font-semibold text-indigo-600 hover:underline">
-                   ← Back to Tracking Lists
-                 </button>
+            view === 'table' ? (
+              <ContestTable
+                contests={contests}
+                isLoading={isLoading}
+                onCreate={openCreate}
+              />
+            ) : (
+              <div>
+                <div className="mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setView('table')}
+                    className="text-sm font-semibold text-indigo-600 hover:underline"
+                  >
+                    Back to Tracking Lists
+                  </button>
+                </div>
+                <AdminContestForm />
               </div>
-              <AdminContestForm />
-            </div>
-          )
-        )}
-
+            )
+          )}
+        </Suspense>
       </div>
     </main>
   );

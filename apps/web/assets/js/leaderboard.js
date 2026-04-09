@@ -1,10 +1,22 @@
 let leaderboardContestId = null;
 let leaderboardTimerId = null;
-let leaderboardAllowDevFallback = false;
 
-const TEMP_CONTEST_DETAILS = (window.CONTEST_MOCK_DATA && Array.isArray(window.CONTEST_MOCK_DATA.details))
-  ? window.CONTEST_MOCK_DATA.details
-  : [];
+function escapeHtml(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function readUserInfo() {
+  try {
+    return JSON.parse(localStorage.getItem('user_info') || '{}');
+  } catch {
+    return {};
+  }
+}
 
 function toDateLabel(value) {
   const date = new Date(value);
@@ -70,7 +82,7 @@ function renderTimer(contest) {
 
 function renderRows(entries) {
   const tbody = document.getElementById('leaderboardTbody');
-  const userInfo = JSON.parse(localStorage.getItem('user_info') || '{}');
+  const userInfo = readUserInfo();
   const currentName = String(userInfo.username || '').toLowerCase();
 
   if (!tbody) return;
@@ -95,10 +107,10 @@ function renderRows(entries) {
     const suffix = isCurrentUser ? ' (Vous)' : '';
     return `
       <tr>
-        <td>#${entry.rank}</td>
-        <td>${entry.username}${suffix}</td>
-        <td>${entry.score_total}</td>
-        <td>${entry.temps_de_resolution}</td>
+        <td>#${escapeHtml(entry.rank)}</td>
+        <td>${escapeHtml(entry.username)}${escapeHtml(suffix)}</td>
+        <td>${escapeHtml(entry.score_total)}</td>
+        <td>${escapeHtml(entry.temps_de_resolution)}</td>
       </tr>
     `;
   }).join('');
@@ -111,7 +123,7 @@ function showError() {
   document.getElementById('leaderboardError').hidden = false;
 }
 
-function showLoaded(contest, entries, temporaryMode = false) {
+function showLoaded(contest, entries) {
   document.getElementById('leaderboardLoading').hidden = true;
   document.getElementById('leaderboardError').hidden = true;
   document.getElementById('leaderboardView').hidden = false;
@@ -123,9 +135,7 @@ function showLoaded(contest, entries, temporaryMode = false) {
   const backLink = document.getElementById('backToContestLink');
 
   title.textContent = `Leaderboard - ${contest.title || 'Concours'}`;
-  subtitle.textContent = temporaryMode
-    ? 'Mode demo local actif: classement genere automatiquement.'
-    : 'Classement live de la session en cours.';
+  subtitle.textContent = 'Classement live de la session en cours.';
   startNode.textContent = toDateLabel(contest.start_time);
   endNode.textContent = toDateLabel(contest.end_time);
   if (leaderboardContestId && backLink) {
@@ -136,19 +146,11 @@ function showLoaded(contest, entries, temporaryMode = false) {
   renderTimer(contest);
 }
 
-async function fetchContestWithFallback(contestId) {
+async function fetchContest(contestId) {
   const apiResult = await apiGetContestById(contestId);
   if (apiResult.success && apiResult.data) {
-    return { contest: apiResult.data, temporaryMode: false };
+    return apiResult.data;
   }
-
-  if (leaderboardAllowDevFallback) {
-    const tempContest = TEMP_CONTEST_DETAILS.find((item) => Number(item.contest_id) === Number(contestId));
-    if (tempContest) {
-      return { contest: tempContest, temporaryMode: true };
-    }
-  }
-
   return null;
 }
 
@@ -165,9 +167,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const idParam = urlParams.get('id');
   const contestId = Number(idParam);
 
-  const flags = await apiGetRuntimeFlags();
-  leaderboardAllowDevFallback = Boolean(flags && flags.success && flags.dev_demo_mode);
-
   if (!idParam || Number.isNaN(contestId)) {
     showError();
     return;
@@ -176,14 +175,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   leaderboardContestId = contestId;
 
   try {
-    const payload = await fetchContestWithFallback(contestId);
-    if (!payload || !payload.contest) {
+    const contest = await fetchContest(contestId);
+    if (!contest) {
       showError();
       return;
     }
 
     const entries = await fetchLeaderboardEntries(contestId);
-    showLoaded(payload.contest, entries, payload.temporaryMode);
+    showLoaded(contest, entries);
   } catch (error) {
     console.error(error);
     showError();

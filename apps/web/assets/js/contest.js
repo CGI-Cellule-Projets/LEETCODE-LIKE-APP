@@ -4,14 +4,17 @@
  */
 
 let allContests = [];
-const TEMP_CONTESTS = (window.CONTEST_MOCK_DATA && Array.isArray(window.CONTEST_MOCK_DATA.list))
-    ? window.CONTEST_MOCK_DATA.list
-    : [];
-let allowDevFallback = false;
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
-    const flags = await apiGetRuntimeFlags();
-    allowDevFallback = Boolean(flags && flags.success && flags.dev_demo_mode);
     await loadContests();
     setupEventListeners();
 });
@@ -50,33 +53,24 @@ async function loadContests() {
                 ...response.data.past.map(c => ({...c, listing_type: 'past'}))
             ];
 
-            if (allContests.length === 0 && allowDevFallback) {
-                allContests = TEMP_CONTESTS;
-            }
-
             applyFilters(); // Initial render
-        } else {
-            if (allowDevFallback) {
-                allContests = TEMP_CONTESTS;
-                applyFilters();
-            } else {
-                showError('Impossible de charger les concours depuis l API.');
-            }
-        }
-    } catch (err) {
-        if (allowDevFallback) {
-            allContests = TEMP_CONTESTS;
-            applyFilters();
         } else {
             showError('Impossible de charger les concours depuis l API.');
         }
+    } catch (err) {
+        showError('Impossible de charger les concours depuis l API.');
     }
 }
 
 function showError(msg) {
-    const errorHTML = `<p class="error-message" style="color: #d32f2f; font-weight: bold; grid-column: 1 / -1; text-align: center; padding: 2rem;">${msg}</p>`;
+    const errorHTML = `<p class="error-message" style="color: #d32f2f; font-weight: bold; grid-column: 1 / -1; text-align: center; padding: 2rem;">${escapeHtml(msg)}</p>`;
     document.getElementById('contestsGrid').innerHTML = errorHTML;
     document.getElementById('cardCount').textContent = 'Erreur';
+}
+
+function normalizeContestId(value) {
+    const contestId = Number(value);
+    return Number.isInteger(contestId) && contestId > 0 ? contestId : null;
 }
 
 function applyFilters() {
@@ -87,8 +81,9 @@ function applyFilters() {
     const currentFilter = activeChip ? activeChip.getAttribute('data-filter') : 'all';
 
     const filtered = allContests.filter(contest => {
-        const matchesSearch = contest.title.toLowerCase().includes(searchQuery) || 
-                              contest.description.toLowerCase().includes(searchQuery);
+        const title = String(contest.title || '').toLowerCase();
+        const description = String(contest.description || '').toLowerCase();
+        const matchesSearch = title.includes(searchQuery) || description.includes(searchQuery);
         
         const matchesFilter = currentFilter === 'all' || contest.listing_type === currentFilter;
 
@@ -114,6 +109,7 @@ function renderGrid(contests) {
     let html = '';
     contests.forEach(c => {
         const type = c.listing_type;
+        const contestId = normalizeContestId(c.contest_id);
         
         let tagDetails = { text: 'N/A', bg: 'rgba(var(--accent-rgb), 0.15)', color: 'var(--accent)' };
         if (type === 'upcoming') tagDetails = { text: 'A venir', bg: 'var(--surface-board)', color: 'var(--text)' };
@@ -124,10 +120,10 @@ function renderGrid(contests) {
         const endDate = new Date(c.end_time).toLocaleString();
         
         let actionsHtml = `
-            <a class="btn btn-primary solve-btn" href="contest-details.html?id=${c.contest_id}">Voir les details</a>
+            <a class="btn btn-primary solve-btn" href="contest-details.html?id=${contestId ?? ''}">Voir les details</a>
         `;
         if (type === 'past') {
-            actionsHtml = `<a class="btn btn-ghost solve-btn" href="contest-details.html?id=${c.contest_id}">Archive</a>`;
+            actionsHtml = `<a class="btn btn-ghost solve-btn" href="contest-details.html?id=${contestId ?? ''}">Archive</a>`;
         }
 
         html += `
@@ -135,11 +131,11 @@ function renderGrid(contests) {
                 <span class="contest-tag" style="background: ${tagDetails.bg}; color: ${tagDetails.color};">
                     ${tagDetails.text}
                 </span>
-                <h3>${c.title}</h3>
-                <p>${c.description}</p>
+                <h3>${escapeHtml(c.title)}</h3>
+                <p>${escapeHtml(c.description)}</p>
                 <div class="contest-time">
-                    <strong>Debut :</strong> ${startDate}<br>
-                    <strong>Fin :</strong> ${endDate}
+                    <strong>Debut :</strong> ${escapeHtml(startDate)}<br>
+                    <strong>Fin :</strong> ${escapeHtml(endDate)}
                 </div>
                 <div class="problem-actions">
                     <span class="difficulty medium">-</span>

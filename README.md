@@ -97,9 +97,8 @@ cp .env.example .env
 ```
 
 Variables importantes dans `.env` :
-- `DEV_DEMO_MODE=false` (par défaut) : désactive les fallbacks front (mock contests / login local temporaire).
-- `ALLOW_LOCAL_ADMIN_BYPASS=false` (par défaut) : exige un vrai token admin même en local.
 - `DISABLE_DEFAULT_ADMIN=false` (par défaut) : crée `admin@dev.local / admin123` au premier démarrage.
+- `JWT_SECRET=...` : secret JWT obligatoire en production. En développement, un secret temporaire est généré si la variable est absente.
 
 **Étape 4** — Importer le schéma BDD :
 ```bash
@@ -129,18 +128,6 @@ Lors du premier démarrage de l'API en mode développement, un utilisateur admin
 2. Se connecter avec `admin@dev.local / admin123` (ou un admin créé manuellement)
 
 >  Ces identifiants ne sont que pour le développement. En production, créer des utilisateurs avec des mots de passe forts.
-
-### Modes de démo
-
-#### 1) `demo-real` (recommandé)
-- `DEV_DEMO_MODE=false`
-- `ALLOW_LOCAL_ADMIN_BYPASS=false`
-- Tout passe par la vraie API (auth, concours, soumissions, admin stats).
-
-#### 2) `dev-demo` (fallback local)
-- `DEV_DEMO_MODE=true`
-- Optionnel : `ALLOW_LOCAL_ADMIN_BYPASS=true` pour tests admin locaux.
-- Active les fallbacks UI temporaires uniquement pour développement local.
 
 ### Architecture REST API
 
@@ -184,13 +171,13 @@ Lors du premier démarrage de l'API en mode développement, un utilisateur admin
 | **Problèmes** | CRUD complet (admin seulement) |
 | **Test Cases** | Public (pour l'utilisateur) vs Hidden (pour la notation) |
 | **Soumissions** | Tracker le code soumis par les utilisateurs |
-| **Autorisation** | Contrôles d'accès désactivés temporairement en local |
+| **Autorisation** | JWT requis pour les routes protégées, rôle admin requis pour les routes d'administration |
 | **Sécurité** | Validation et prévention SQL injection |
 
 ### Checklist démo (acceptance)
 1. Register -> login -> accès à `problems.html` avec session persistée.
 2. Login admin -> dashboard avec compteurs réels (`Problems`, `Users`, `Submissions`).
-3. Contest list/details chargés depuis API (sans mock si `DEV_DEMO_MODE=false`).
+3. Contest list/details chargés depuis l'API avec états d'erreur explicites si le backend est indisponible.
 4. Inscription concours refusée sans token, acceptée avec utilisateur connecté.
 5. Soumission code refusée sans token, acceptée avec token valide.
 

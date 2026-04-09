@@ -6,6 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AlgoForge | Connexion</title>
     <meta name="description" content="Connexion a AlgoForge pour retrouver vos preferences, votre progression et vos exercices.">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#ff6b3d">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="fr_FR">
+    <meta property="og:title" content="AlgoForge | Connexion">
+    <meta property="og:description" content="Connecte-toi a AlgoForge pour retrouver ta progression, tes preferences et tes exercices.">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -40,7 +47,7 @@
                 </div>
 
                 <form id="loginForm" class="auth-form auth-panel" novalidate>
-                    <div id="loginMessage" class="auth-message error-message" hidden></div>
+                    <div id="loginMessage" class="auth-message error-message" role="alert" aria-live="polite" hidden></div>
 
                     <div class="form-group">
                         <label for="email">Adresse email</label>
@@ -50,15 +57,13 @@
                     <div class="form-group">
                         <label for="password">Mot de passe</label>
                         <input type="password" id="password" name="password" placeholder="Entrez votre mot de passe" autocomplete="current-password" required>
-                        <p class="auth-helper" id="devDemoAdminHint" hidden>Admin temp: <code>admin.temp@algoforge.dev</code> / <code>AdminTemp#2026</code></p>
-                        <p class="auth-helper" id="devDemoUserHint" hidden>User temp: <code>user.temp@algoforge.dev</code> / <code>UserTemp#2026</code></p>
                     </div>
 
                     <button type="submit" id="loginButton" class="btn btn-primary auth-btn">Se connecter</button>
                 </form>
 
                 <form id="registerInlineForm" class="auth-form auth-panel" hidden novalidate>
-                    <div id="registerMessage" class="auth-message error-message" hidden></div>
+                    <div id="registerMessage" class="auth-message error-message" role="alert" aria-live="polite" hidden></div>
 
                     <div class="form-group">
                         <label for="registerUsername">Nom d'utilisateur</label>
@@ -148,14 +153,6 @@
         const registerEmailInput = document.getElementById("registerEmail");
         const registerPasswordInput = document.getElementById("registerPassword");
         const registerConfirmPasswordInput = document.getElementById("registerConfirmPassword");
-        const devDemoAdminHint = document.getElementById("devDemoAdminHint");
-        const devDemoUserHint = document.getElementById("devDemoUserHint");
-
-        const TEMP_ADMIN_EMAIL = "admin.temp@algoforge.dev";
-        const TEMP_ADMIN_PASSWORD = "AdminTemp#2026";
-        const TEMP_USER_EMAIL = "user.temp@algoforge.dev";
-        const TEMP_USER_PASSWORD = "UserTemp#2026";
-        let devDemoModeEnabled = false;
 
         function setActiveMode(mode) {
             const isLoginMode = mode === "login";
@@ -200,52 +197,6 @@
             }
 
             localStorage.setItem("user_info", JSON.stringify(normalizedUser));
-        }
-
-        function tryDevDemoLogin(email, password) {
-            if (!devDemoModeEnabled) {
-                return { success: false, message: "Mode demo local desactive." };
-            }
-
-            const normalizedEmail = String(email || "").trim().toLowerCase();
-            const isAdminLogin = normalizedEmail === TEMP_ADMIN_EMAIL && password === TEMP_ADMIN_PASSWORD;
-            const isUserLogin = normalizedEmail === TEMP_USER_EMAIL && password === TEMP_USER_PASSWORD;
-
-            if (!isAdminLogin && !isUserLogin) {
-                return { success: false, message: "Identifiants invalides." };
-            }
-
-            if (isAdminLogin) {
-                writeSession(null, {
-                    username: "Temporary Admin",
-                    email: TEMP_ADMIN_EMAIL,
-                    level: "admin",
-                    role: "admin",
-                    is_admin: true
-                });
-                return { success: true, redirect: "../../admin/dashboard.html" };
-            }
-
-            writeSession("dev-demo-token", {
-                username: "Temporary User",
-                email: TEMP_USER_EMAIL,
-                level: "beginner",
-                role: "user",
-                is_admin: false
-            });
-            return { success: true, redirect: "problems.html" };
-        }
-
-        async function hydrateRuntimeFlags() {
-            if (typeof apiGetRuntimeFlags !== "function") {
-                devDemoModeEnabled = false;
-            } else {
-                const flags = await apiGetRuntimeFlags();
-                devDemoModeEnabled = Boolean(flags && flags.success && flags.dev_demo_mode);
-            }
-
-            if (devDemoAdminHint) devDemoAdminHint.hidden = !devDemoModeEnabled;
-            if (devDemoUserHint) devDemoUserHint.hidden = !devDemoModeEnabled;
         }
 
         loginTabBtn.addEventListener("click", function () {
@@ -295,22 +246,11 @@
                     return;
                 }
 
-                const fallback = tryDevDemoLogin(email, password);
-                if (fallback.success) {
-                    window.location.href = fallback.redirect;
-                    return;
-                }
-
                 const apiError = apiResult && (apiResult.message || apiResult.errors);
                 showMessage(loginMessage, String(apiError || "Identifiants invalides."));
                 passwordInput.value = "";
                 passwordInput.focus();
             } catch (error) {
-                const fallback = tryDevDemoLogin(email, password);
-                if (fallback.success) {
-                    window.location.href = fallback.redirect;
-                    return;
-                }
                 showMessage(loginMessage, "Impossible de contacter le serveur de connexion.");
             } finally {
                 loginButton.disabled = false;
@@ -356,45 +296,14 @@
                     return;
                 }
 
-                if (devDemoModeEnabled) {
-                    writeSession("dev-demo-token", {
-                        username,
-                        email,
-                        level: "beginner",
-                        role: "user",
-                        is_admin: false
-                    });
-                    showMessage(registerMessage, "Compte cree en mode demo local. Redirection...", "success");
-                    window.setTimeout(function () {
-                        window.location.href = "problems.html";
-                    }, 320);
-                    return;
-                }
-
                 showMessage(registerMessage, String((result && (result.message || result.errors)) || "Impossible de creer le compte."));
             } catch (error) {
-                if (devDemoModeEnabled) {
-                    writeSession("dev-demo-token", {
-                        username,
-                        email,
-                        level: "beginner",
-                        role: "user",
-                        is_admin: false
-                    });
-                    showMessage(registerMessage, "Compte cree en mode demo local. Redirection...", "success");
-                    window.setTimeout(function () {
-                        window.location.href = "problems.html";
-                    }, 320);
-                    return;
-                }
                 showMessage(registerMessage, "Impossible de creer le compte pour le moment.");
             } finally {
                 registerButton.disabled = false;
                 registerButton.textContent = "Creer un compte";
             }
         });
-
-        hydrateRuntimeFlags();
     </script>
 </body>
 
