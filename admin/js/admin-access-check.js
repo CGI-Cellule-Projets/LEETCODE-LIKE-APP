@@ -109,7 +109,7 @@ async function checkAdminAccess() {
 function applyStoredPreferences() {
   const root = document.documentElement;
   const body = document.body;
-  const SETTINGS_KEY = 'algoforge-settings';
+  const SETTINGS_KEY = 'lla-settings';
   const defaultSettings = {
     accent: 'sunset',
     theme: 'light',

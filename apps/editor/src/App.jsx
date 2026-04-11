@@ -14,8 +14,8 @@ const accentPalette = {
   mint:   { primary: "#14b884", secondary: "#9ad84b", glow: "rgba(20, 184, 132, 0.2)" },
 };
 
-const LEGACY_PROGRESS_KEY = "algoforge-progress";
-const PROGRESS_KEY_PREFIX = "algoforge-progress:";
+const LEGACY_PROGRESS_KEY = "lla-progress";
+const PROGRESS_KEY_PREFIX = "lla-progress:";
 const USER_INFO_KEY = "user_info";
 
 const defaultProgress = {
@@ -1316,7 +1316,7 @@ function App() {
     const applyProblem = (nextProblem) => {
       const enrichedProblem = enrichProblem(nextProblem);
       setProblem(enrichedProblem);
-      localStorage.setItem("algoforge-current-problem", JSON.stringify(enrichedProblem));
+      localStorage.setItem("lla-current-problem", JSON.stringify(enrichedProblem));
       setProblemLoadError("");
     };
 
@@ -1341,7 +1341,7 @@ function App() {
         if (currentSearchProblem) {
           applyProblem(currentSearchProblem);
         } else {
-          const stored = localStorage.getItem("algoforge-current-problem");
+          const stored = localStorage.getItem("lla-current-problem");
           if (stored) {
             applyProblem(JSON.parse(stored));
           } else {
@@ -1362,7 +1362,7 @@ function App() {
 
     // Apply saved theme & accent settings
     try {
-      const settings = JSON.parse(localStorage.getItem("algoforge-settings") || "{}");
+      const settings = JSON.parse(localStorage.getItem("lla-settings") || "{}");
       const root = document.documentElement;
 
       // Theme
@@ -1626,10 +1626,10 @@ function App() {
     <div className="app-container">
       <header className="app-header">
         <div className="logo">
-          <a href="../index.html" className="logo-back" title="Retour a AlgoForge">
+          <a href="../index.html" className="logo-back" title="Retour a LLA">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </a>
-          <a href="../index.html" className="logo-brand"><span className="logo-highlight">Algo</span>Forge</a>
+          <a href="../index.html" className="logo-brand">LLA</a>
         </div>
         <div className="header-actions">
           <button

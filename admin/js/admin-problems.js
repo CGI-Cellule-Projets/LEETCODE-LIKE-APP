@@ -5,7 +5,7 @@
 
 let allProblems = [];
 let editingProblemId = null;
-const DEMO_PROBLEMS_KEY = 'algoforge-admin-demo-problems';
+const DEMO_PROBLEMS_KEY = 'lla-admin-demo-problems';
 
 function readDemoProblems() {
   try {
@@ -159,7 +159,7 @@ function createTestCaseMarkup(testCase = {}) {
           <textarea
             class="test-case-output"
             rows="4"
-            placeholder="Ex: Hello from AlgoForge"
+            placeholder="Ex: Hello from LLA"
             ${isExisting ? 'readonly' : ''}
           >${escapeHtml(testCase.expected_output || '')}</textarea>
         </div>

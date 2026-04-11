@@ -1,8 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
     const body = document.body;
     const root = document.documentElement;
-    const LEGACY_PROGRESS_KEY = "algoforge-progress";
-    const PROGRESS_KEY_PREFIX = "algoforge-progress:";
+    const LEGACY_PROGRESS_KEY = "lla-progress";
+    const PROGRESS_KEY_PREFIX = "lla-progress:";
     const USER_INFO_KEY = "user_info";
 
     document.querySelectorAll(".year").forEach((node) => {
@@ -727,7 +727,7 @@ document.addEventListener("DOMContentLoaded", () => {
      * Gère la sauvegarde des préférences utilisateur dans le localStorage 
      * (Mode sombre, Couleur d'accent, Animations) et leur application globale.
      */
-    const SETTINGS_KEY = "algoforge-settings";
+    const SETTINGS_KEY = "lla-settings";
     const defaultSettings = {
         accent: "sunset",
         theme: "light",
@@ -896,7 +896,7 @@ document.addEventListener("DOMContentLoaded", () => {
             touchActivity(progress, todayKey);
             writeProgress(progress);
 
-            localStorage.setItem("algoforge-current-problem", JSON.stringify(problemData));
+            localStorage.setItem("lla-current-problem", JSON.stringify(problemData));
             window.location.href = buildEditorUrl(problemData);
         });
     });

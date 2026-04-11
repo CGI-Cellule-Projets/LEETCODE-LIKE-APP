@@ -163,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        localStorage.setItem('algoforge-current-problem', JSON.stringify(buildEditorProblem(selectedProblem)));
+        localStorage.setItem('lla-current-problem', JSON.stringify(buildEditorProblem(selectedProblem)));
     });
 
     const loadProblems = async () => {

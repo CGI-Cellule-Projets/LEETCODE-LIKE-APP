@@ -1,5 +1,5 @@
 {
-  "name": "algoforge",
+  "name": "lla",
   "private": true,
   "scripts": {
     "dev:api": "npm --prefix RestAPI run dev",

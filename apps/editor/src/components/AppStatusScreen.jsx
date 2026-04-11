@@ -9,7 +9,7 @@ export default function AppStatusScreen({
   return (
     <main className="app-status-screen" role="status">
       <div className="app-status-card">
-        <p className="app-status-eyebrow">AlgoForge Workspace</p>
+        <p className="app-status-eyebrow">LLA Workspace</p>
         <h1>{title}</h1>
         <p>{message}</p>
         <a href={actionHref} className="app-status-link">
