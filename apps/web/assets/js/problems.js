@@ -27,6 +27,21 @@ const difficultyMeta = {
     hard: { label: 'Difficile', className: 'hard', filterValue: 'hard' }
 };
 
+function getDifficultyMeta(value) {
+    if (window.LLADifficulty?.getMeta) {
+        return window.LLADifficulty.getMeta(value);
+    }
+
+    const normalized = String(value || '').trim().toLowerCase();
+    if (normalized === 'med' || normalized === 'medium' || normalized === 'moyen') {
+        return difficultyMeta.med;
+    }
+    if (normalized === 'hard' || normalized === 'difficile') {
+        return difficultyMeta.hard;
+    }
+    return difficultyMeta.easy;
+}
+
 function escapeHtml(value) {
     return String(value ?? '')
         .replace(/&/g, '&amp;')
@@ -47,10 +62,11 @@ function getProblemExcerpt(problem) {
 }
 
 function buildEditorProblem(problem) {
+    const meta = getDifficultyMeta(problem.difficulty_level);
     return {
         problem_id: problem.problem_id,
         title: problem.name,
-        difficulty: difficultyMeta[problem.difficulty_level]?.filterValue || 'easy',
+        difficulty: meta.value,
         description: problem.description || ''
     };
 }
@@ -63,7 +79,7 @@ function buildEditorUrl(problem) {
 }
 
 function renderProblemCard(problem) {
-    const meta = difficultyMeta[problem.difficulty_level] || difficultyMeta.easy;
+    const meta = getDifficultyMeta(problem.difficulty_level);
     const acceptance = Number.isFinite(Number(problem.solve_rate))
         ? `${Math.round(Number(problem.solve_rate))}%`
         : 'N/A';
@@ -76,11 +92,11 @@ function renderProblemCard(problem) {
             </div>
             <p>${escapeHtml(getProblemExcerpt(problem))}</p>
             <div class="meta-line">
-                <span>Acceptation ${acceptance}</span>
-                <span>#${problem.problem_id}</span>
+                <span>Taux de resolution ${acceptance}</span>
+                <span>Ref. #${problem.problem_id}</span>
             </div>
             <div class="problem-actions">
-                <span class="points">Database-backed</span>
+                <span class="points">Disponible</span>
                 <a
                     class="btn btn-primary solve-btn"
                     href="${buildEditorUrl(problem)}"
@@ -126,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const applyFilters = () => {
         const query = searchInput.value.trim().toLowerCase();
         const visibleProblems = allProblems.filter((problem) => {
-            const difficultyFilter = difficultyMeta[problem.difficulty_level]?.filterValue || 'easy';
+            const difficultyFilter = getDifficultyMeta(problem.difficulty_level).filterValue;
             const matchesDifficulty = activeFilter === 'all' || difficultyFilter === activeFilter;
             const haystack = `${problem.name} ${problem.description || ''}`.toLowerCase();
             const matchesQuery = query.length === 0 || haystack.includes(query);
@@ -191,4 +207,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadProblems();
 });
-

@@ -984,6 +984,39 @@ body.theme-night .roadmap {
     line-height: 1.08;
 }
 
+.problem-library-hero {
+    padding: 54px 0 18px;
+}
+
+.problem-library-shell {
+    display: grid;
+    gap: 24px;
+}
+
+.problem-library-heading {
+    max-width: 780px;
+}
+
+.problem-library-hero .section-subtitle {
+    margin-bottom: 8px;
+    color: var(--text-muted);
+    letter-spacing: 0.22em;
+}
+
+.problem-library-hero h1 {
+    margin-top: 0;
+    max-width: 10ch;
+    font-size: clamp(2.2rem, 5vw, 4.6rem);
+    line-height: 0.96;
+    letter-spacing: -0.055em;
+}
+
+.problem-library-hero .lead {
+    margin-top: 14px;
+    max-width: 46rem;
+    font-size: clamp(1rem, 1.4vw, 1.18rem);
+}
+
 /* ============================================
    PROFILE PAGE (profile.html)
    Task LLA-24 � layout ready, content is placeholder.
@@ -1321,10 +1354,49 @@ body.theme-night .roadmap {
     gap: 12px;
 }
 
+.problem-library-hero .problem-controls {
+    margin-top: 0;
+    padding: 22px 24px 20px;
+    border-radius: 20px;
+    background: linear-gradient(180deg, var(--surface-2), var(--surface));
+    box-shadow: 0 18px 38px rgba(13, 24, 36, 0.12);
+    gap: 16px;
+}
+
+body.theme-night .problem-library-hero .problem-controls {
+    box-shadow: 0 18px 38px rgba(1, 6, 12, 0.3);
+}
+
+.problem-library-hero .search-wrap input {
+    min-height: 56px;
+    padding: 0 18px;
+    border-radius: 14px;
+    border-color: var(--border);
+    background: var(--surface-2);
+    font-size: 1rem;
+}
+
+.problem-library-hero .search-wrap input::placeholder {
+    color: var(--muted);
+    opacity: 0.9;
+}
+
+.problem-controls-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
 .filter-row {
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
+}
+
+.problem-library-hero .filter-row {
+    gap: 10px;
 }
 
 /* Filter chips: Tous / Facile / Moyen / Difficile */
@@ -1348,6 +1420,33 @@ body.theme-night .roadmap {
     border-color: transparent;
     color: #fff;
     background: linear-gradient(130deg, var(--accent), var(--accent-2));
+}
+
+.problem-library-hero .filter-chip {
+    min-height: 40px;
+    min-width: auto;
+    padding: 0 15px;
+    border-radius: 12px;
+    background: transparent;
+    color: var(--text);
+    box-shadow: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.problem-library-hero .filter-chip:hover {
+    background: rgba(var(--accent-rgb), 0.06);
+    border-color: rgba(var(--accent-rgb), 0.2);
+    box-shadow: none;
+    transform: none;
+}
+
+.problem-library-hero .filter-chip.active {
+    border-color: rgba(var(--accent-rgb), 0.26);
+    color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.12);
 }
 
 /* Auto-fit grid: cards fill available space, minimum 300px each */
@@ -1585,6 +1684,33 @@ body.theme-night .difficulty.hard {
     color: var(--muted);
     font-weight: 600;
     margin-top: 4px;
+}
+
+.problem-library-hero .card-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    color: var(--text);
+}
+
+.card-count-label {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.42rem 0.72rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.32);
+    color: var(--text-muted);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.68rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+}
+
+body.theme-night .card-count-label {
+    background: rgba(173, 190, 216, 0.08);
 }
 
 /* ============================================
@@ -2653,6 +2779,13 @@ body.theme-night .activity-icon {
     box-shadow: var(--shadow);
 }
 
+.problems-list-section > .panel {
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+}
+
 .list-controls {
     display: flex;
     gap: 1rem;
@@ -2960,6 +3093,28 @@ body.theme-night .list-controls {
 
     .hero {
         padding-top: 36px;
+    }
+
+    .problem-library-hero {
+        padding: 38px 0 12px;
+    }
+
+    .problem-library-hero h1 {
+        max-width: 12ch;
+        font-size: clamp(2rem, 12vw, 3.1rem);
+    }
+
+    .problem-library-hero .problem-controls {
+        padding: 18px;
+    }
+
+    .problem-controls-meta {
+        align-items: flex-start;
+    }
+
+    .problem-library-hero .card-count {
+        width: 100%;
+        justify-content: space-between;
     }
 
     .stat-row,

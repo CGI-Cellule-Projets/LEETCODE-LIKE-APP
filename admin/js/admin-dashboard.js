@@ -11,6 +11,21 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+function getDifficultyMeta(value) {
+  if (window.LLADifficulty?.getMeta) {
+    return window.LLADifficulty.getMeta(value);
+  }
+
+  const normalized = String(value || '').trim().toLowerCase();
+  if (normalized === 'med' || normalized === 'medium' || normalized === 'moyen') {
+    return { label: 'Moyen', className: 'medium' };
+  }
+  if (normalized === 'hard' || normalized === 'difficile') {
+    return { label: 'Difficile', className: 'hard' };
+  }
+  return { label: 'Facile', className: 'easy' };
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     const statsResult = await apiAdminGetStats();
@@ -51,6 +66,7 @@ async function loadRecentActivity() {
       let html = '<div class="activity-items">';
       
       recentProblems.forEach(problem => {
+        const difficultyMeta = getDifficultyMeta(problem.difficulty_level);
         const createdDate = problem.created_at
           ? new Date(problem.created_at).toLocaleDateString('fr-FR', {
               year: 'numeric',
@@ -66,7 +82,7 @@ async function loadRecentActivity() {
               <p><strong>${escapeHtml(problem.name)}</strong></p>
               <span class="activity-time">${createdDate}</span>
             </div>
-            <span class="difficulty ${escapeHtml(problem.difficulty_level)}">${escapeHtml(problem.difficulty_level)}</span>
+            <span class="difficulty ${difficultyMeta.className}">${escapeHtml(difficultyMeta.label)}</span>
           </div>
         `;
       });

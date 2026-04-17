@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import AppErrorBoundary from './components/AppErrorBoundary.jsx'
 import AppStatusScreen from './components/AppStatusScreen.jsx'
+import { applyStoredAppearance } from './appearance.js'
 
 const App = lazy(() => import('./App.jsx'))
 const ContestDetails = lazy(() => import('./components/contests/ContestDetails.jsx'))
@@ -10,6 +11,8 @@ const ContestDetails = lazy(() => import('./components/contests/ContestDetails.j
 const params = new URLSearchParams(window.location.search)
 const isContestView = params.get('view') === 'contest'
 const RootComponent = isContestView ? ContestDetails : App
+
+applyStoredAppearance()
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

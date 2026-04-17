@@ -134,10 +134,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const createDefaultProgress = () => ({
         attempts: 0,
+        submissionCount: 0,
+        acceptedSubmissionCount: 0,
         solvedCount: 0,
+        attemptedCount: 0,
         contestsCompleted: 0,
-        totalRuntimePercentile: 0,
-        runtimeSamples: 0,
+        avgRuntimeMs: 0,
         totalPracticeMinutes: 0,
         activeStreakDays: 0,
         problemOpenCount: 0,
@@ -239,8 +241,12 @@ document.addEventListener("DOMContentLoaded", () => {
         const mergedProgress = {
             ...progress,
             attempts: Math.max(Number(progress.attempts || 0), Number(stats.submissionCount || 0)),
+            submissionCount: Number(stats.submissionCount || 0),
+            acceptedSubmissionCount: Number(stats.acceptedSubmissionCount || 0),
             solvedCount: Number(stats.solvedCount || 0),
-            contestsCompleted: Math.max(Number(progress.contestsCompleted || 0), Math.floor(Number(stats.solvedCount || 0) / 4)),
+            attemptedCount: Number(stats.attemptedCount || 0),
+            contestsCompleted: Number(progress.contestsCompleted || 0),
+            avgRuntimeMs: Number(stats.avgRuntimeMs || 0),
             solvedByDifficulty: {
                 easy: Number(stats?.solvedByDifficulty?.easy || 0),
                 medium: Number(stats?.solvedByDifficulty?.medium || 0),
@@ -255,6 +261,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
         writeProgress(mergedProgress);
         return mergedProgress;
+    };
+
+    const formatAccountLevel = (value) => {
+        const normalized = String(value || "").trim().toLowerCase();
+        if (!normalized) {
+            return "Debutant";
+        }
+
+        return normalized
+            .split(/[\s_-]+/)
+            .filter(Boolean)
+            .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+            .join(" ");
     };
 
     const fetchCurrentUserProfile = async () => {
@@ -388,16 +407,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!solvedNode) return;
 
         const progress = inputProgress;
+        const userInfo = readUserInfo();
         const solved = Number(progress.solvedCount || 0);
         const contests = Number(progress.contestsCompleted || 0);
-        const avgRuntime = progress.runtimeSamples > 0
-            ? Math.round(progress.totalRuntimePercentile / progress.runtimeSamples)
-            : 0;
+        const submissions = Number(progress.submissionCount || progress.attempts || 0);
+        const acceptedSubmissions = Number(progress.acceptedSubmissionCount || 0);
+        const avgRuntime = Number(progress.avgRuntimeMs || 0);
         const hours = Math.max(0, Math.round((Number(progress.totalPracticeMinutes || 0) / 60) * 10) / 10);
         const streak = Number(progress.activeStreakDays || 0);
-        const level = Math.floor(solved / 3);
-        const rankEstimate = Math.max(1, 1200 - solved * 17 - contests * 10);
-        const topPercent = Math.max(1, Math.round(100 - Math.min(95, solved * 2 + contests * 3)));
+        const accountLevel = formatAccountLevel(userInfo.level);
 
         solvedNode.dataset.counter = String(solved);
         solvedNode.textContent = String(solved);
@@ -418,19 +436,18 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         const rankNode = document.getElementById("profileRank");
-        if (rankNode) rankNode.textContent = `#${rankEstimate}`;
+        if (rankNode) rankNode.textContent = String(acceptedSubmissions);
         const rankDeltaNode = document.getElementById("profileRankDelta");
         if (rankDeltaNode) {
-            const delta = Math.max(0, Math.round((solved + contests) * 0.7));
-            rankDeltaNode.textContent = `+${delta} place${delta > 1 ? "s" : ""} cette semaine`;
+            rankDeltaNode.textContent = `${submissions} soumission${submissions > 1 ? "s" : ""} au total`;
         }
 
         const streakTag = document.getElementById("profileStreakTag");
         if (streakTag) streakTag.textContent = `Serie: ${streak} jour${streak > 1 ? "s" : ""}`;
         const levelTag = document.getElementById("profileLevelTag");
-        if (levelTag) levelTag.textContent = `Niveau: ${level}`;
+        if (levelTag) levelTag.textContent = `Niveau compte: ${accountLevel}`;
         const topTag = document.getElementById("profileTopTag");
-        if (topTag) topTag.textContent = `Top ${topPercent}%`;
+        if (topTag) topTag.textContent = `Soumissions: ${submissions}`;
 
         const solvedByDifficulty = progress.solvedByDifficulty || {};
         const totalSolved = Math.max(1, solved);
@@ -472,8 +489,16 @@ document.addEventListener("DOMContentLoaded", () => {
         const binaryBadge = document.getElementById("badgeBinary");
         const runtimeBadge = document.getElementById("badgeRuntime");
         if (binaryBadge) binaryBadge.textContent = `${binaryCount} probleme${binaryCount > 1 ? "s" : ""} de recherche binaire valide.`;
-        if (contestBadge) contestBadge.textContent = `${contests} concours consecutif${contests > 1 ? "s" : ""} termine${contests > 1 ? "s" : ""} dans le top ${topPercent}%.`;
-        if (runtimeBadge) runtimeBadge.textContent = `${avgRuntime}% de percentile moyen sur les solutions executees.`;
+        if (contestBadge) {
+            contestBadge.textContent = contests > 0
+                ? `${contests} concours termine${contests > 1 ? "s" : ""} enregistre${contests > 1 ? "s" : ""}.`
+                : 'Aucun concours termine enregistre.';
+        }
+        if (runtimeBadge) {
+            runtimeBadge.textContent = avgRuntime > 0
+                ? `Runtime moyen observe: ${avgRuntime} ms sur les solutions acceptees.`
+                : 'Aucune mesure de runtime acceptee disponible.';
+        }
     };
 
     hydrateProfileIdentity();

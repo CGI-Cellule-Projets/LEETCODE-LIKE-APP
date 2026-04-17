@@ -1,0 +1,66 @@
+LEETCODE-LIKE-APP - Run Locally
+
+This project is a local prototype. Keep everything on your machine.
+
+What you need
+- Node.js 18 or newer
+- npm
+- PostgreSQL running locally
+
+Core folders
+- apps/web: static site pages and shared browser JavaScript
+- apps/editor: React code editor source
+- apps/server: local web server and execution runtime
+- RestAPI: TypeScript REST API
+- database: schema and demo seed data
+- scripts: helpers to start and stop the local stack
+
+Install once
+1. From the repository root, install the editor dependencies:
+   cd apps/editor
+   npm install
+
+2. Install the API dependencies:
+   cd ..\..\RestAPI
+   npm install
+
+3. Return to the repository root.
+
+Prepare the database
+1. Create the PostgreSQL database named coding_platform.
+2. Run the schema file:
+   psql -U postgres -d coding_platform -f database/coding_platform_db.sql
+3. Load the demo data:
+   psql -U postgres -d coding_platform -f database/seed_demo_data.sql
+
+Start the site
+1. From the repository root, run:
+   npm run dev:full
+
+2. Open:
+   http://localhost:3000
+
+Main commands
+- npm run dev:full: builds the editor and starts the web server plus API together
+- npm run serve: same local stack without rebuilding the editor first
+- npm run dev:api: starts the REST API only
+- npm run dev:frontend: starts the local web server only
+
+Useful notes
+- The site is a local prototype, so the server and API are expected to run on localhost.
+- If you rebuild the editor source, run npm run dev:full again so the generated files in apps/web/editor stay current.
+- For static browsing only, you can open apps/web/index.html through a local server, but code execution still needs the local stack.
+
+Quick tree
+LEETCODE-LIKE-APP/
+├── apps/
+│   ├── web/
+│   ├── editor/
+│   └── server/
+├── RestAPI/
+├── database/
+├── scripts/
+├── package.json
+└── RUN_LOCALLY.txt
+
+If you only share one file with the project, share this one first.

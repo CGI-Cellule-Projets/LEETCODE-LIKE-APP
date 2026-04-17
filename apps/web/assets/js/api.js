@@ -39,6 +39,36 @@ function resolveApiBaseUrl() {
 
 const API_BASE_URL = resolveApiBaseUrl();
 
+const DIFFICULTY_META = {
+  easy: { value: 'easy', label: 'Facile', className: 'easy', filterValue: 'easy' },
+  med: { value: 'med', label: 'Moyen', className: 'medium', filterValue: 'medium' },
+  hard: { value: 'hard', label: 'Difficile', className: 'hard', filterValue: 'hard' },
+};
+
+function normalizeDifficultyValue(value) {
+  const normalized = String(value || '').trim().toLowerCase();
+  if (normalized === 'easy' || normalized === 'facile') return 'easy';
+  if (normalized === 'med' || normalized === 'medium' || normalized === 'moyen') return 'med';
+  if (normalized === 'hard' || normalized === 'difficile') return 'hard';
+  return 'easy';
+}
+
+function getDifficultyDisplayMeta(value) {
+  return DIFFICULTY_META[normalizeDifficultyValue(value)] || DIFFICULTY_META.easy;
+}
+
+function formatDifficultyLabel(value) {
+  return getDifficultyDisplayMeta(value).label;
+}
+
+if (typeof window !== 'undefined') {
+  window.LLADifficulty = {
+    normalizeValue: normalizeDifficultyValue,
+    getMeta: getDifficultyDisplayMeta,
+    formatLabel: formatDifficultyLabel,
+  };
+}
+
 function getStoredAuthToken() {
   return localStorage.getItem('auth_token');
 }

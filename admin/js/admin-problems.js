@@ -185,6 +185,21 @@ function escapeHtml(value) {
     .replace(/'/g, '&#39;');
 }
 
+function getDifficultyMeta(value) {
+  if (window.LLADifficulty?.getMeta) {
+    return window.LLADifficulty.getMeta(value);
+  }
+
+  const normalized = String(value || '').trim().toLowerCase();
+  if (normalized === 'med' || normalized === 'medium' || normalized === 'moyen') {
+    return { label: 'Moyen', className: 'medium', filterValue: 'medium' };
+  }
+  if (normalized === 'hard' || normalized === 'difficile') {
+    return { label: 'Difficile', className: 'hard', filterValue: 'hard' };
+  }
+  return { label: 'Facile', className: 'easy', filterValue: 'easy' };
+}
+
 function appendTestCase(testCase = {}) {
   const container = getTestCasesContainer();
   if (!container) {
@@ -507,11 +522,12 @@ function renderProblemsList(problems) {
   `;
 
   problems.forEach((problem) => {
+    const difficultyMeta = getDifficultyMeta(problem.difficulty_level);
     const isPublished = problem.is_published ? 'Oui' : 'Non';
     html += `
       <tr data-problem-id="${problem.problem_id}">
         <td class="problem-name">${escapeHtml(problem.name)}</td>
-        <td><span class="difficulty ${problem.difficulty_level}">${escapeHtml(problem.difficulty_level)}</span></td>
+        <td><span class="difficulty ${difficultyMeta.className}">${escapeHtml(difficultyMeta.label)}</span></td>
         <td>${escapeHtml(problem.visibility || 'HIDDEN')}</td>
         <td>${isPublished}</td>
         <td class="actions">

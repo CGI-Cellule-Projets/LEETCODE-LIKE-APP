@@ -56,25 +56,32 @@
     <div id="menuBackdrop" class="menu-backdrop"></div>
 
     <main id="main-content">
-        <section class="page-hero compact">
-            <div class="container">
-                <p class="section-subtitle reveal">Bibliotheque de problemes</p>
-                <h1 class="reveal">Travaille chaque categorie avec precision</h1>
-                <p class="lead reveal">Filtre par difficulte et cherche rapidement le bon exercice.</p>
+        <section class="page-hero compact problem-library-hero">
+            <div class="container problem-library-shell">
+                <div class="problem-library-heading">
+                    <p class="section-subtitle reveal">Bibliotheque de problemes</p>
+                    <h1 class="reveal">Catalogue des problemes</h1>
+                    <p class="lead reveal">Recherchez par titre, difficulte ou tag, puis ouvrez l editeur pour commencer.</p>
+                </div>
 
                 <div class="problem-controls panel reveal" role="search" aria-label="Recherche de problemes">
                     <div class="search-wrap">
                         <label for="problemSearch" class="sr-only">Rechercher un probleme</label>
-                        <input id="problemSearch" type="text" placeholder="Rechercher un probleme ou un tag..."
+                        <input id="problemSearch" type="text" placeholder="Rechercher par titre ou tag"
                             aria-label="Rechercher un probleme">
                     </div>
-                    <div class="filter-row">
-                        <button class="filter-chip active" data-filter="all" aria-pressed="true">Tous</button>
-                        <button class="filter-chip" data-filter="easy" aria-pressed="false">Facile</button>
-                        <button class="filter-chip" data-filter="medium" aria-pressed="false">Moyen</button>
-                        <button class="filter-chip" data-filter="hard" aria-pressed="false">Difficile</button>
+                    <div class="problem-controls-meta">
+                        <div class="filter-row">
+                            <button class="filter-chip active" data-filter="all" aria-pressed="true">Tous</button>
+                            <button class="filter-chip" data-filter="easy" aria-pressed="false">Facile</button>
+                            <button class="filter-chip" data-filter="medium" aria-pressed="false">Moyen</button>
+                            <button class="filter-chip" data-filter="hard" aria-pressed="false">Difficile</button>
+                        </div>
+                        <p class="card-count" aria-live="polite">
+                            <span class="card-count-label">Catalogue</span>
+                            <span id="cardCount">Chargement des problemes...</span>
+                        </p>
                     </div>
-                    <p id="cardCount" class="card-count" aria-live="polite">Chargement des problemes...</p>
                 </div>
             </div>
         </section>

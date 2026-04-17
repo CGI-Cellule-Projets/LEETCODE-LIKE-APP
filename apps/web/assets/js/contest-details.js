@@ -14,6 +14,21 @@ function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
+function getDifficultyMeta(value) {
+    if (window.LLADifficulty?.getMeta) {
+        return window.LLADifficulty.getMeta(value);
+    }
+
+    const normalized = String(value || '').trim().toLowerCase();
+    if (normalized === 'med' || normalized === 'medium' || normalized === 'moyen') {
+        return { label: 'Moyen', className: 'medium', filterValue: 'medium' };
+    }
+    if (normalized === 'hard' || normalized === 'difficile') {
+        return { label: 'Difficile', className: 'hard', filterValue: 'hard' };
+    }
+    return { label: 'Facile', className: 'easy', filterValue: 'easy' };
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const idParam = urlParams.get('id');
@@ -81,9 +96,7 @@ function renderContestUI(contest) {
     }
 
     const rows = contest.problems.map((problem) => {
-        const difficultyKey = ['easy', 'med', 'hard'].includes(problem.difficulty_level)
-            ? problem.difficulty_level
-            : 'easy';
+        const difficultyMeta = getDifficultyMeta(problem.difficulty_level);
 
         return `
       <tr>
@@ -91,7 +104,7 @@ function renderContestUI(contest) {
           <td class="contest-problem-name">${escapeHtml(problem.name)}</td>
           <td class="contest-problem-points">${escapeHtml(problem.points)} XP</td>
           <td>
-              <span class="difficulty ${difficultyKey}">${escapeHtml(problem.difficulty_level)}</span>
+              <span class="difficulty ${difficultyMeta.className}">${escapeHtml(difficultyMeta.label)}</span>
           </td>
       </tr>
     `;

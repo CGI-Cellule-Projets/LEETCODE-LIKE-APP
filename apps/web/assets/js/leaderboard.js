@@ -1,5 +1,8 @@
 let leaderboardContestId = null;
 let leaderboardTimerId = null;
+let leaderboardPollId = null;
+let leaderboardContest = null;
+const LEADERBOARD_POLL_MS = 15000;
 
 function escapeHtml(value) {
   return String(value ?? '')
@@ -42,6 +45,32 @@ function stopTimer() {
     window.clearInterval(leaderboardTimerId);
     leaderboardTimerId = null;
   }
+}
+
+function stopLeaderboardPolling() {
+  if (leaderboardPollId) {
+    window.clearInterval(leaderboardPollId);
+    leaderboardPollId = null;
+  }
+}
+
+function setRefreshHint(message) {
+  const hint = document.getElementById('leaderboardRefreshHint');
+  if (hint) {
+    hint.textContent = message;
+  }
+}
+
+function isContestActive(contest) {
+  const nowMs = Date.now();
+  const startMs = new Date(contest.start_time).getTime();
+  const endMs = new Date(contest.end_time).getTime();
+  return !Number.isNaN(startMs) && !Number.isNaN(endMs) && nowMs >= startMs && nowMs <= endMs;
+}
+
+function isContestFinished(contest) {
+  const endMs = new Date(contest.end_time).getTime();
+  return !Number.isNaN(endMs) && Date.now() > endMs;
 }
 
 function renderTimer(contest) {
@@ -118,6 +147,7 @@ function renderRows(entries) {
 
 function showError() {
   stopTimer();
+  stopLeaderboardPolling();
   document.getElementById('leaderboardLoading').hidden = true;
   document.getElementById('leaderboardView').hidden = true;
   document.getElementById('leaderboardError').hidden = false;
@@ -135,11 +165,19 @@ function showLoaded(contest, entries) {
   const backLink = document.getElementById('backToContestLink');
 
   title.textContent = `Leaderboard - ${contest.title || 'Concours'}`;
-  subtitle.textContent = 'Classement live de la session en cours.';
+  subtitle.textContent = 'Classement synchronise pendant les concours actifs.';
   startNode.textContent = toDateLabel(contest.start_time);
   endNode.textContent = toDateLabel(contest.end_time);
   if (leaderboardContestId && backLink) {
     backLink.href = `contest-details.html?id=${leaderboardContestId}`;
+  }
+
+  if (isContestActive(contest)) {
+    setRefreshHint('Actualisation automatique toutes les 15 secondes pendant le concours.');
+  } else if (isContestFinished(contest)) {
+    setRefreshHint('Concours termine. Classement fige.');
+  } else {
+    setRefreshHint('Le classement se mettra a jour automatiquement au debut du concours.');
   }
 
   renderRows(entries);
@@ -162,6 +200,66 @@ async function fetchLeaderboardEntries(contestId) {
   return [];
 }
 
+async function refreshLeaderboardEntries({ silent = true } = {}) {
+  if (!leaderboardContestId || !leaderboardContest) {
+    return;
+  }
+
+  try {
+    const entries = await fetchLeaderboardEntries(leaderboardContestId);
+    renderRows(entries);
+
+    if (isContestActive(leaderboardContest)) {
+      const refreshedAt = new Date().toLocaleTimeString('fr-FR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      setRefreshHint(`Derniere mise a jour ${refreshedAt}. Actualisation toutes les 15 secondes.`);
+    } else if (isContestFinished(leaderboardContest)) {
+      setRefreshHint('Concours termine. Classement fige.');
+      stopLeaderboardPolling();
+    } else if (!silent) {
+      setRefreshHint('Le concours n a pas encore commence.');
+    }
+  } catch (error) {
+    console.error('Unable to refresh leaderboard entries:', error);
+    if (!silent) {
+      setRefreshHint('Actualisation impossible pour le moment.');
+    }
+  }
+}
+
+function startLeaderboardPolling(contest) {
+  stopLeaderboardPolling();
+
+  if (isContestFinished(contest)) {
+    setRefreshHint('Concours termine. Classement fige.');
+    return;
+  }
+
+  leaderboardPollId = window.setInterval(() => {
+    if (!leaderboardContest) {
+      stopLeaderboardPolling();
+      return;
+    }
+
+    if (isContestFinished(leaderboardContest)) {
+      setRefreshHint('Concours termine. Classement fige.');
+      stopLeaderboardPolling();
+      refreshLeaderboardEntries({ silent: false });
+      return;
+    }
+
+    if (isContestActive(leaderboardContest)) {
+      refreshLeaderboardEntries();
+      return;
+    }
+
+    setRefreshHint('Le classement se mettra a jour automatiquement au debut du concours.');
+  }, LEADERBOARD_POLL_MS);
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const idParam = urlParams.get('id');
@@ -181,12 +279,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
+    leaderboardContest = contest;
     const entries = await fetchLeaderboardEntries(contestId);
     showLoaded(contest, entries);
+    startLeaderboardPolling(contest);
   } catch (error) {
     console.error(error);
     showError();
   }
 });
 
-window.addEventListener('beforeunload', stopTimer);
+window.addEventListener('beforeunload', () => {
+  stopTimer();
+  stopLeaderboardPolling();
+});

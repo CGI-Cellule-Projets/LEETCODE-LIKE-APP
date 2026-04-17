@@ -8,8 +8,7 @@ BEGIN;
 
 -- -----------------------------------------------------
 -- Users (passwords are bcrypt hashes)
--- admin@dev.local / admin123
--- user1@demo.local, user2@demo.local, user3@demo.local / demo1234
+-- Demo accounts are seeded for local development only.
 -- -----------------------------------------------------
 INSERT INTO users (user_id, username, password, email, user_level, is_admin)
 VALUES
@@ -296,7 +295,7 @@ SET
 INSERT INTO announcements (announcement_id, title, content, posted_by, created_at)
 SELECT
   4001,
-  'Bienvenue sur AlgoForge Demo',
+  'Bienvenue sur LLA Demo',
   'Les donnees de demo sont chargees. Vous pouvez tester les concours et le dashboard admin.',
   user_id,
   NOW()

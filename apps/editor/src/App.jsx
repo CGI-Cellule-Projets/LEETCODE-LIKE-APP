@@ -1,17 +1,12 @@
 import { Suspense, lazy, startTransition, useEffect, useEffectEvent, useRef, useState } from 'react';
 import './App.css';
+import { applyStoredAppearance } from './appearance.js';
 
 const LazyMonacoEditor = lazy(() => import('@monaco-editor/react'));
 
 const starterCode = {
   javascript: '// Read the stdin text from the input argument.\nfunction solution(input) {\n  return input\n    .split(/\\s+/)\n    .filter(Boolean)\n    .reverse()\n    .join(" ");\n}\n',
   python: '# Write your solution here\ndef solution(input):\n    pass\n',
-};
-
-const accentPalette = {
-  sunset: { primary: "#ff6b3d", secondary: "#ff9f1c", glow: "rgba(255, 107, 61, 0.18)" },
-  ocean:  { primary: "#1f7fff", secondary: "#00b4d8", glow: "rgba(31, 127, 255, 0.2)" },
-  mint:   { primary: "#14b884", secondary: "#9ad84b", glow: "rgba(20, 184, 132, 0.2)" },
 };
 
 const LEGACY_PROGRESS_KEY = "lla-progress";
@@ -1360,33 +1355,8 @@ function App() {
 
     hydrateProblem();
 
-    // Apply saved theme & accent settings
-    try {
-      const settings = JSON.parse(localStorage.getItem("lla-settings") || "{}");
-      const root = document.documentElement;
-
-      // Theme
-      if (settings.theme === "night") {
-        document.body.classList.add("theme-night");
-        setEditorTheme("vs-dark");
-      } else {
-        document.body.classList.remove("theme-night");
-        setEditorTheme("light");
-      }
-
-      // Accent color
-      const palette = accentPalette[settings.accent] || accentPalette.sunset;
-      root.style.setProperty("--accent-primary", palette.primary);
-      root.style.setProperty("--accent-secondary", palette.secondary);
-      root.style.setProperty("--accent-glow", palette.glow);
-
-      // Motion
-      if (settings.motion === false) {
-        document.body.classList.add("motion-off");
-      }
-    } catch (e) {
-      // use defaults
-    }
+    const appearance = applyStoredAppearance();
+    setEditorTheme(appearance.editorTheme);
 
     return () => {
       isCancelled = true;

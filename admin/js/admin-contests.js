@@ -14,6 +14,51 @@ function escapeHtml(value) {
         .replace(/'/g, '&#39;');
 }
 
+function getProblemDefinitionsContainer() {
+    return document.getElementById('problemDefinitions');
+}
+
+function clearProblemDefinitionsError() {
+    const errorNode = document.getElementById('problemDefinitionsError');
+    if (!errorNode) {
+        return;
+    }
+
+    errorNode.textContent = '';
+    errorNode.hidden = true;
+}
+
+function showProblemDefinitionsError(message) {
+    const errorNode = document.getElementById('problemDefinitionsError');
+    if (!errorNode) {
+        return;
+    }
+
+    errorNode.textContent = message;
+    errorNode.hidden = false;
+}
+
+function refreshProblemRowMetadata() {
+    const rows = Array.from(document.querySelectorAll('.problem-entry'));
+    rows.forEach((row, index) => {
+        const problemLabel = row.querySelector('[data-problem-id-label]');
+        const pointsLabel = row.querySelector('[data-problem-points-label]');
+        const removeButton = row.querySelector('[data-remove-problem-row]');
+        const rowNumber = index + 1;
+
+        if (problemLabel) {
+            problemLabel.textContent = `ID du probleme ${rowNumber}`;
+        }
+        if (pointsLabel) {
+            pointsLabel.textContent = `Points ${rowNumber}`;
+        }
+        if (removeButton) {
+            removeButton.setAttribute('aria-label', `Supprimer la ligne du probleme ${rowNumber}`);
+            removeButton.disabled = rows.length <= 1;
+        }
+    });
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
     // Load contests
     await loadContests();
@@ -26,6 +71,7 @@ function setupEventListeners() {
     const cancelFormBtn = document.getElementById('cancelFormBtn');
     const addProblemRowBtn = document.getElementById('addProblemRowBtn');
     const contestForm = document.getElementById('contestForm');
+    const problemDefinitions = getProblemDefinitionsContainer();
 
     if (createContestBtn) {
         createContestBtn.addEventListener('click', showCreateForm);
@@ -42,6 +88,22 @@ function setupEventListeners() {
     if (contestForm) {
         contestForm.addEventListener('submit', handleFormSubmit);
     }
+
+    if (problemDefinitions) {
+        problemDefinitions.addEventListener('click', (event) => {
+            const removeButton = event.target.closest('[data-remove-problem-row]');
+            if (!removeButton) {
+                return;
+            }
+
+            const row = removeButton.closest('.problem-entry');
+            if (!row) {
+                return;
+            }
+
+            removeProblemRow(row.id.replace('problemRow-', ''));
+        });
+    }
 }
 
 function showCreateForm() {
@@ -51,12 +113,13 @@ function showCreateForm() {
     
     // reset defaults
     form.reset();
-    document.getElementById('problemDefinitions').innerHTML = '';
+    getProblemDefinitionsContainer().innerHTML = '';
     problemIndex = 0;
     addProblemRow();
     
     document.getElementById('formError').hidden = true;
     document.getElementById('formSuccess').hidden = true;
+    clearProblemDefinitionsError();
     
     formSection.hidden = false;
     if (listSection) {
@@ -71,35 +134,49 @@ function hideCreateForm() {
     if (listSection) {
         listSection.hidden = false;
     }
+    clearProblemDefinitionsError();
 }
 
 function addProblemRow() {
-    const container = document.getElementById('problemDefinitions');
+    const container = getProblemDefinitionsContainer();
     const row = document.createElement('div');
     row.className = 'problem-entry';
     row.id = `problemRow-${problemIndex}`;
     
     row.innerHTML = `
-        <label>ID du problème : 
+        <label>
+            <span data-problem-id-label>ID du probleme</span>
             <input type="number" class="prob-id-input" placeholder="Ex: 5" required>
         </label>
-        <label>Points : 
+        <label>
+            <span data-problem-points-label>Points</span>
             <input type="number" class="prob-points-input" value="100" min="1" required>
         </label>
-        <button type="button" class="btn-remove" onclick="removeProblemRow(${problemIndex})">X</button>
+        <button type="button" class="btn-remove" data-remove-problem-row>Supprimer</button>
     `;
     
     container.appendChild(row);
     problemIndex++;
+    clearProblemDefinitionsError();
+    refreshProblemRowMetadata();
 }
 
 function removeProblemRow(index) {
     const row = document.getElementById(`problemRow-${index}`);
-    if (row && document.querySelectorAll('.problem-entry').length > 1) {
-        row.remove();
-    } else {
-        alert("Un concours doit comporter au moins un problème.");
+    const rowCount = document.querySelectorAll('.problem-entry').length;
+    if (!row) {
+        return;
     }
+
+    if (rowCount <= 1) {
+        showProblemDefinitionsError('Un concours doit comporter au moins un probleme.');
+        refreshProblemRowMetadata();
+        return;
+    }
+
+    row.remove();
+    clearProblemDefinitionsError();
+    refreshProblemRowMetadata();
 }
 
 async function handleFormSubmit(e) {
@@ -115,6 +192,7 @@ async function handleFormSubmit(e) {
     const formSuccess = document.getElementById('formSuccess');
     formError.hidden = true;
     formSuccess.hidden = true;
+    clearProblemDefinitionsError();
 
     if (!title || !description || !rawStart || !rawEnd) {
         formError.textContent = ' Veuillez remplir tous les champs du sommet.';
@@ -138,16 +216,22 @@ async function handleFormSubmit(e) {
     for (const entry of entries) {
         const pId = entry.querySelector('.prob-id-input').value;
         const pPts = entry.querySelector('.prob-points-input').value;
+        const problemId = Number.parseInt(pId, 10);
+        const points = Number.parseInt(pPts, 10);
         
-        if (!pId) {
-            formError.textContent = ' Veuillez fournir un ID de problème valide pour chaque ligne.';
-            formError.hidden = false;
+        if (!pId || Number.isNaN(problemId)) {
+            showProblemDefinitionsError('Veuillez fournir un ID de probleme valide pour chaque ligne.');
+            return;
+        }
+
+        if (!pPts || Number.isNaN(points) || points < 1) {
+            showProblemDefinitionsError('Veuillez fournir un nombre de points valide pour chaque probleme.');
             return;
         }
         
         mappingPayload.push({
-            problem_id: parseInt(pId),
-            points: parseInt(pPts)
+            problem_id: problemId,
+            points
         });
     }
 

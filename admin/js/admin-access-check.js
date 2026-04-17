@@ -4,9 +4,66 @@
  * Redirects unauthorized users to centralized login page
  */
 
+function getLocalAppOrigin() {
+  const host = ['localhost', '127.0.0.1'].includes(window.location.hostname)
+    ? window.location.hostname
+    : '127.0.0.1';
+
+  return `${window.location.protocol === 'https:' ? 'https' : 'http'}://${host}:3000`;
+}
+
+function redirectToCanonicalAdminOrigin() {
+  const currentPath = String(window.location.pathname || '').replace(/\\/g, '/');
+  const adminSegmentIndex = currentPath.toLowerCase().lastIndexOf('/admin/');
+  const adminPath = adminSegmentIndex >= 0
+    ? currentPath.slice(adminSegmentIndex)
+    : `/admin/${currentPath.split('/').filter(Boolean).pop() || 'dashboard.html'}`;
+  const appOrigin = getLocalAppOrigin();
+
+  if (window.location.protocol === 'file:') {
+    window.location.replace(`${appOrigin}${adminPath}${window.location.search}${window.location.hash}`);
+    return true;
+  }
+
+  const isLoopbackHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+  if (!isLoopbackHost) {
+    return false;
+  }
+
+  if (window.location.port === '3000' && adminSegmentIndex >= 0) {
+    return false;
+  }
+
+  window.location.replace(`${appOrigin}${adminPath}${window.location.search}${window.location.hash}`);
+  return true;
+}
+
+function normalizeUserSession(rawUser) {
+  const source = rawUser && typeof rawUser === 'object' && rawUser.user && typeof rawUser.user === 'object'
+    ? rawUser.user
+    : rawUser;
+
+  if (!source || typeof source !== 'object') {
+    return null;
+  }
+
+  return {
+    id: source.id || source.user_id || null,
+    user_id: source.user_id || source.id || null,
+    username: source.username || '',
+    email: source.email || '',
+    level: source.level || source.user_level || 'beginner',
+    role: source.role || (source.is_admin ? 'admin' : 'user'),
+    is_admin: Boolean(source.is_admin),
+  };
+}
+
 async function checkAdminAccess() {
   const USER_SPACE_HREF = '../apps/web/problems.html';
   const USER_SPACE_LABEL = 'Espace Utilisateur';
+  if (redirectToCanonicalAdminOrigin()) {
+    return false;
+  }
   const isLocalFile = window.location.protocol === 'file:';
   const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
 
@@ -34,16 +91,18 @@ async function checkAdminAccess() {
     });
     const payload = await response.json();
     if (response.ok && payload.success && payload.data) {
-      sessionUser = payload.data;
-      localStorage.setItem('user_info', JSON.stringify(payload.data));
+      sessionUser = normalizeUserSession(payload.data);
+      if (sessionUser) {
+        localStorage.setItem('user_info', JSON.stringify(sessionUser));
+      }
     }
   } catch (error) {
     console.warn('Unable to verify admin session against API.', error);
   }
 
   try {
-    const storedUser = JSON.parse(localStorage.getItem('user_info') || '{}');
-    if (!sessionUser && storedUser && typeof storedUser === 'object') {
+    const storedUser = normalizeUserSession(JSON.parse(localStorage.getItem('user_info') || '{}'));
+    if (!sessionUser && storedUser) {
       sessionUser = storedUser;
     }
   } catch (error) {
