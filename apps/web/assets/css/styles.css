@@ -232,36 +232,48 @@ img {
     position: sticky;
     top: 0;
     z-index: 40;
-    backdrop-filter: blur(14px);
-    background: rgba(248, 247, 243, 0.74);
-    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(10px);
+    background: rgba(248, 247, 243, 0.88);
+    border-bottom: 1px solid rgba(23, 33, 45, 0.08);
+    transition: background 0.2s ease, box-shadow 0.2s ease;
 }
 
 body.theme-night .topbar {
-    background: rgba(15, 23, 34, 0.78);
+    background: rgba(15, 23, 34, 0.88);
 }
 
 /* JS adds .scrolled class when page scrolls past 10px */
 .topbar.scrolled {
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 24px rgba(13, 24, 36, 0.11);
 }
 
 body.theme-night .topbar.scrolled {
-    box-shadow: 0 2px 16px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .topbar-inner {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto;
+    display: flex;
     align-items: center;
-    min-height: 74px;
-    gap: 14px;
+    min-height: 72px;
+    gap: 10px;
 }
 
 .brand {
-    font-size: 1.4rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.18rem;
     font-weight: 800;
-    letter-spacing: -0.03em;
+    letter-spacing: -0.02em;
+}
+
+.brand::before {
+    content: "";
+    width: 12px;
+    height: 12px;
+    border-radius: 4px;
+    background: linear-gradient(130deg, var(--accent), var(--accent-2));
+    box-shadow: 0 4px 14px var(--accent-soft);
 }
 
 .brand span {
@@ -276,35 +288,49 @@ body.theme-night .topbar.scrolled {
 }
 
 .main-nav {
-    grid-column: 2;
-    justify-self: center;
+    margin-left: clamp(18px, 3vw, 44px);
     justify-content: center;
 }
 
 body.is-admin-user .main-nav {
-    transform: translateX(-22px);
+    margin-left: clamp(8px, 1.5vw, 22px);
 }
 
 .nav-actions {
-    grid-column: 3;
-    width: 100%;
-    justify-self: end;
+    margin-left: auto;
     flex-wrap: nowrap;
     justify-content: flex-end;
     white-space: nowrap;
-    gap: var(--nav-action-gap);
+    gap: 8px;
 }
 
 .nav-actions .btn {
-    padding: 9px 14px;
+    padding: 8px 13px;
+    font-size: 0.86rem;
+    font-weight: 700;
 }
 
 .nav-link {
+    position: relative;
     font-weight: 600;
     color: var(--muted);
-    padding: 8px 10px;
-    border-radius: 10px;
+    padding: 8px 9px;
+    border-radius: 8px;
     transition: color 0.2s ease, background 0.2s ease;
+}
+
+.nav-link::after {
+    content: "";
+    position: absolute;
+    left: 9px;
+    right: 9px;
+    bottom: 4px;
+    height: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.2s ease;
 }
 
 /* aria-current="page" is set on the active page's link for accessibility */
@@ -312,7 +338,12 @@ body.is-admin-user .main-nav {
 .nav-link.active,
 .nav-link[aria-current="page"] {
     color: var(--text);
-    background: var(--accent-soft);
+    background: rgba(var(--accent-rgb), 0.1);
+}
+
+.nav-link.active::after,
+.nav-link[aria-current="page"]::after {
+    transform: scaleX(1);
 }
 
 /* Hamburger button � hidden on desktop, shown at 1160px breakpoint, hamburger menu howa hada  */ 
@@ -323,6 +354,7 @@ body.is-admin-user .main-nav {
     background: var(--surface-2);
     border-radius: 12px;
     display: none;
+    margin-left: auto;
     justify-content: center;
     align-items: center;
     flex-direction: column;
@@ -466,8 +498,8 @@ select {
 
 .nav-shortcut {
     border-radius: 999px;
-    padding: 10px 16px;
-    font-size: 0.9rem;
+    padding: 8px 14px;
+    font-size: 0.84rem;
     font-weight: 700;
 }
 
@@ -483,14 +515,14 @@ select {
 }
 
 .nav-shortcut-profile {
-    background: linear-gradient(130deg, #21b663, #7bdc4e);
+    background: linear-gradient(130deg, #ff6b3d, #ff9f1c);
     color: #fff;
-    border: 1px solid rgba(20, 107, 57, 0.2);
-    box-shadow: 0 12px 26px rgba(33, 182, 99, 0.24);
+    border: 1px solid rgba(198, 95, 42, 0.22);
+    box-shadow: 0 10px 22px rgba(var(--accent-rgb), 0.26);
 }
 
 .nav-shortcut-profile.is-active {
-    box-shadow: 0 16px 30px rgba(33, 182, 99, 0.3);
+    box-shadow: 0 12px 26px rgba(var(--accent-rgb), 0.3);
 }
 
 body.theme-night .nav-shortcut-settings {
