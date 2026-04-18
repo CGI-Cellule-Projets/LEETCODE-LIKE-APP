@@ -5,6 +5,29 @@
 
 let currentContestId = null;
 
+function getDemoContest(contestId) {
+    const demoData = window.LLADemoData;
+    if (!demoData?.contestProblems) {
+        return null;
+    }
+
+    const contestKey = Number(contestId);
+    const contestList = [
+        ...(demoData.contests?.active || []),
+        ...(demoData.contests?.upcoming || []),
+        ...(demoData.contests?.past || []),
+    ];
+    const contest = contestList.find((item) => Number(item.contest_id) === contestKey) || null;
+    if (!contest) {
+        return null;
+    }
+
+    return {
+        ...contest,
+        problems: demoData.contestProblems[contestKey] || [],
+    };
+}
+
 function escapeHtml(value) {
     return String(value ?? '')
         .replace(/&/g, '&amp;')
@@ -68,10 +91,34 @@ async function fetchAndRenderContest(id) {
 
         if (response.success && response.data) {
             renderContestUI(response.data);
+            const statusNode = document.getElementById('contestStatusMsg');
+            if (statusNode) {
+                statusNode.textContent = '';
+            }
         } else {
+            const fallbackContest = getDemoContest(id);
+            if (fallbackContest) {
+                renderContestUI(fallbackContest);
+                const statusNode = document.getElementById('contestStatusMsg');
+                if (statusNode) {
+                    statusNode.textContent = 'Données de démonstration affichées.';
+                }
+                return;
+            }
+
             showErrorView();
         }
     } catch (error) {
+        const fallbackContest = getDemoContest(id);
+        if (fallbackContest) {
+            renderContestUI(fallbackContest);
+            const statusNode = document.getElementById('contestStatusMsg');
+            if (statusNode) {
+                statusNode.textContent = 'API indisponible, données de démonstration affichées.';
+            }
+            return;
+        }
+
         showErrorView();
         console.error(error);
     }
@@ -84,6 +131,11 @@ function renderContestUI(contest) {
 
     document.getElementById('cTitle').textContent = contest.title;
     document.getElementById('cDesc').textContent = contest.description;
+
+    const statusNode = document.getElementById('contestStatusMsg');
+    if (statusNode) {
+        statusNode.textContent = '';
+    }
 
     document.getElementById('cStart').textContent = new Date(contest.start_time).toLocaleString('fr-FR');
     document.getElementById('cEnd').textContent = new Date(contest.end_time).toLocaleString('fr-FR');
