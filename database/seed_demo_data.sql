@@ -166,12 +166,12 @@ ON CONFLICT (user_id, topic_id) DO NOTHING;
 -- -----------------------------------------------------
 INSERT INTO contests (contest_id, title, start_time, end_time, description)
 VALUES
-  (2001, 'Weekly Contest 201', NOW() - INTERVAL '90 minutes', NOW() + INTERVAL '30 minutes',
-   'Contest actif pour la demo avec leaderboard visible.'),
+  (2001, 'Demo Sprint 201', NOW() - INTERVAL '90 minutes', NOW() + INTERVAL '30 minutes',
+   'Contest actif pour la demo avec leaderboard visible et problemes deja charges.'),
   (2002, 'Spring Sprint Warmup', NOW() + INTERVAL '1 day', NOW() + INTERVAL '1 day 2 hours',
    'Contest a venir orienté arrays et binary search.'),
   (2003, 'Archive Contest 199', NOW() - INTERVAL '7 days', NOW() - INTERVAL '7 days + 2 hours',
-   'Contest terminé disponible en archive.')
+   'Contest termine disponible en archive avec resultats consultables.')
 ON CONFLICT (contest_id) DO UPDATE
 SET
   title = EXCLUDED.title,
@@ -295,8 +295,8 @@ SET
 INSERT INTO announcements (announcement_id, title, content, posted_by, created_at)
 SELECT
   4001,
-  'Bienvenue sur LLA Demo',
-  'Les donnees de demo sont chargees. Vous pouvez tester les concours et le dashboard admin.',
+  'LLA Demo Ready',
+  'Les donnees de demo sont chargees. Vous pouvez tester le catalogue, les concours, le leaderboard et le dashboard admin.',
   user_id,
   NOW()
 FROM users

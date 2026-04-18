@@ -4,6 +4,20 @@
  */
 
 let allContests = [];
+let usingDemoContests = false;
+
+function getDemoContests() {
+    const demoData = window.LLADemoData;
+    if (!demoData?.contests) {
+        return [];
+    }
+
+    return [
+        ...(demoData.contests.upcoming || []).map((contest) => ({ ...contest, listing_type: 'upcoming' })),
+        ...(demoData.contests.active || []).map((contest) => ({ ...contest, listing_type: 'active' })),
+        ...(demoData.contests.past || []).map((contest) => ({ ...contest, listing_type: 'past' })),
+    ];
+}
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -53,11 +67,34 @@ async function loadContests() {
                 ...response.data.past.map(c => ({...c, listing_type: 'past'}))
             ];
 
+            if (allContests.length === 0) {
+                allContests = getDemoContests();
+                usingDemoContests = allContests.length > 0;
+            } else {
+                usingDemoContests = false;
+            }
+
             applyFilters(); // Initial render
         } else {
+            allContests = getDemoContests();
+            if (allContests.length > 0) {
+                usingDemoContests = true;
+                applyFilters();
+                return;
+            }
+
+            usingDemoContests = false;
             showError('Impossible de charger les concours depuis l API.');
         }
     } catch (err) {
+        allContests = getDemoContests();
+        if (allContests.length > 0) {
+            usingDemoContests = true;
+            applyFilters();
+            return;
+        }
+
+        usingDemoContests = false;
         showError('Impossible de charger les concours depuis l API.');
     }
 }
@@ -98,7 +135,7 @@ function renderGrid(contests) {
     const countElement = document.getElementById('cardCount');
     
     if (countElement) {
-        countElement.textContent = `${contests.length} concours trouve${contests.length !== 1 ? 's' : ''}`;
+        countElement.textContent = `${contests.length} concours trouve${contests.length !== 1 ? 's' : ''}${usingDemoContests ? ' • données de démonstration' : ''}`;
     }
 
     if (contests.length === 0) {

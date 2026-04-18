@@ -2266,26 +2266,46 @@ body.theme-night .admin-topbar {
 }
 
 .admin-nav-link {
+    position: relative;
     color: var(--admin-muted);
     text-decoration: none;
     font-weight: 600;
-    padding: 0.62rem 0.95rem;
-    border: 1px solid transparent;
+    padding: 8px 9px;
+    border-radius: 8px;
+    transition: color 0.2s ease, background 0.2s ease;
+}
+
+.admin-nav-link::after {
+    content: "";
+    position: absolute;
+    left: 9px;
+    right: 9px;
+    bottom: 4px;
+    height: 2px;
     border-radius: 999px;
-    transition: all 0.2s ease;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.2s ease;
 }
 
 .admin-nav-link:hover,
-.admin-nav-link.active {
+.admin-nav-link.active,
+.admin-nav-link[aria-current="page"] {
     color: var(--admin-ink);
-    background: var(--admin-accent-soft);
-    border-color: rgba(15, 155, 184, 0.34);
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.admin-nav-link.active::after,
+.admin-nav-link[aria-current="page"]::after {
+    transform: scaleX(1);
 }
 
 body.theme-night .admin-nav-link:hover,
-body.theme-night .admin-nav-link.active {
+body.theme-night .admin-nav-link.active,
+body.theme-night .admin-nav-link[aria-current="page"] {
     color: var(--admin-ink);
-    background: linear-gradient(135deg, rgba(56, 199, 222, 0.28), rgba(22, 179, 127, 0.22));
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .admin-actions {

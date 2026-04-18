@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LLA | Details du Concours (BETA)</title>
+    <title>LLA | Details du Concours</title>
     <meta name="description" content="Apercu des defis algorithmiques du concours.">
     <meta name="theme-color" content="#ff6b3d">
     <meta property="og:type" content="website">
@@ -30,7 +30,7 @@
             <nav class="main-nav" aria-label="Navigation principale">
                 <a class="nav-link" href="index.html">Accueil</a>
                 <a class="nav-link" href="problems.html">Problemes</a>
-                <a class="nav-link active" href="contest.html" aria-current="page">Concours (BETA)</a>
+                <a class="nav-link active" href="contest.html" aria-current="page">Concours</a>
             </nav>
             <div class="nav-actions">
                 <a class="btn btn-primary guest-only" href="login.html">Connexion</a>
@@ -46,7 +46,7 @@
         <nav id="mobileMenu" class="mobile-menu" aria-label="Navigation mobile">
             <a class="mobile-link" href="index.html">Accueil</a>
             <a class="mobile-link" href="problems.html">Problemes</a>
-            <a class="mobile-link" href="contest.html" aria-current="page">Concours (BETA)</a>
+            <a class="mobile-link" href="contest.html" aria-current="page">Concours</a>
             <a class="mobile-link" href="parameters.html">Parametres</a>
             <a class="mobile-link requires-auth" href="profile.html">Profil</a>
             <a class="btn btn-primary wide guest-only" href="login.html">Connexion</a>
@@ -67,8 +67,9 @@
 
                 <div id="contestDataView" hidden>
                     <div class="panel contest-details-card">
-                        <h1 id="cTitle">Titre du Concours</h1>
-                        <p id="cDesc" class="lead">Description lorem ipsum dolor</p>
+                        <h1 id="cTitle">Demo Sprint 201</h1>
+                        <p id="cDesc" class="lead">Contest actif pour la demo avec leaderboard visible et problemes deja charges.</p>
+                        <p id="contestStatusMsg" class="contest-register-msg" aria-live="polite"></p>
 
                         <div class="contest-details-meta">
                             <p>
@@ -116,6 +117,7 @@
         </div>
     </footer>
 
+    <script src="assets/js/demo-data.js"></script>
     <script src="assets/js/api.js"></script>
     <script src="assets/js/script.js"></script>
     <script src="assets/js/contest-details.js"></script>

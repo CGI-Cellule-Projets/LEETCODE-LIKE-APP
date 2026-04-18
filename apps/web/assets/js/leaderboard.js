@@ -4,6 +4,35 @@ let leaderboardPollId = null;
 let leaderboardContest = null;
 const LEADERBOARD_POLL_MS = 15000;
 
+function getDemoContest(contestId) {
+  const demoData = window.LLADemoData;
+  if (!demoData?.contests) {
+    return null;
+  }
+
+  const contestKey = Number(contestId);
+  const contest = [
+    ...(demoData.contests.active || []),
+    ...(demoData.contests.upcoming || []),
+    ...(demoData.contests.past || []),
+  ].find((item) => Number(item.contest_id) === contestKey);
+
+  if (!contest) {
+    return null;
+  }
+
+  return contest;
+}
+
+function getDemoLeaderboard(contestId) {
+  const demoData = window.LLADemoData;
+  if (!demoData?.leaderboardEntries) {
+    return [];
+  }
+
+  return demoData.leaderboardEntries[Number(contestId)] || [];
+}
+
 function escapeHtml(value) {
   return String(value ?? '')
     .replace(/&/g, '&amp;')
@@ -185,19 +214,37 @@ function showLoaded(contest, entries) {
 }
 
 async function fetchContest(contestId) {
-  const apiResult = await apiGetContestById(contestId);
-  if (apiResult.success && apiResult.data) {
-    return apiResult.data;
+  try {
+    const apiResult = await apiGetContestById(contestId);
+    if (apiResult.success && apiResult.data) {
+      return apiResult.data;
+    }
+  } catch {
+    // Fall through to demo content.
   }
+
+  const demoContest = getDemoContest(contestId);
+  if (demoContest) {
+    return {
+      ...demoContest,
+      problems: window.LLADemoData?.contestProblems?.[Number(contestId)] || [],
+    };
+  }
+
   return null;
 }
 
 async function fetchLeaderboardEntries(contestId) {
-  const response = await apiGetContestLeaderboard(contestId);
-  if (response && response.success && Array.isArray(response.data)) {
-    return response.data;
+  try {
+    const response = await apiGetContestLeaderboard(contestId);
+    if (response && response.success && Array.isArray(response.data)) {
+      return response.data.length > 0 ? response.data : getDemoLeaderboard(contestId);
+    }
+  } catch {
+    // Fall through to demo content.
   }
-  return [];
+
+  return getDemoLeaderboard(contestId);
 }
 
 async function refreshLeaderboardEntries({ silent = true } = {}) {

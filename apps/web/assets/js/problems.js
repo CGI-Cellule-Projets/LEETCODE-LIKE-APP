@@ -20,6 +20,12 @@
 }
 
 const PROBLEMS_API_BASE_URL = resolveProblemsApiBaseUrl();
+let usingDemoProblems = false;
+
+function getDemoProblems() {
+    const demoProblems = window.LLADemoData?.problems;
+    return Array.isArray(demoProblems) ? demoProblems : [];
+}
 
 const difficultyMeta = {
     easy: { label: 'Facile', className: 'easy', filterValue: 'easy' },
@@ -125,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const updateVisibleState = (visibleProblems) => {
         noResults.hidden = visibleProblems.length > 0;
-        cardCount.textContent = `${visibleProblems.length} probleme${visibleProblems.length !== 1 ? 's' : ''} trouve${visibleProblems.length !== 1 ? 's' : ''}`;
+        cardCount.textContent = `${visibleProblems.length} probleme${visibleProblems.length !== 1 ? 's' : ''} trouve${visibleProblems.length !== 1 ? 's' : ''}${usingDemoProblems ? ' • données de démonstration' : ''}`;
     };
 
     const renderProblems = (visibleProblems) => {
@@ -196,8 +202,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             allProblems = Array.isArray(payload.data) ? payload.data : [];
+            if (allProblems.length === 0) {
+                allProblems = getDemoProblems();
+                usingDemoProblems = allProblems.length > 0;
+            } else {
+                usingDemoProblems = false;
+            }
             applyFilters();
         } catch (error) {
+            allProblems = getDemoProblems();
+
+            if (allProblems.length > 0) {
+                usingDemoProblems = true;
+                applyFilters();
+                return;
+            }
+
+            usingDemoProblems = false;
             grid.innerHTML = '<p class="no-data">Impossible de charger les problemes depuis la base de donnees.</p>';
             noResults.hidden = true;
             cardCount.textContent = '0 probleme trouve';
